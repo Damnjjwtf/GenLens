@@ -50,3 +50,27 @@ export const ANTHROPIC_MODEL = 'claude-sonnet-4-20250514';
 
 export const INVITE_COOKIE = 'genlens_invite';
 export const INVITE_COOKIE_TTL_SECONDS = 60 * 30;
+
+// X accounts monitored via web search fallback (not RSS-scraped).
+// Twitter API v2 free tier rate limits make direct scraping impractical.
+// Verify handles are still active before adding more.
+export const MONITORED_X_ACCOUNTS = {
+  product_photography: [
+    'claid_ai',
+    'photoroomapp',
+  ],
+  filmmaking: [
+    'runwayml',
+    'wonderdynamics',
+    'davinciresolve',
+  ],
+  digital_humans: [
+    'elevenlabsio',
+    'heygen_official',
+    'descript',
+  ],
+  practitioners: [
+    'karenxcheng',
+    'bilawal',
+  ],
+} as const;
