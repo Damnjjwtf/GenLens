@@ -8,15 +8,24 @@ Read this file before starting work.
 ## PROJECT CONTEXT
 
 GenLens is daily intelligence for creative technologists working in
-AI-accelerated visual production (product photography, filmmaking,
-digital humans). It scrapes 130+ sources across 10 dimensions and
-synthesizes daily briefings.
+AI-accelerated visual production. Three active verticals, three deferred.
 
 Stack: Next.js 14 (App Router), Neon Postgres, NextAuth v5, Resend,
 Anthropic Claude API (`claude-sonnet-4-20250514`), Tailwind, Vercel.
 
-See `GENLENS_CLAUDE_CODE_BRIEF.md` for full architecture and
-`GENLENS_FOR_CREATIVES_COMPLETE_SPEC.md` for product spec.
+**Active verticals:**
+1. Product Photography (hard goods, soft goods, lifestyle)
+2. Commercial Filmmaking (VFX, color grading, motion)
+3. Digital Humans (synthetic actors, voice, animation)
+
+**Deferred verticals (see BACKLOG.md):**
+4. Music Production / Audio
+5. AI-Accelerated Design / Motion Graphics
+6. Fashion / Apparel / Textile Design
+
+See `GENLENS_CLAUDE_CODE_BRIEF.md` for full architecture,
+`GENLENS_FOR_CREATIVES_COMPLETE_SPEC.md` for product spec,
+and `TOOLS_MANIFEST.md` for canonical list of 130+ tools.
 
 ---
 
@@ -146,16 +155,43 @@ Humans purple.
 
 ---
 
+## OPT-OUT & CREATOR PRIVACY RULES
+
+The leaderboard and creator pages are public. This requires strict opt-out handling.
+
+**Leaderboard opt-out levels:**
+- `opt_out_level = NULL` (default): creator visible on leaderboard, signals attributed
+- `opt_out_level = 'leaderboard'`: creator visible in signals & templates, NOT ranked
+- `opt_out_level = 'full'`: creator removed entirely, historical signals anonymized
+
+**On every public creator page:**
+- Add footer link: "Not you? Claim or remove this profile"
+- If `opt_out_level = 'full'`, render "Profile removed at creator's request" instead of 404
+- If claimed by creator (FK user_id set), show "Claimed by [creator name]" + edit link
+
+**Processing SLA:**
+- Full removal: within 24 hours (email verification required)
+- Leaderboard suppression: immediate (no verification)
+- Claims: immediate (require email match)
+
+**Do NOT:**
+- Display a creator on the leaderboard if `opt_out_level` is set
+- Attribute signals to a creator if `opt_out_level = 'full'`
+- Create new creator entries from scraped data without consent (only ingest data; only show publicly if opt-in)
+
+---
+
 ## BACKLOG & GAPS WORKFLOW
 
 When working on adjacent code, check both `BACKLOG.md` and `GAPS.md`.
 
 **BACKLOG.md** — features we've deliberately shelved (Score Arbitrage,
-Rate Card, etc.) with explicit revisit triggers.
+Rate Card, etc.) + three deferred verticals (Music, Motion Graphics, Fashion).
+Explicit revisit triggers for each.
 
 **GAPS.md** — critical gaps that block full product launch, organized by
 category (critical, UX, data quality, future surfaces). Includes a
-"minimum viable checklist" for Phase 2 launch.
+"minimum viable checklist" for Phase 2 launch. **Opt-out mechanism is gap #0.**
 
 If you notice that a deferred item's revisit condition is now met, or a
 gap's blocker condition is satisfied, surface it in your response.

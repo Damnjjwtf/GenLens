@@ -10,6 +10,29 @@ Comprehensive inventory of missing pieces. Organized by criticality and blocker 
 
 These must be addressed before launching Score, Index, or personalized briefings.
 
+### 0. Creator Opt-Out Mechanism (LEGAL + TRUST)
+
+**What's missing:**
+- `leaderboard_creators.opt_out_level` column (NULL | 'leaderboard' | 'full')
+- `leaderboard_creators.claimed_by` (FK to users, allows creator to claim profile)
+- Claim/remove/edit flow via one-line footer on public creator pages: "Not you? Claim or remove"
+- Processing SLA: full removal within 24 hours (anonymize historical attribution)
+- Leaderboard suppression: immediate (creator visible in signals, not in rankings)
+- Data correction request flow (user disputes their own metric)
+
+**Why critical:**
+- Legal risk: if you publish creator data without consent/opt-out, GDPR/CCPA liability is real
+- Trust: creators will check for themselves. If they find their rank without recourse, resentment turns into bad press
+- Network effect blocker: creator who feels wronged will tell their audience GenLens is unfair
+
+**Blocks:** Public leaderboard launch, creator opt-in partnerships
+**Severity:** High (legal + platform viability)
+**Effort estimate:** 2-3 days (schema + email verification + UI)
+
+**Revisit trigger:** Before leaderboard goes public. Non-negotiable.
+
+---
+
 ### 1. User Workflow Logging System
 
 **What's missing:**

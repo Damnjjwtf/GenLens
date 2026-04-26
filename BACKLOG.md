@@ -11,6 +11,93 @@ Review this file:
 
 ---
 
+## NEW VERTICALS (Phase 3+)
+
+### Vertical 4: Music Production / Audio
+
+**What:** Daily intelligence for music producers, sound designers, audio engineers working in AI-accelerated composition, stem separation, mastering, and voice synthesis.
+
+**Why it matters:** ElevenLabs, Suno, Udio are moving as fast as visual tools. Producers want to know: which AI mastering tools are trusted? Can you actually use Suno-generated stems commercially? What's the latest on stem separation quality?
+
+**Sources already tracked:** 35+ (Suno, Udio, AIVA, iZotope, Descript, Logic Pro, Ableton, Reaper, Splice, etc.) See TOOLS_MANIFEST.md for full list.
+
+**Dimensions map:**
+1. Workflow stages: composition, arrangement, stem separation, mixing, mastering, distribution
+5. Cost/time delta: "AI mastering costs $0.99, human mastering costs $500"
+6. Legal: mechanical licensing for AI composition, copyright of generated music, disclosure
+7. Hiring: producers who can use Suno command 2-3x rates in gig markets
+
+**Accent color:** Cyan (cool, distinct from lime/amber/purple)
+
+**Revisit when:**
+- 100+ active users, Music Production appears in 15%+ of "What's your discipline?" survey
+- Or: Suno/Udio licensing questions spike in support (signal creatives care)
+
+---
+
+### Vertical 5: AI-Accelerated Design / Motion Graphics
+
+**What:** Daily intelligence for motion designers, UI animators, interaction designers using AI to accelerate design systems, prototyping, and animation.
+
+**Why it matters:** Cavalry, Rive, Jitter, Haiku Animator transforming motion creation. Figma + AI plugins, Midjourney for layout, Stable Diffusion for assets. Arguably more practitioners than Product Photography.
+
+**Sources already tracked:** 40+ (Cavalry, Rive, Jitter, Haiku, Figma, Midjourney, Stable Diffusion, Framer, Spline, etc.) See TOOLS_MANIFEST.md for full list.
+
+**Dimensions map:**
+1. Workflow stages: ideation, composition, layout, animation, prototyping, implementation
+4. Templates: "Haiku + Figma workflow: 8 hours per design system component"
+9. Trends: micro-interactions, generative layouts, code-driven animation
+
+**Accent color:** Blue (professional, tech-adjacent)
+
+**Revisit when:**
+- 100+ active users, Motion Design/Graphics appears in 15%+ of survey
+- Or: After Effects + Cavalry tool chains appear in signals with high frequency
+- Or: Motion designers self-report as separate from Filmmaking users
+
+---
+
+### Vertical 6: Fashion / Apparel / Textile Design
+
+**What:** Daily intelligence for fashion designers, pattern makers, apparel technologists using AI for garment simulation, fabric generation, fit prediction, and trend forecasting.
+
+**Why it matters:** CLO 3D, Marvelous Designer adoption accelerating. AI fabric generation (Midjourney, Stable Diffusion) for texture. Size prediction AI (True Fit, SizeScale). Trend forecasting (WGSN, Fashion Snoops) + generative tools.
+
+**Sources already tracked:** 30+ (CLO 3D, Marvelous Designer, Browzwear, True Fit, WGSN, Printful, etc.) See TOOLS_MANIFEST.md for full list.
+
+**Dimensions map:**
+2. Category deep dive: soft goods (currently under Product Photography), textiles, hybrid
+5. Cost/time delta: "CLO 3D saves 8 hours per garment vs. physical sample"
+7. Hiring: pattern graders who know Lectra + AI at 45% higher salaries
+
+**Accent color:** Pink / warm (creative, fashion-adjacent)
+
+**Key question before building:** Are fashion designers self-identifying as separate from "product photographers (apparel)" or are they the same user?
+
+**Revisit when:**
+- 20%+ of survey respondents identify as "fashion designer" vs. "product photographer"
+- Or: CLO 3D + Marvelous Designer signals dominate soft goods category
+- Or: You identify fashion-specific communities (CLO Discord, Fashion Snoops forums) unreached by Product Photography channels
+
+---
+
+## SHELVED VERTICALS (do not pursue)
+
+### Game Development / Real-Time 3D
+**Why:** Strong existing communities (GDC, Gamasutra, r/GameDev, Discord). GenLens adds no value. Skip.
+
+### Scientific Visualization / Data
+**Why:** Different audience (researchers, academics). No creative technologist overlap. Skip.
+
+### Medical Imaging / Healthcare
+**Why:** Regulated industry. Clinical requirements. Different tools. Not a GenLens use case. Skip.
+
+---
+
+## ORIGINAL BACKLOG ITEMS
+
+---
+
 ## GenLens Arbitrage
 
 **What:** Time-bounded pricing-opportunity alerts. Example: voice synthesis
