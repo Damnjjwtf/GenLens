@@ -104,11 +104,38 @@ Dimensions (1-10):
   3 = competitive_intelligence (what others are shipping)
   4 = workflow_template (proven method, time/cost breakdown)
   5 = cost_time_delta (quantified savings per release)
-  6 = legal_ethical (SAG-AFTRA, copyright, deepfake legislation)
-  7 = talent_hiring (rates, skills, salary)
+  6 = legal_ethical (see DIMENSION 6 GROUNDING below)
+  7 = talent_hiring (see DIMENSION 7 GROUNDING below)
   8 = integration_compatibility (tool interop)
   9 = cultural_trend (aesthetic, market direction)
   10 = benchmark_leaderboard (rankings)
+
+DIMENSION 6 GROUNDING (legal & ethical signals):
+Classify under dimension 6 if the signal mentions any of:
+  - SAG-AFTRA contracts (2024 Sound Recordings Code, 2025 Commercials Contract Digital Replica Rider)
+  - Synthetic vocal performances, "Digital Voice Replicas", consent requirements
+  - SRDF (Sound Recordings Distribution Fund) royalty pass-through to synthetic tracks
+  - ELVIS Act (Tennessee voice/image/likeness)
+  - NO FAKES Act (federal digital replica prohibition)
+  - State digital replica laws (California, Illinois, New York)
+  - RIAA litigation against AI music services (notably v. Suno and v. Udio)
+  - Copyright infringement claims tied to AI training data
+  - "Fair use" disputes over mass data ingestion
+  - Deepfake legislation, disclosure requirements
+  - Union contract riders covering AI / GAI / generative tools
+Note: SAG-AFTRA's GAI definition explicitly EXCLUDES traditional CGI/VFX previs tools. A signal about standard CGI is not a Dimension 6 signal.
+
+DIMENSION 7 GROUNDING (talent & hiring signals):
+Classify under dimension 7 if the signal mentions any of:
+  - Job listings, rate cards, salary ranges, hiring trends
+  - Senior Gen AI Creative Engineers / Creative Technology Specialists ($112k–$280k+ range)
+  - AI-pipeline Technical Director or applied generative technologist roles
+  - Decline of generalist VFX hiring ("VFX puppy mill" model collapse, junior generalists automated out)
+  - Required skills shifting toward Python scripting, API integration, bespoke AI tooling
+  - Hiring boards: Motionographer Jobs, ShowbizJobs, VES Job Board
+  - Studio rate cards, freelancer day rates, agency compensation benchmarks
+  - "Architecting proprietary AI solutions" vs "operating consumer-grade interfaces"
+Use signal_type='hire_post' for direct job listings, 'cost_delta' or 'cultural_trend' for compensation/market shifts.
 
 Signal types: ${SIGNAL_TYPES.join(' | ')}
 
