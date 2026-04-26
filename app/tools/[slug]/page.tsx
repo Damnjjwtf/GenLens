@@ -5,9 +5,9 @@
  * SEO + GEO optimized: FAQ schema, meta description, structured Q&A.
  * Affiliate link on every page.
  *
- * genlens.io/tools/elevenlabs
- * genlens.io/tools/keyshot
- * genlens.io/tools/runway
+ * genlens.app/tools/elevenlabs
+ * genlens.app/tools/keyshot
+ * genlens.app/tools/runway
  */
 
 import { neon } from '@neondatabase/serverless'
@@ -30,12 +30,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     openGraph: {
       title: `${tool.canonical_name} — GenLens`,
       description: tool.meta_description,
-      url: `https://genlens.io/tools/${params.slug}`,
+      url: `https://genlens.app/tools/${params.slug}`,
       siteName: 'GenLens',
       type: 'website',
     },
     alternates: {
-      canonical: `https://genlens.io/tools/${params.slug}`,
+      canonical: `https://genlens.app/tools/${params.slug}`,
     },
   }
 }

@@ -214,7 +214,7 @@ ${signalContext}
 OUTPUT FORMAT — respond with valid JSON only, no markdown:
 {
   "x_post": {
-    "content": "Post text, max 280 chars. Hook first. Stat if available. End with: Full briefing → genlens.io",
+    "content": "Post text, max 280 chars. Hook first. Stat if available. End with: Full briefing → genlens.app",
     "signal_ids": [1, 2]
   },
   "linkedin_post": {
@@ -286,7 +286,7 @@ async function generateGeoBlock(toolSlug: string, signals: Signal[], date: strin
     max_tokens: 1200,
     messages: [{
       role: 'user',
-      content: `You are the GEO content writer for GenLens. Write structured content for the ${toolName} tool page on genlens.io/tools/${toolSlug}.
+      content: `You are the GEO content writer for GenLens. Write structured content for the ${toolName} tool page on genlens.app/tools/${toolSlug}.
 
 GEO = Generative Engine Optimization. Your content must be structured so AI engines (ChatGPT, Perplexity, Gemini, Claude) cite it when users ask about ${toolName}.
 
@@ -344,7 +344,7 @@ OUTPUT — valid JSON only, no markdown:
     output_type: 'geo_block',
     title: `GEO block — ${toolName} — ${date}`,
     content: JSON.stringify({ geo_summary: parsed.geo_summary, qa_blocks: parsed.qa_blocks }),
-    target_url: `genlens.io/tools/${toolSlug}`,
+    target_url: `genlens.app/tools/${toolSlug}`,
     meta_description: parsed.meta_description,
     faq_schema: faqSchema,
     signal_ids: signals.map(s => s.id),
@@ -362,7 +362,7 @@ async function generateSignalPages(signals: Signal[], date: string): Promise<Age
       max_tokens: 400,
       messages: [{
         role: 'user',
-        content: `Write a public preview for this GenLens signal. It will appear at genlens.io/signals/${signal.id}.
+        content: `Write a public preview for this GenLens signal. It will appear at genlens.app/signals/${signal.id}.
 
 The preview shows: headline, 2-sentence geo_summary, hook_sentence for social sharing.
 The action_item is gated behind signup (freemium hook).
@@ -407,7 +407,7 @@ OUTPUT — valid JSON only:
       output_type: 'signal_page',
       title: parsed.og_headline || signal.title,
       content: JSON.stringify(parsed),
-      target_url: `genlens.io/signals/${signal.id}`,
+      target_url: `genlens.app/signals/${signal.id}`,
       signal_ids: [signal.id],
       vertical: signal.vertical,
       briefing_date: date,
@@ -476,7 +476,7 @@ OUTPUT — valid JSON only:
     output_type: 'index_post',
     title: `Weekly Index — ${parsed.index_headline}`,
     content: JSON.stringify(parsed),
-    target_url: `genlens.io/index/${date}`,
+    target_url: `genlens.app/index/${date}`,
     signal_ids: signals.map(s => s.id),
     briefing_date: date,
     scheduled_for: monday,
@@ -502,7 +502,7 @@ async function generateComparisonPage(
     max_tokens: 800,
     messages: [{
       role: 'user',
-      content: `Write GEO content for a comparison page: genlens.io/compare/${slug}
+      content: `Write GEO content for a comparison page: genlens.app/compare/${slug}
 
 This page answers "should I use ${toolA} or ${toolB}?" for AI creatives.
 
@@ -549,7 +549,7 @@ OUTPUT — valid JSON only:
     output_type: 'comparison_page',
     title: `${toolA} vs ${toolB} — ${date}`,
     content: JSON.stringify(parsed),
-    target_url: `genlens.io/compare/${slug}`,
+    target_url: `genlens.app/compare/${slug}`,
     meta_description: parsed.meta_description,
     faq_schema: faqSchema,
     signal_ids: relevantSignals.map(s => s.id),

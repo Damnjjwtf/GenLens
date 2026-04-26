@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS growth_agent_queue (
   -- Core content
   content TEXT NOT NULL,              -- The actual draft text / HTML / markdown
   title TEXT,                         -- Display title for admin review UI
-  target_url TEXT,                    -- Where it will publish (genlens.io/...)
+  target_url TEXT,                    -- Where it will publish (genlens.app/...)
   meta_description TEXT,              -- For GEO pages: meta description
   faq_schema JSONB,                   -- JSON-LD FAQ schema for GEO pages
 
@@ -102,7 +102,7 @@ CREATE INDEX idx_tools_score ON tools(current_score DESC NULLS LAST);
 
 -- ─────────────────────────────────────────────────────────────
 -- TOOL COMPARISONS (public GEO pages)
--- genlens.io/compare/[tool-a]-vs-[tool-b]
+-- genlens.app/compare/[tool-a]-vs-[tool-b]
 -- ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS tool_comparisons (
   id SERIAL PRIMARY KEY,
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS tool_comparisons (
 
 -- ─────────────────────────────────────────────────────────────
 -- SIGNAL PUBLIC PAGES
--- genlens.io/signals/[id] — each signal gets a shareable URL
+-- genlens.app/signals/[id] — each signal gets a shareable URL
 -- ─────────────────────────────────────────────────────────────
 -- Extend existing signals table (add columns if not present)
 ALTER TABLE signals

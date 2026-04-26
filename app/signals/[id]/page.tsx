@@ -6,7 +6,7 @@
  * Gates: action_item behind signup (freemium hook).
  * OG tags for social sharing.
  *
- * genlens.io/signals/1234
+ * genlens.app/signals/1234
  */
 
 import { neon } from '@neondatabase/serverless'
@@ -29,19 +29,19 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     openGraph: {
       title: signal.hook_sentence || signal.title,
       description: signal.geo_summary || signal.summary,
-      url: `https://genlens.io/signals/${signal.id}`,
+      url: `https://genlens.app/signals/${signal.id}`,
       siteName: 'GenLens',
       type: 'article',
       // OG image generated dynamically via /api/og/signal/[id]
-      images: [`https://genlens.io/api/og/signal/${signal.id}`],
+      images: [`https://genlens.app/api/og/signal/${signal.id}`],
     },
     twitter: {
       card: 'summary_large_image',
       title: signal.hook_sentence || signal.title,
       description: signal.geo_summary || signal.summary,
-      images: [`https://genlens.io/api/og/signal/${signal.id}`],
+      images: [`https://genlens.app/api/og/signal/${signal.id}`],
     },
-    alternates: { canonical: `https://genlens.io/signals/${signal.id}` },
+    alternates: { canonical: `https://genlens.app/signals/${signal.id}` },
   }
 }
 
