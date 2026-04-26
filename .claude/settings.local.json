@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(npm --version)",
+      "Read(//opt/**)",
+      "Read(//Users/jonathanjames/**)",
+      "Bash(npx --yes create-next-app@14 . --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --use-npm --eslint)",
+      "Bash(npx --yes create-next-app@14 genlens-app --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --use-npm --eslint)",
+      "Bash(npm install *)",
+      "Bash(rm -rf /Users/jonathanjames/Desktop/GenLens/app/fonts /Users/jonathanjames/Desktop/GenLens/public/*.svg)",
+      "Bash(mkdir -p /Users/jonathanjames/Desktop/GenLens/lib /Users/jonathanjames/Desktop/GenLens/components /Users/jonathanjames/Desktop/GenLens/app/api/auth/\\\\[...nextauth\\\\] /Users/jonathanjames/Desktop/GenLens/app/api/invite /Users/jonathanjames/Desktop/GenLens/app/api/settings /Users/jonathanjames/Desktop/GenLens/app/auth/signin /Users/jonathanjames/Desktop/GenLens/app/auth/invite /Users/jonathanjames/Desktop/GenLens/app/auth/verify /Users/jonathanjames/Desktop/GenLens/app/settings)",
+      "Bash(rm -f /Users/jonathanjames/Desktop/GenLens/public/*.svg)",
+      "Bash(mkdir -p /Users/jonathanjames/Desktop/GenLens/lib /Users/jonathanjames/Desktop/GenLens/components \"/Users/jonathanjames/Desktop/GenLens/app/api/auth/[...nextauth]\" /Users/jonathanjames/Desktop/GenLens/app/api/invite /Users/jonathanjames/Desktop/GenLens/app/api/settings /Users/jonathanjames/Desktop/GenLens/app/auth/signin /Users/jonathanjames/Desktop/GenLens/app/auth/invite /Users/jonathanjames/Desktop/GenLens/app/auth/verify /Users/jonathanjames/Desktop/GenLens/app/settings)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(git init *)",
+      "Bash(git check-ignore *)",
+      "Bash(git add *)",
+      "Bash(grep -E \"\\\\.env\\\\.local|\\\\.env$\")"
+    ]
+  }
+}

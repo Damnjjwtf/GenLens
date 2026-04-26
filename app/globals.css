@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0e0e0e;
+  --bg2: #161616;
+  --bg3: #1e1e1e;
+  --border: #2a2a2a;
+  --border2: #333333;
+  --text: #e8e4dc;
+  --text2: #9a9690;
+  --text3: #5a5652;
+  --accent: #c8f04a;
+  --accent2: #f0a83c;
+  --red: #f04a4a;
+  --blue: #5ab4f0;
+  --purple: #b07af0;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono), 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+body {
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+input, textarea, select, button {
+  font-family: inherit;
+}
+
+.font-serif {
+  font-family: var(--font-serif), 'Lora', Georgia, serif;
+}
+
+.font-display {
+  font-family: var(--font-display), 'Playfair Display', Georgia, serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), 'IBM Plex Mono', ui-monospace, monospace;
+}
