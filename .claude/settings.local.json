@@ -17,7 +17,11 @@
       "Bash(git init *)",
       "Bash(git check-ignore *)",
       "Bash(git add *)",
-      "Bash(grep -E \"\\\\.env\\\\.local|\\\\.env$\")"
+      "Bash(grep -E \"\\\\.env\\\\.local|\\\\.env$\")",
+      "Bash(git commit *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(npx neonctl@latest init)"
     ]
   }
 }

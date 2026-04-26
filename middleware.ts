@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/auth/invite', '/auth/signin', '/auth/verify', '/api/auth', '/api/invite'];
+const PUBLIC_PATHS = ['/', '/auth/invite', '/auth/signin', '/auth/verify', '/api/auth', '/api/invite', '/api/waitlist'];
+const PROTECTED_PATHS = ['/dashboard', '/settings', '/templates', '/leaderboard'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+  if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
     return NextResponse.next();
   }
 
@@ -17,7 +18,7 @@ export async function middleware(req: NextRequest) {
   const sessionCookie =
     req.cookies.get('authjs.session-token') ?? req.cookies.get('__Secure-authjs.session-token');
 
-  if (!sessionCookie) {
+  if (!sessionCookie && PROTECTED_PATHS.some((p) => pathname.startsWith(p))) {
     const url = req.nextUrl.clone();
     url.pathname = '/auth/invite';
     url.searchParams.set('next', pathname);
