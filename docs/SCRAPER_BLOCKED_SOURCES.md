@@ -45,6 +45,42 @@ Action items here are owner tasks, not automation work.
 
 ---
 
+## VFX Squad Discord
+
+**Invite:** https://discord.com/invite/vfx-squad-797000245413281792
+
+**Reason:** Real-time troubleshooting / peer review for compositors, editors, motion designers. Discord, requires account.
+
+**Workaround:** Join GenLens account, monitor key channels, seed high-signal threads as manual signals.
+
+**Action:** Join this week. High-signal for FM vertical.
+
+---
+
+## Adobe Substance 3D Discord
+
+**Invite:** https://discord.com/invite/010JCPblJTh3d6CXe
+
+**Reason:** Pipeline troubleshooting + beta feature discussions for material authoring/texturing. Discord, requires account.
+
+**Workaround:** Manual monitoring; seed beta-feature signals.
+
+**Action:** Join when PP vertical scraper hits volume. Defer for now.
+
+---
+
+## Figma Community Discord
+
+**Invite:** https://discord.com/invite/figma
+
+**Reason:** AI plugins + design system automation discussion. Discord, requires account.
+
+**Workaround:** Manual monitoring; seed plugin/AI signals.
+
+**Action:** Activate when MG (motion graphics / design) vertical activates.
+
+---
+
 ## Practitioner X accounts
 
 **Reason:** Twitter API v2 free tier rate limits are severe. Authenticated scraping is costly.

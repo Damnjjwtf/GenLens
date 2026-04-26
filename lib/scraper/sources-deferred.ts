@@ -24,6 +24,14 @@ export const DEFERRED_MOTION_GRAPHICS: Source[] = [
   { name: 'Jitter Blog', url: 'https://jitter.video/blog/rss.xml', type: 'rss', verticals: ['motion_graphics'], dimensions: [1, 4, 5], scrape_interval: 48 },
   { name: 'Theatre.js', url: 'https://github.com/theatre-js/theatre/releases.atom', type: 'rss', verticals: ['motion_graphics'], dimensions: [1, 8], scrape_interval: 72 },
   { name: 'fxphd Blog', url: 'https://www.fxphd.com/fxblog/', type: 'html', verticals: ['motion_graphics', 'filmmaking'], dimensions: [1, 4], scrape_interval: 48 },
+  { name: 'TouchDesigner Derivative Forum', url: 'https://forum.derivative.ca/posts.rss', type: 'rss', verticals: ['motion_graphics', 'filmmaking'], dimensions: [1, 8], scrape_interval: 12, notes: 'CHOP/SOP logic, Python integrations, interactive installation bugs' },
+  { name: 'Okami Rufu (TouchDesigner)', url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCnev7mI3HGGI', type: 'rss', verticals: ['motion_graphics'], dimensions: [1, 4], scrape_interval: 168, notes: 'Verify channel ID. Procedural geometry, GLSL shading' },
+  { name: 'The Coding Train', url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCvjgXvBlbQiydffZU7m1_aw', type: 'rss', verticals: ['motion_graphics'], dimensions: [1, 4], scrape_interval: 48, notes: 'Daniel Shiffman generative art, p5.js, ml5.js' },
+  { name: 'SplineTool YouTube', url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC8DeS2i81IY', type: 'rss', verticals: ['motion_graphics'], dimensions: [1], scrape_interval: 168, notes: 'Verify channel ID. Browser-based 3D motion design updates' },
+  { name: 'Awesome Creative Coding (curated)', url: 'https://github.com/terkelg/awesome-creative-coding/commits/master.atom', type: 'rss', verticals: ['motion_graphics'], dimensions: [1, 8], scrape_interval: 168 },
+  { name: 'py5 Library', url: 'https://github.com/py5coding/py5generator/commits/main.atom', type: 'rss', verticals: ['motion_graphics'], dimensions: [1, 8], scrape_interval: 168, notes: 'Processing in Python 3 with NumPy/Shapely' },
+  { name: 'Konstrukt SVG Generator', url: 'https://github.com/MarcelMue/konstrukt/releases.atom', type: 'rss', verticals: ['motion_graphics'], dimensions: [1, 4], scrape_interval: 168 },
+  { name: 'Eases Equations Library', url: 'https://github.com/mattdesl/eases/commits/master.atom', type: 'rss', verticals: ['motion_graphics'], dimensions: [4], scrape_interval: 168, notes: 'Robert Penner easing equations for procedural motion' },
 ]
 
 export const DEFERRED_FASHION: Source[] = [
@@ -37,6 +45,12 @@ export const DEFERRED_FASHION: Source[] = [
   { name: 'r/clo3d', url: 'https://www.reddit.com/r/clo3d/.rss', type: 'rss', verticals: ['fashion', 'product_photography'], dimensions: [1, 2, 4], scrape_interval: 24 },
   { name: 'r/marvelousdesigner', url: 'https://www.reddit.com/r/marvelousdesigner/.rss', type: 'rss', verticals: ['fashion'], dimensions: [1, 2, 4], scrape_interval: 24 },
   { name: 'r/PatternMaking', url: 'https://www.reddit.com/r/PatternMaking/.rss', type: 'rss', verticals: ['fashion'], dimensions: [1, 4], scrape_interval: 24 },
+  { name: 'Cool-GenAI-Fashion-Papers (curated)', url: 'https://github.com/wendashi/Cool-GenAI-Fashion-Papers/commits/main.atom', type: 'rss', verticals: ['fashion'], dimensions: [1, 5], scrape_interval: 168, notes: 'CVPR/SIGGRAPH papers on garment dynamics, virtual try-on' },
+  { name: 'CLO 3D Notices (official)', url: 'https://www.clo3d.com/en/resources/notices/rss', type: 'rss', verticals: ['fashion'], dimensions: [1, 8], scrape_interval: 168, notes: 'Avatar rigging, fabric physics patches' },
+  { name: 'Marvelous Designer User Spotlight', url: 'https://www.marvelousdesigner.com/userspotlight/rss', type: 'rss', verticals: ['fashion', 'filmmaking'], dimensions: [4], scrape_interval: 168, notes: 'Pattern makers bridging fashion + VFX costume work' },
+  { name: 'Journal of Textile Science & Fashion Tech', url: 'https://irispublishers.com/jtsft/rss.xml', type: 'rss', verticals: ['fashion'], dimensions: [1, 5], scrape_interval: 168, notes: 'Academic: fiber science, sustainable material engineering' },
+  { name: 'US Fashion Industry Association', url: 'https://www.usfashionindustry.com/feed', type: 'rss', verticals: ['fashion'], dimensions: [6, 8], scrape_interval: 168, notes: 'Regulatory + sourcing + trade policy' },
+  { name: 'Fibre2Fashion Tech News', url: 'https://feeds.feedburner.com/fibre2fashion/technologynews', type: 'rss', verticals: ['fashion'], dimensions: [1, 8], scrape_interval: 24, notes: 'IoT + CAD-CAM + Industry 4.0 in textile mills' },
 ]
 
 export const DEFERRED_MUSIC_PRODUCTION: Source[] = [
@@ -54,4 +68,8 @@ export const DEFERRED_MUSIC_PRODUCTION: Source[] = [
   { name: 'Demucs (stem separation)', url: 'https://github.com/facebookresearch/demucs/releases.atom', type: 'rss', verticals: ['music_production'], dimensions: [1, 5], scrape_interval: 72 },
   { name: 'Spleeter', url: 'https://github.com/deezer/spleeter/releases.atom', type: 'rss', verticals: ['music_production'], dimensions: [1, 5], scrape_interval: 72 },
   { name: 'arXiv cs.SD (Sound/Music)', url: 'https://arxiv.org/rss/cs.SD', type: 'rss', verticals: ['music_production'], dimensions: [1, 5], scrape_interval: 24 },
+  { name: 'STVDIO Substack', url: 'https://stvdio.substack.com/feed', type: 'rss', verticals: ['music_production'], dimensions: [3, 6], scrape_interval: 168, notes: 'Suno/Udio + copyright + business model analysis' },
+  { name: 'Ableton Engineering Blog', url: 'https://www.ableton.com/en/blog/feed/', type: 'rss', verticals: ['music_production'], dimensions: [1, 8], scrape_interval: 168, notes: 'DAW-side ML/stem separation/generative MIDI integration' },
+  { name: 'r/edmproduction', url: 'https://www.reddit.com/r/edmproduction/.rss', type: 'rss', verticals: ['music_production'], dimensions: [1, 4, 8], scrape_interval: 12, notes: 'Synth patching, AI stem splitter integration' },
+  { name: 'Awesome-Audio (DolbyIO curated)', url: 'https://github.com/DolbyIO/awesome-audio/commits/master.atom', type: 'rss', verticals: ['music_production'], dimensions: [1, 8], scrape_interval: 168 },
 ]
