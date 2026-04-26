@@ -185,13 +185,13 @@ async function insertSignal(raw: RawSignal, cls: Classification): Promise<void> 
   await sql`
     INSERT INTO signals (
       vertical, dimension, signal_type, title, description, summary, raw_content,
-      workflow_stages, product_categories, tool_names,
+      workflow_stages, product_categories, tool_names, tool_ids,
       time_saved_hours, cost_saved_dollars, quality_improvement_percent,
       source_url, source_platform, source_name,
       trending_score, content_hash, published_at, status
     ) VALUES (
       ${cls.vertical}, ${cls.dimension}, ${cls.signal_type}, ${raw.title}, ${raw.description}, ${cls.summary}, ${raw.raw_content},
-      ${cls.workflow_stages}, ${cls.product_categories}, ${cls.tool_names},
+      ${cls.workflow_stages}, ${cls.product_categories}, ${cls.tool_names}, ${cls.tool_ids ?? null},
       ${cls.time_saved_hours}, ${cls.cost_saved_dollars}, ${cls.quality_improvement_percent},
       ${raw.source_url}, ${raw.source_platform}, ${raw.source_name},
       ${cls.trending_score}, ${raw.content_hash}, ${raw.published_at?.toISOString() ?? null}, 'classified'
