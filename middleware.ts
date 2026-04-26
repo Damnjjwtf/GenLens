@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const PUBLIC_PATHS = ['/', '/auth/invite', '/auth/signin', '/auth/verify', '/api/auth', '/api/invite', '/api/waitlist'];
-const PROTECTED_PATHS = ['/dashboard', '/settings', '/templates', '/leaderboard'];
+const PROTECTED_PATHS = ['/dashboard', '/settings', '/templates', '/leaderboard', '/admin'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

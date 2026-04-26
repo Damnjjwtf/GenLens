@@ -1,12 +1,16 @@
 {
   "crons": [
     {
-      "path": "/api/cron/daily-scrape",
-      "schedule": "0 11 * * *"
+      "path": "/api/cron/scrape",
+      "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/daily-brief",
-      "schedule": "0 13 * * *"
+      "path": "/api/cron/growth-agent",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/index",
+      "schedule": "0 7 * * 1"
     }
   ]
 }

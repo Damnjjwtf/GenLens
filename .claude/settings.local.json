@@ -21,7 +21,18 @@
       "Bash(git commit *)",
       "Bash(git remote *)",
       "Bash(git push *)",
-      "Bash(npx neonctl@latest init)"
+      "Bash(npx neonctl@latest init)",
+      "Bash(curl -fsSL https://cli.github.com/install.sh)",
+      "Bash(sh)",
+      "Bash(git stash *)",
+      "Bash(git pull *)",
+      "Bash(echo \"CLAUDE.md: $?\")",
+      "Bash(echo \"GAPS.md: $?\")",
+      "Bash(echo \"BACKLOG.md: $?\")",
+      "Bash(echo \"KICKOFF: $?\")",
+      "Bash(mkdir -p lib/agent lib/migrations scripts app/admin/growth-agent app/api/cron/growth-agent app/api/agent/queue 'app/tools/[slug]' 'app/signals/[id]')",
+      "Bash(cp '/Users/jonathanjames/Desktop/genlens-growth-agent/app/tools/[slug]/page.tsx' 'app/tools/[slug]/page.tsx')",
+      "Bash(cp '/Users/jonathanjames/Desktop/genlens-growth-agent/app/signals/[id]/page.tsx' 'app/signals/[id]/page.tsx')"
     ]
   }
 }
