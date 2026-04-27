@@ -76,6 +76,10 @@ c8b1b20 feat(tools): tool taxonomy schema + normalization engine
   - Format: `postgresql://user:password@host.neon.tech/dbname?sslmode=require`
   - Store in: `.env.local` (git-ignored, not in repo)
   - Source: Your Neon dashboard → Connection String
+  - **Per-Device Setup:** Each device needs its own `.env.local` (not synced via git)
+    ```bash
+    echo 'DATABASE_URL="postgresql://..."' > .env.local
+    ```
 
 - [ ] **Schema migration applied to Neon database**
   - If not done yet: `psql $DATABASE_URL -f lib/db/schema.sql`
