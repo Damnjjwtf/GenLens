@@ -208,3 +208,68 @@ If a feature decision is ambiguous, prefer:
 - Shipping Score + Index well, not adding a fourth surface
 
 Ask before adding new dependencies or new top-level routes.
+
+---
+
+## CROSS-DEVICE SYNC PROTOCOL
+
+GenLens development happens across multiple devices (desktop, laptop, phone).
+This protocol ensures continuity and clarity across sessions.
+
+### Session Startup (All Devices)
+
+1. **Fetch latest changes**
+   ```bash
+   git fetch origin
+   git pull origin claude/check-project-status-RRBad
+   ```
+
+2. **Read NEXT_STEPS.md**
+   - Current blockers
+   - Next actions in order
+   - Gap status
+   - Open questions
+
+3. **Check .env.local exists** (if needed for this session)
+   - Contains DATABASE_URL, ANTHROPIC_API_KEY, etc.
+   - Not in repo (git-ignored for security)
+   - Create if missing: `touch .env.local` + ask user
+
+### Session Work
+
+- Commit frequently with clear messages
+- Push after each logical unit (feature, bug fix, schema change)
+- Update code, not NEXT_STEPS.md (let the next session do that)
+
+### Session Shutdown (Before Closing)
+
+1. **Final commit + push**
+   ```bash
+   git add -A
+   git commit -m "..."
+   git push -u origin claude/check-project-status-RRBad
+   ```
+
+2. **Update NEXT_STEPS.md** with:
+   - What was completed (checked off items)
+   - New blockers discovered
+   - Updated gap status
+   - Next actions (in priority order)
+   - New questions or decisions needed
+
+3. **Commit NEXT_STEPS.md**
+   ```bash
+   git add NEXT_STEPS.md
+   git commit -m "docs: update NEXT_STEPS.md — session complete"
+   git push
+   ```
+
+### Merge & Promote
+
+Once feature is tested + verified:
+```bash
+git push origin claude/check-project-status-RRBad
+# Then merge PR #1 on GitHub to main
+```
+
+After merge, update `## CURRENT FOCUS` in CLAUDE.md and create a new `claude/next-feature` branch for the next item.
