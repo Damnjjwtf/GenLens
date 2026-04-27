@@ -22,6 +22,7 @@ import { useState, useEffect, useCallback } from 'react'
 type OutputType =
   | 'social_x'
   | 'social_linkedin'
+  | 'social_discord'
   | 'geo_block'
   | 'index_post'
   | 'signal_page'
@@ -66,6 +67,7 @@ interface AgentRun {
 const TYPE_LABELS: Record<OutputType, string> = {
   social_x: 'X Post',
   social_linkedin: 'LinkedIn',
+  social_discord: 'Discord',
   geo_block: 'GEO Block',
   index_post: 'Index Post',
   signal_page: 'Signal Page',
@@ -76,6 +78,7 @@ const TYPE_LABELS: Record<OutputType, string> = {
 const TYPE_COLORS: Record<OutputType, string> = {
   social_x: '#c8f04a',
   social_linkedin: '#4a90e2',
+  social_discord: '#5865f2',
   geo_block: '#f0a83c',
   index_post: '#e87060',
   signal_page: '#b07af0',

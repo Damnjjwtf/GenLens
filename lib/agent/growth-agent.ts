@@ -19,6 +19,7 @@ const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 export type OutputType =
   | 'social_x'
   | 'social_linkedin'
+  | 'social_discord'
   | 'geo_block'
   | 'index_post'
   | 'signal_page'
