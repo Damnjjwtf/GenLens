@@ -10,6 +10,7 @@
 
 import { neon } from '@neondatabase/serverless'
 import Anthropic from '@anthropic-ai/sdk'
+import { ANTHROPIC_MODEL_AGENT } from '@/lib/constants'
 
 const sql = neon(process.env.DATABASE_URL!)
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
@@ -201,7 +202,7 @@ Source: ${s.source_name}`
   ).join('\n\n')
 
   const response = await claude.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: ANTHROPIC_MODEL_AGENT,
     max_tokens: 2400,
     messages: [{
       role: 'user',
@@ -313,7 +314,7 @@ async function generateGeoBlock(toolSlug: string, signals: Signal[], date: strin
   ).join('\n')
 
   const response = await claude.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: ANTHROPIC_MODEL_AGENT,
     max_tokens: 1200,
     messages: [{
       role: 'user',
@@ -389,7 +390,7 @@ async function generateSignalPages(signals: Signal[], date: string): Promise<Age
 
   for (const signal of signals) {
     const response = await claude.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: ANTHROPIC_MODEL_AGENT,
       max_tokens: 400,
       messages: [{
         role: 'user',
@@ -462,7 +463,7 @@ async function generateIndexPost(signals: Signal[], date: string): Promise<Agent
   }).join('\n')
 
   const response = await claude.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: ANTHROPIC_MODEL_AGENT,
     max_tokens: 800,
     messages: [{
       role: 'user',
@@ -529,7 +530,7 @@ async function generateComparisonPage(
   const slug = `${toolA}-vs-${toolB}`
 
   const response = await claude.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: ANTHROPIC_MODEL_AGENT,
     max_tokens: 800,
     messages: [{
       role: 'user',
