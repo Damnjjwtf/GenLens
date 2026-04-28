@@ -24,30 +24,37 @@ Toggle between:
 - **Filmmaking** — VFX, color grading, sound design (Runway, DaVinci Resolve, Unreal)
 - **Digital Humans** — Synthetic actors, voice, animation (D-ID, ElevenLabs, HeyGen)
 
-## Features (Phase 1)
+## Features
 
-✅ **Public landing page** — Explains GenLens, lists features, collects early emails  
-✅ **Invite-code auth** — Magic links via Resend, NextAuth v5  
-✅ **Dark & light mode** — Auto-follow system preference, manual override  
-✅ **User settings** — Customize verticals, dimensions, delivery frequency, timezone  
-✅ **Database schema** — Neon Postgres, all tables for signals, templates, creators, briefings  
-✅ **Editorial UI** — IBM Plex Mono + Lora + Playfair Display, lime/amber/purple accents  
+### Phase 1 — Foundation
 
-**Coming in Phase 2+:**
-- Scraper engine (130+ sources, dedup, taxonomy)
-- Claude synthesis (daily briefings, social drafts, keynote points)
-- Signal feed dashboard (filterable by vertical & dimension)
-- Template leaderboard
-- Creator leaderboard
-- Email delivery system
-- Admin panel
+✅ Public landing page, invite-code auth (NextAuth v5 + Resend magic links), dark/light mode, user settings, base DB schema, editorial UI (IBM Plex Mono + Lora + Playfair Display).
+
+### Phase 2 — Intelligence layer (current)
+
+✅ **Scraper engine** — 75 active sources, RSS + HTML + GitHub Atom + arXiv, parallel `Promise.allSettled`, SHA-256 dedup, full per-source logs in `scrape_log`.
+✅ **Taxonomy classifier** — Claude Haiku 4.5, batches of 10, classifies vertical / dimension / signal_type / tool_names / time-cost-quality deltas. Currently classifying ~500 signals per run.
+✅ **Growth Agent** — Claude Sonnet 4.6 generates social drafts (X, LinkedIn, **Discord** per-signal vertical-routed), GEO blocks, signal pages, and comparison pages. All output queues for human review at `/admin/growth-agent`.
+✅ **Discord posting layer** — webhook-routed by `vertical + signal_type`, no OAuth. Approving a `social_discord` queue item auto-posts and logs to `post_results`.
+✅ **GenLens Score** — 0-100 composite per (tool, vertical), recomputed nightly. Speed (30%) + cost (30%) anchored to `baseline_workflows`, quality proxy (15%), adoption from `trending_score` (25%). Mirrored to `tools.current_score`.
+✅ **Weekly Index** — top 10 tools per vertical, biggest movers up/down, new entries, notable exits, with Claude-generated headline + lede. Drafts to `index_snapshots`, human approves, page renders.
+✅ **GEO infrastructure** — JSON-LD on every page (Organization, WebSite, SoftwareApplication, NewsArticle, BreadcrumbList, FAQPage, Dataset), dynamic `sitemap.xml`, `llms.txt` (per [llmstxt.org](https://llmstxt.org)), `robots.ts` explicitly allowing GPTBot, OAI-SearchBot, Google-Extended, ClaudeBot, PerplexityBot, CCBot, and a dozen more.
+✅ **Email digests** — Resend-backed, dark-themed HTML + plaintext, sent via `scripts/send-digest.mts`.
+
+### Phase 2 — Remaining
+
+- Public `/index/[date]` page renders the snapshot
+- Score badge component (sparkline + breakdown) on tool pages
+- OG image route at `/api/og/signal/[id]`
+- Comparison page renderer at `/compare/[slug]`
+- GAPS #0 creator opt-out (legal blocker before leaderboard goes public)
 
 ## Stack
 
 - **Frontend:** Next.js 14 (App Router), React 18, Tailwind CSS
 - **Database:** Neon Postgres (serverless)
 - **Auth:** NextAuth v5 + Resend (email magic links)
-- **AI:** Anthropic Claude API (`claude-sonnet-4-20250514`)
+- **AI:** Anthropic Claude API (`claude-haiku-4-5-20251001` for the classifier, `claude-sonnet-4-6` for the Growth Agent and Index editorial — managed via `lib/constants.ts`)
 - **Deployment:** Vercel (with Cron)
 
 ## Local Setup
