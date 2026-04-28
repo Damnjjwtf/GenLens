@@ -13,6 +13,12 @@
 import { neon } from '@neondatabase/serverless'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import {
+  softwareApplicationLD,
+  breadcrumbLD,
+  faqLD,
+  SITE_URL,
+} from '@/lib/schema/jsonld'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -80,128 +86,155 @@ export default async function ToolPage({ params }: Params) {
     9: 'Trends', 10: 'Leaderboard',
   }
 
+  // ─── JSON-LD payloads ─────────────────────────────────────
+  const toolUrl = `${SITE_URL}/tools/${params.slug}`
+  const jsonLd: object[] = [
+    softwareApplicationLD({
+      slug: tool.slug as string,
+      canonical_name: tool.canonical_name as string,
+      geo_summary: (tool.geo_summary as string | null) ?? null,
+      meta_description: (tool.meta_description as string | null) ?? null,
+      website_url: (tool.website_url as string | null) ?? null,
+      current_score: (tool.current_score as number | null) ?? null,
+      verticals,
+      categories: (tool.categories as string[] | null) ?? null,
+      signal_count: (tool.signal_count as number | null) ?? null,
+    }),
+    breadcrumbLD([
+      { name: 'GenLens', url: SITE_URL },
+      { name: 'Tools', url: `${SITE_URL}/tools` },
+      { name: tool.canonical_name as string, url: toolUrl },
+    ]),
+  ]
+  const fa = faqLD(qaBlocks, toolUrl)
+  if (fa) jsonLd.push(fa)
+  // Existing per-tool faq_schema may also be present from the Growth Agent.
+  if (tool.faq_schema && !fa) {
+    jsonLd.push(tool.faq_schema as object)
+  }
+
   return (
     <>
-      {/* FAQ JSON-LD for GEO */}
-      {tool.faq_schema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(tool.faq_schema) }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
-      <div style={styles.page}>
+      <article style={styles.page} itemScope itemType="https://schema.org/SoftwareApplication">
+        <link itemProp="url" href={toolUrl} />
+
         {/* Breadcrumb */}
-        <div style={styles.breadcrumb}>
+        <nav aria-label="Breadcrumb" style={styles.breadcrumb}>
           <a href="/tools" style={styles.breadcrumbLink}>Tools</a>
           <span style={styles.breadcrumbSep}>/</span>
           <span style={styles.breadcrumbCurrent}>{tool.canonical_name}</span>
-        </div>
+        </nav>
 
-        {/* Tool header */}
-        <div style={styles.toolHeader}>
+        <header style={styles.toolHeader}>
           <div style={styles.toolHeaderLeft}>
-            <h1 style={styles.toolName}>{tool.canonical_name}</h1>
+            <h1 style={styles.toolName} itemProp="name">{tool.canonical_name}</h1>
             <div style={styles.toolMeta}>
               {verticals.map((v: string) => (
                 <span key={v} style={styles.verticalTag}>
                   {VERTICAL_LABELS[v] ?? v}
                 </span>
               ))}
-              {tool.current_score && (
+              {tool.current_score ? (
                 <span style={styles.scoreBadge}>
                   GenLens Score: <strong>{tool.current_score}</strong> / 100
                 </span>
-              )}
-              {!tool.current_score && (
+              ) : (
                 <span style={styles.scorePending}>Score: coming soon</span>
               )}
             </div>
           </div>
           <div style={styles.toolHeaderRight}>
             {tool.affiliate_url && (
-              <a href={tool.affiliate_url} target="_blank" rel="noopener nofollow sponsored" style={styles.affiliateBtn}>
+              <a href={tool.affiliate_url as string} target="_blank" rel="noopener nofollow sponsored" style={styles.affiliateBtn}>
                 Try {tool.canonical_name} →
               </a>
             )}
             {tool.website_url && !tool.affiliate_url && (
-              <a href={tool.website_url} target="_blank" rel="noopener" style={styles.websiteBtn}>
+              <a href={tool.website_url as string} target="_blank" rel="noopener" style={styles.websiteBtn} itemProp="sameAs">
                 Visit site →
               </a>
             )}
           </div>
-        </div>
+        </header>
 
-        {/* GEO summary */}
         {tool.geo_summary && (
-          <div style={styles.geoSummary}>
-            <div style={styles.geoSummaryLabel}>GenLens Summary</div>
-            <p style={styles.geoSummaryText}>{tool.geo_summary}</p>
-          </div>
+          <section style={styles.geoSummary} aria-labelledby="genlens-summary-label">
+            <h2 id="genlens-summary-label" style={styles.geoSummaryLabel}>GenLens Summary</h2>
+            <p style={styles.geoSummaryText} itemProp="description">{tool.geo_summary as string}</p>
+          </section>
         )}
 
-        {/* Affiliate disclosure */}
         {tool.affiliate_url && (
           <p style={styles.disclosure}>
             Disclosure: GenLens may earn a commission if you subscribe via the link above.
-            {tool.affiliate_program && ` (${tool.affiliate_program} affiliate program)`}
+            {tool.affiliate_program ? ` (${tool.affiliate_program} affiliate program)` : ''}
           </p>
         )}
 
-        {/* Main grid */}
         <div style={styles.mainGrid}>
-          {/* Left: Q&A + Signals */}
           <div style={styles.leftCol}>
-            {/* Q&A blocks */}
             {qaBlocks.length > 0 && (
-              <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>Common questions</h2>
-                <div style={styles.qaList}>
+              <section style={styles.section} aria-labelledby="faq-heading">
+                <h2 id="faq-heading" style={styles.sectionTitle}>Common questions</h2>
+                <dl style={styles.qaList}>
                   {qaBlocks.map((qa: { q: string; a: string; confidence: string; source_url?: string }, i: number) => (
                     <div key={i} style={styles.qaItem}>
-                      <div style={styles.qaQuestion}>{qa.q}</div>
-                      <div style={styles.qaAnswer}>{qa.a}</div>
-                      {qa.source_url && (
-                        <a href={qa.source_url} target="_blank" rel="noopener" style={styles.qaSource}>
-                          Source →
-                        </a>
-                      )}
+                      <dt style={styles.qaQuestion}>{qa.q}</dt>
+                      <dd style={styles.qaAnswer}>
+                        {qa.a}
+                        {qa.source_url && (
+                          <>
+                            {' '}
+                            <a href={qa.source_url} target="_blank" rel="noopener" style={styles.qaSource}>
+                              Source →
+                            </a>
+                          </>
+                        )}
+                      </dd>
                     </div>
                   ))}
-                </div>
+                </dl>
               </section>
             )}
 
-            {/* Recent signals */}
             {signals.length > 0 && (
-              <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>Recent intelligence</h2>
-                <div style={styles.signalList}>
+              <section style={styles.section} aria-labelledby="signals-heading">
+                <h2 id="signals-heading" style={styles.sectionTitle}>Recent intelligence</h2>
+                <ul style={{ ...styles.signalList, listStyle: 'none', padding: 0, margin: 0 }}>
                   {signals.map((s: {
                     id: number; title: string; summary: string; dimension: number;
                     vertical: string; time_saved_hours: number | null; cost_saved_dollars: number | null;
                     created_at: string; source_url: string; source_name: string;
                   }) => (
-                    <a href={`/signals/${s.id}`} key={s.id} style={styles.signalItem}>
-                      <div style={styles.signalTop}>
-                        <span style={styles.signalDimension}>
-                          {DIMENSION_LABELS[s.dimension] ?? `Dim ${s.dimension}`}
-                        </span>
-                        <span style={styles.signalDate}>
-                          {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
-                      <div style={styles.signalTitle}>{s.title}</div>
-                      {s.summary && <div style={styles.signalSummary}>{s.summary.slice(0, 140)}…</div>}
-                      {(s.time_saved_hours || s.cost_saved_dollars) && (
-                        <div style={styles.signalDeltas}>
-                          {s.time_saved_hours && <span style={styles.delta}>−{s.time_saved_hours}h</span>}
-                          {s.cost_saved_dollars && <span style={styles.delta}>−${s.cost_saved_dollars.toLocaleString()}</span>}
-                        </div>
-                      )}
-                    </a>
+                    <li key={s.id}>
+                      <a href={`/signals/${s.id}`} style={styles.signalItem}>
+                        <article>
+                          <div style={styles.signalTop}>
+                            <span style={styles.signalDimension}>
+                              {DIMENSION_LABELS[s.dimension] ?? `Dim ${s.dimension}`}
+                            </span>
+                            <time dateTime={new Date(s.created_at).toISOString()} style={styles.signalDate}>
+                              {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </time>
+                          </div>
+                          <h3 style={styles.signalTitle}>{s.title}</h3>
+                          {s.summary && <p style={styles.signalSummary}>{s.summary.slice(0, 140)}…</p>}
+                          {(s.time_saved_hours || s.cost_saved_dollars) && (
+                            <div style={styles.signalDeltas}>
+                              {s.time_saved_hours && <span style={styles.delta}>−{s.time_saved_hours}h</span>}
+                              {s.cost_saved_dollars && <span style={styles.delta}>−${s.cost_saved_dollars.toLocaleString()}</span>}
+                            </div>
+                          )}
+                        </article>
+                      </a>
+                    </li>
                   ))}
-                </div>
+                </ul>
                 <a href={`/signals?tool=${params.slug}`} style={styles.seeAllLink}>
                   See all {tool.canonical_name} signals →
                 </a>
@@ -209,12 +242,10 @@ export default async function ToolPage({ params }: Params) {
             )}
           </div>
 
-          {/* Right: Comparisons + CTA */}
-          <div style={styles.rightCol}>
-            {/* Comparisons */}
+          <aside style={styles.rightCol}>
             {comparisons.length > 0 && (
-              <div style={styles.sidebar}>
-                <div style={styles.sidebarLabel}>Compare</div>
+              <nav style={styles.sidebar} aria-label="Tool comparisons">
+                <h2 style={styles.sidebarLabel}>Compare</h2>
                 {comparisons.map((c: { slug: string; tool_a_slug: string; tool_b_slug: string; summary: string }) => {
                   const other = c.tool_a_slug === params.slug ? c.tool_b_slug : c.tool_a_slug
                   return (
@@ -223,35 +254,33 @@ export default async function ToolPage({ params }: Params) {
                     </a>
                   )
                 })}
-              </div>
+              </nav>
             )}
 
-            {/* Score history */}
             {tool.score_history && Array.isArray(tool.score_history) && tool.score_history.length > 1 && (
-              <div style={styles.sidebar}>
-                <div style={styles.sidebarLabel}>Score history</div>
-                {tool.score_history.slice(-5).map((h: { date: string; score: number; reason?: string }, i: number) => (
+              <section style={styles.sidebar} aria-labelledby="score-history-label">
+                <h2 id="score-history-label" style={styles.sidebarLabel}>Score history</h2>
+                {(tool.score_history as { date: string; score: number; reason?: string }[]).slice(-5).map((h, i: number) => (
                   <div key={i} style={styles.scoreHistoryRow}>
-                    <span style={styles.scoreHistoryDate}>{h.date}</span>
+                    <time dateTime={h.date} style={styles.scoreHistoryDate}>{h.date}</time>
                     <span style={styles.scoreHistoryScore}>{h.score}</span>
                   </div>
                 ))}
-              </div>
+              </section>
             )}
 
-            {/* Briefing CTA */}
-            <div style={styles.ctaCard}>
-              <div style={styles.ctaTitle}>Get daily intelligence on {tool.canonical_name}</div>
+            <aside style={styles.ctaCard} aria-labelledby="cta-title">
+              <h2 id="cta-title" style={styles.ctaTitle}>Get daily intelligence on {tool.canonical_name}</h2>
               <p style={styles.ctaText}>
                 GenLens watches 130+ sources and sends you what changed, what it means for your workflow, and what to do about it.
               </p>
               <a href="/auth/invite" style={styles.ctaBtn}>
                 Get early access →
               </a>
-            </div>
-          </div>
+            </aside>
+          </aside>
         </div>
-      </div>
+      </article>
     </>
   )
 }
