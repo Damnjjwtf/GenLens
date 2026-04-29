@@ -1,6 +1,6 @@
 import { renderVerticalIndex, generateVerticalMetadata } from '@/components/IndexVerticalPage'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata() {
   return generateVerticalMetadata('filmmaking')
