@@ -1,12 +1,12 @@
 /**
- * app/index/archive/page.tsx
+ * app/markets/archive/page.tsx
  *
  * Public Index archive redirect.
- * Temp: redirects to /index/[latest-date]
+ * Temp: redirects to /markets/[latest-date]
  */
 
 import { redirect } from 'next/navigation'
 
 export default function IndexArchivePage() {
-  redirect('/index')
+  redirect('/markets')
 }

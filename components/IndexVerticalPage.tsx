@@ -2,7 +2,7 @@
  * components/IndexVerticalPage.tsx
  *
  * Shared render for per-vertical Index pages. Mirrors the visual design
- * of app/index/[date]/page.tsx — same inline styles, fonts, and section
+ * of app/markets/[date]/page.tsx — same inline styles, fonts, and section
  * structure. The only difference: this resolves the latest published
  * snapshot for a given vertical instead of looking up by date.
  *
@@ -48,14 +48,14 @@ export async function generateVerticalMetadata(vertical: Vertical): Promise<Meta
   const label = VERTICAL_LABELS[vertical]
   const title = snapshot?.headline || `${label} Index — GenLens`
   const description = snapshot?.lede || `This week's top AI tools for ${label.toLowerCase()}.`
-  const url = `${SITE_URL}/index/${slug}`
+  const url = `${SITE_URL}/markets/${slug}`
 
   return {
     title: `${title} — GenLens Index`,
     description,
     openGraph: {
       title, description, url, siteName: 'GenLens', type: 'article',
-      images: [`${SITE_URL}/api/og/index/${slug}`],
+      images: [`${SITE_URL}/api/og/markets/${slug}`],
     },
     twitter: { card: 'summary_large_image', title, description },
     alternates: { canonical: url },
@@ -107,7 +107,7 @@ export async function renderVerticalIndex(vertical: Vertical) {
   const verticalLabel = VERTICAL_LABELS[vertical]
   const slug = VERTICAL_SLUG[vertical]
   const tickerSymbol = VERTICAL_TICKER_SYMBOL[vertical]
-  const indexUrl = `${SITE_URL}/index/${slug}`
+  const indexUrl = `${SITE_URL}/markets/${slug}`
   const toolName = (s: string) => {
     const t = toolMap.get(s) as { canonical_name?: string } | undefined
     return t?.canonical_name || s
@@ -125,7 +125,7 @@ export async function renderVerticalIndex(vertical: Vertical) {
     },
     breadcrumbLD([
       { name: 'GenLens', url: SITE_URL },
-      { name: 'Index', url: `${SITE_URL}/index` },
+      { name: 'Markets', url: `${SITE_URL}/markets` },
       { name: verticalLabel, url: indexUrl },
     ]),
   ]
@@ -143,7 +143,7 @@ export async function renderVerticalIndex(vertical: Vertical) {
       <nav aria-label="Breadcrumb" style={styles.breadcrumb}>
         <a href="/" style={{ ...styles.link, color: accent }}>GenLens</a>
         <span style={styles.sep}>/</span>
-        <a href="/index" style={{ ...styles.link, color: accent }}>Index</a>
+        <a href="/markets" style={{ ...styles.link, color: accent }}>Markets</a>
         <span style={styles.sep}>/</span>
         <span style={styles.muted}>{verticalLabel}</span>
       </nav>

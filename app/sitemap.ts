@@ -69,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const indexEntries: MetadataRoute.Sitemap = indices.map(i => ({
-    url: `${SITE_URL}/index/${i.week_start_date}`,
+    url: `${SITE_URL}/markets/${i.week_start_date}`,
     lastModified: new Date(i.updated_at),
     changeFrequency: 'monthly',
     priority: 0.85,

@@ -1,11 +1,11 @@
 /**
- * app/index/[date]/page.tsx
+ * app/markets/[date]/page.tsx
  *
  * Public Index page for a specific week.
  * Renders: headline, lede, top 10 tools, movers, new/exits per vertical.
  * No auth required. Shareable via OG tags.
  *
- * genlens.app/index/2026-04-28  (or /index/filmmaking-2026-04-28)
+ * genlens.app/markets/2026-04-28  (or /markets/filmmaking-2026-04-28)
  */
 
 import { neon } from '@neondatabase/serverless'
@@ -53,18 +53,18 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     openGraph: {
       title,
       description: snapshot.lede || `This week's top AI creative tools and movers.`,
-      url: `https://genlens.app/index/${params.date}`,
+      url: `https://genlens.app/markets/${params.date}`,
       siteName: 'GenLens',
       type: 'article',
-      images: [`https://genlens.app/api/og/index/${params.date}`],
+      images: [`https://genlens.app/api/og/markets/${params.date}`],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description: snapshot.lede || `This week's top AI creative tools and movers.`,
-      images: [`https://genlens.app/api/og/index/${params.date}`],
+      images: [`https://genlens.app/api/og/markets/${params.date}`],
     },
-    alternates: { canonical: `https://genlens.app/index/${params.date}` },
+    alternates: { canonical: `https://genlens.app/markets/${params.date}` },
   }
 }
 
@@ -112,7 +112,7 @@ export default async function IndexPage({ params }: Params) {
 
   const accent = VERTICAL_ACCENT[snapshot.vertical] ?? '#c8f04a'
   const verticalLabel = VERTICAL_LABELS[snapshot.vertical] ?? snapshot.vertical
-  const indexUrl = `${SITE_URL}/index/${params.date}`
+  const indexUrl = `${SITE_URL}/markets/${params.date}`
 
   const jsonLd: object[] = [
     {
@@ -130,7 +130,7 @@ export default async function IndexPage({ params }: Params) {
     },
     breadcrumbLD([
       { name: 'GenLens', url: SITE_URL },
-      { name: 'Index', url: `${SITE_URL}/index` },
+      { name: 'Markets', url: `${SITE_URL}/markets` },
       { name: verticalLabel, url: indexUrl },
     ]),
   ]
@@ -145,7 +145,7 @@ export default async function IndexPage({ params }: Params) {
       <nav aria-label="Breadcrumb" style={styles.breadcrumb}>
         <a href="/" style={{ ...styles.link, color: accent }}>GenLens</a>
         <span style={styles.sep}>/</span>
-        <a href="/index" style={{ ...styles.link, color: accent }}>Index</a>
+        <a href="/markets" style={{ ...styles.link, color: accent }}>Markets</a>
         <span style={styles.sep}>/</span>
         <span style={styles.muted}>{verticalLabel}</span>
       </nav>

@@ -119,7 +119,7 @@ export async function GET() {
     lines.push('')
     for (const i of indices) {
       const label = `${VERTICAL_LABELS[i.vertical] ?? i.vertical} · week of ${i.week_start_date}`
-      const url = `${SITE_URL}/index/${i.week_start_date}`
+      const url = `${SITE_URL}/markets/${i.week_start_date}`
       const desc = i.headline ? `: ${i.headline}` : ''
       lines.push(`- [${label}](${url})${desc}`)
     }
