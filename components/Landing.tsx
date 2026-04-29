@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ThemeToggle } from './ThemeToggle';
 
 export default function Landing() {
   const [email, setEmail] = useState('');
@@ -37,18 +38,21 @@ export default function Landing() {
           <h1 className="font-serif text-2xl text-[var(--text)]">GenLens</h1>
           <p className="text-xs text-[var(--text2)] uppercase tracking-widest">Intelligence for creatives</p>
         </div>
-        <Link
-          href="/auth/invite"
-          className="text-xs uppercase tracking-widest text-[var(--accent)] hover:text-[var(--accent2)]"
-        >
-          Join beta →
-        </Link>
+        <div className="flex items-center gap-5">
+          <ThemeToggle />
+          <Link
+            href="/auth/invite"
+            className="text-xs uppercase tracking-widest text-[var(--accent)] hover:text-[var(--accent2)]"
+          >
+            Join beta →
+          </Link>
+        </div>
       </nav>
 
       {/* Hero */}
       <section className="mb-20">
         <h2 className="font-display text-5xl sm:text-6xl text-[var(--text)] mb-4 leading-tight">
-          Daily intelligence for creative technologists
+          Daily intelligence for<br />Creative Technologists
         </h2>
         <p className="text-lg text-[var(--text2)] max-w-2xl mb-8 font-serif">
           Stay ahead of what's changing in AI-accelerated visual production. Product photography, filmmaking, digital humans — all in one feed.

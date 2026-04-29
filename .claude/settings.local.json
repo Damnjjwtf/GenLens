@@ -99,7 +99,21 @@
       "Bash(git mv *)",
       "Bash(curl -s -o /dev/null -w \"pp: HTTP %{http_code}\\\\n\" \"http://localhost:3000/markets/product-photography\")",
       "Bash(curl -s -o /dev/null -w \"fm: HTTP %{http_code}\\\\n\" \"http://localhost:3000/markets/filmmaking\")",
-      "Bash(curl -s -o /dev/null -w \"old /index/pp redirect: HTTP %{http_code}\\\\n\" \"http://localhost:3000/index/product-photography\")"
+      "Bash(curl -s -o /dev/null -w \"old /index/pp redirect: HTTP %{http_code}\\\\n\" \"http://localhost:3000/index/product-photography\")",
+      "Bash(curl -s -o /dev/null -w \"pp: HTTP %{http_code}\\\\n\" \"https://genlens-avp3mvth2-damnjjwtfs-projects.vercel.app/markets/product-photography\")",
+      "Bash(curl -s -o /dev/null -w \"fm: HTTP %{http_code}\\\\n\" \"https://genlens-avp3mvth2-damnjjwtfs-projects.vercel.app/markets/filmmaking\")",
+      "Bash(curl -s -o /dev/null -w \"redirect /index/pp: HTTP %{http_code}\\\\n\" \"https://genlens-avp3mvth2-damnjjwtfs-projects.vercel.app/index/product-photography\")",
+      "Bash(vercel project *)",
+      "Bash(vercel domains *)",
+      "Bash(curl -s -o /dev/null -w \"/: HTTP %{http_code}\\\\n\" \"https://genlens-gamma.vercel.app/\")",
+      "Bash(curl -s -o /dev/null -w \"/markets/product-photography: HTTP %{http_code}\\\\n\" \"https://genlens-gamma.vercel.app/markets/product-photography\")",
+      "Bash(curl -s -o /dev/null -w \"/markets/filmmaking: HTTP %{http_code}\\\\n\" \"https://genlens-gamma.vercel.app/markets/filmmaking\")",
+      "Bash(curl -s -o /dev/null -w \"/index/pp redirect: HTTP %{http_code}\\\\n\" \"https://genlens-gamma.vercel.app/index/product-photography\")",
+      "Bash(curl -s \"https://genlens-gamma.vercel.app/markets/product-photography\")",
+      "Bash(curl -s \"http://localhost:3000/\")",
+      "Bash(grep -oE 'Daily intelligence.{0,100}')",
+      "Bash(curl -s \"http://localhost:3000/\" grep -oE '<h2[^>]*>[^<]*\\(<br[^>]*/?>[^<]*\\)?<?' /tmp/landing.html)",
+      "Bash(grep -oE '<h2[^>]*font-display[^>]*>.{0,200}' /tmp/landing.html)"
     ]
   }
 }
