@@ -145,7 +145,9 @@ export async function POST(req: NextRequest) {
   }
 
   const anySuccess = results.some(r => r.ok)
-  if (anySuccess && item.status !== 'published') {
+  // status is narrowed to 'approved' | 'draft' by the guard above, so we
+  // know it isn't 'published' here — the early return at line 65 ensures it.
+  if (anySuccess) {
     await sql`
       UPDATE growth_agent_queue SET
         status = 'published',
