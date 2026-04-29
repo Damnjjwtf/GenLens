@@ -35,7 +35,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className="flex items-center justify-between mb-16 pb-6 border-b border-[var(--border)]">
         <div>
-          <h1 className="font-serif text-2xl text-[var(--text)]">GenLens</h1>
+          <h1 className="font-display text-4xl text-[var(--text)] leading-none">GenLens</h1>
           <p className="text-xs text-[var(--text2)] uppercase tracking-widest">Intelligence for creatives</p>
         </div>
         <div className="flex items-center gap-5">
