@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
 
 export default function Landing() {
@@ -40,12 +39,12 @@ export default function Landing() {
         </div>
         <div className="flex items-center gap-5">
           <ThemeToggle />
-          <Link
-            href="/auth/invite"
+          <a
+            href="#early-access"
             className="text-xs uppercase tracking-widest text-[var(--accent)] hover:text-[var(--accent2)]"
           >
-            Join beta →
-          </Link>
+            Join waitlist →
+          </a>
         </div>
       </nav>
 
@@ -58,12 +57,12 @@ export default function Landing() {
           Stay ahead of what's changing in AI-accelerated visual production. Product photography, filmmaking, digital humans — all in one feed.
         </p>
         <div className="flex gap-4 flex-wrap">
-          <Link
-            href="/auth/invite"
+          <a
+            href="#early-access"
             className="bg-[var(--accent)] text-[var(--bg)] px-6 py-3 font-mono text-sm uppercase tracking-widest hover:bg-[var(--accent2)]"
           >
             Get early access
-          </Link>
+          </a>
           <a
             href="#features"
             className="border border-[var(--border)] px-6 py-3 font-mono text-sm uppercase tracking-widest hover:bg-[var(--bg2)]"
@@ -74,7 +73,7 @@ export default function Landing() {
       </section>
 
       {/* Email signup */}
-      <section className="border border-[var(--border)] bg-[var(--bg2)] p-8 mb-20 max-w-2xl">
+      <section id="early-access" className="border border-[var(--border)] bg-[var(--bg2)] p-8 mb-20 max-w-2xl scroll-mt-8">
         <h3 className="font-serif text-xl text-[var(--text)] mb-2">Early access</h3>
         <p className="text-sm text-[var(--text2)] mb-6">
           Join the waitlist. We'll send you an invite code and weekly intelligence briefings.
@@ -174,13 +173,13 @@ export default function Landing() {
       {/* CTA */}
       <section className="border border-[var(--border)] bg-[var(--bg2)] p-12 text-center mb-20">
         <h3 className="font-serif text-3xl text-[var(--text)] mb-3">Ready?</h3>
-        <p className="text-[var(--text2)] mb-6">Get your invite code and join the beta.</p>
-        <Link
-          href="/auth/invite"
+        <p className="text-[var(--text2)] mb-6">Join the waitlist. We'll send your invite when the next batch opens.</p>
+        <a
+          href="#early-access"
           className="inline-block bg-[var(--accent)] text-[var(--bg)] px-8 py-3 font-mono uppercase tracking-widest hover:bg-[var(--accent2)]"
         >
-          Join beta
-        </Link>
+          Join waitlist
+        </a>
       </section>
 
       {/* Footer */}
