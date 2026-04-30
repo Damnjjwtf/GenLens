@@ -40,6 +40,12 @@ export default function Landing() {
         <div className="flex items-center gap-5">
           <ThemeToggle />
           <a
+            href="/auth/invite"
+            className="text-xs uppercase tracking-widest text-[var(--text2)] hover:text-[var(--accent)]"
+          >
+            Sign in
+          </a>
+          <a
             href="#early-access"
             className="text-xs uppercase tracking-widest text-[var(--accent)] hover:text-[var(--accent2)]"
           >
