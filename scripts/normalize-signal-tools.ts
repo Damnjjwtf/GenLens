@@ -15,42 +15,47 @@ if (!DATABASE_URL) {
 
 const sql = neon(DATABASE_URL);
 
-async function normalizeToolName(toolName: string): Promise<number | null> {
-  if (!toolName) return null;
+async function buildLookupMap(): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
 
-  const normalized = toolName.toLowerCase().trim();
-
-  // Try alias lookup first
-  const aliasResult = await sql`
-    SELECT t.id
-    FROM tools t
-    JOIN tool_aliases ta ON t.id = ta.tool_id
-    WHERE LOWER(ta.alias) = ${normalized}
-    LIMIT 1
-  ` as Array<{ id: number }>;
-
-  if (aliasResult.length > 0) {
-    return aliasResult[0].id;
-  }
-
-  // Try canonical name
-  const canonicalResult = await sql`
-    SELECT id
+  // Load all tools and aliases into memory
+  const tools = await sql`
+    SELECT id, canonical_name
     FROM tools
-    WHERE LOWER(canonical_name) = ${normalized}
-    LIMIT 1
-  ` as Array<{ id: number }>;
+  ` as Array<{ id: number; canonical_name: string }>;
 
-  if (canonicalResult.length > 0) {
-    return canonicalResult[0].id;
+  const aliases = await sql`
+    SELECT alias, tool_id
+    FROM tool_aliases
+  ` as Array<{ alias: string; tool_id: number }>;
+
+  // Index canonical names
+  for (const tool of tools) {
+    map.set(tool.canonical_name.toLowerCase(), tool.id);
   }
 
-  return null;
+  // Index aliases
+  for (const alias of aliases) {
+    map.set(alias.toLowerCase(), alias.tool_id);
+  }
+
+  return map;
+}
+
+function normalizeToolName(toolName: string, lookupMap: Map<string, number>): number | null {
+  if (!toolName) return null;
+  const normalized = toolName.toLowerCase().trim();
+  return lookupMap.get(normalized) || null;
 }
 
 async function run() {
   try {
     console.log('🔧 Normalizing signal tool names...');
+
+    // Build in-memory lookup map
+    console.log('📚 Loading tools and aliases into memory...');
+    const lookupMap = await buildLookupMap();
+    console.log(`Loaded ${lookupMap.size} tool entries`);
 
     // Get all signals with tool_names but no tool_ids
     const signals = await sql`
@@ -71,7 +76,7 @@ async function run() {
       const toolIds: number[] = [];
 
       for (const toolName of signal.tool_names) {
-        const toolId = await normalizeToolName(toolName);
+        const toolId = normalizeToolName(toolName, lookupMap);
         if (toolId) {
           toolIds.push(toolId);
         }

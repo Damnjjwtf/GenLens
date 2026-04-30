@@ -1,11 +1,13 @@
-import { getAllTools, getTool } from '@/lib/tools';
+import { getAllTools, canonicalNameToSlug, slugToCanonicalName } from '@/lib/tools';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+const cachedGetAllTools = async () => getAllTools();
+
 export async function generateStaticParams() {
-  const tools = await getAllTools();
+  const tools = await cachedGetAllTools();
   return tools.map(tool => ({
-    slug: tool.canonical_name.toLowerCase().replace(/\s+/g, '-'),
+    slug: canonicalNameToSlug(tool.canonical_name),
   }));
 }
 
@@ -14,10 +16,8 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }) {
-  const tools = await getAllTools();
-  const tool = tools.find(
-    t => t.canonical_name.toLowerCase().replace(/\s+/g, '-') === params.slug
-  );
+  const tools = await cachedGetAllTools();
+  const tool = slugToCanonicalName(tools, params.slug);
 
   if (!tool) return { title: 'Tool Not Found' };
 
@@ -32,10 +32,8 @@ export default async function ToolPage({
 }: {
   params: { slug: string };
 }) {
-  const tools = await getAllTools();
-  const tool = tools.find(
-    t => t.canonical_name.toLowerCase().replace(/\s+/g, '-') === params.slug
-  );
+  const tools = await cachedGetAllTools();
+  const tool = slugToCanonicalName(tools, params.slug);
 
   if (!tool) {
     notFound();
@@ -181,7 +179,7 @@ export default async function ToolPage({
               {relatedTools.slice(0, 4).map(related => (
                 <Link
                   key={related.id}
-                  href={`/tools/${related.canonical_name.toLowerCase().replace(/\s+/g, '-')}`}
+                  href={`/tools/${canonicalNameToSlug(related.canonical_name)}`}
                   className="border border-[var(--border)] bg-[var(--bg2)] p-4 rounded hover:bg-[var(--bg3)] transition-colors"
                 >
                   <h3 className="font-mono text-sm text-[var(--text)] mb-1">{related.canonical_name}</h3>

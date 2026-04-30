@@ -500,39 +500,54 @@ async function seed() {
   try {
     console.log('🌱 Seeding tool taxonomy...');
 
-    // Insert tools
-    for (const tool of TOOLS) {
-      const result = await sql`
-        INSERT INTO tools (canonical_name, aliases, category, vendor_name, pricing_tier, verticals, dimensions)
-        VALUES (
-          ${tool.canonical},
-          ${tool.aliases},
-          ${tool.category},
-          ${tool.vendor},
-          ${tool.pricing},
-          ${tool.verticals},
-          ${tool.dimensions}
-        )
-        ON CONFLICT (canonical_name) DO UPDATE SET
-          aliases = EXCLUDED.aliases,
-          updated_at = NOW()
-        RETURNING id, canonical_name;
-      `;
+    // Batch insert tools
+    const toolResults = await sql`
+      INSERT INTO tools (canonical_name, aliases, category, vendor_name, pricing_tier, verticals, dimensions)
+      VALUES
+      ${sql(
+        TOOLS.map(t => [
+          t.canonical,
+          t.aliases,
+          t.category,
+          t.vendor,
+          t.pricing,
+          t.verticals,
+          t.dimensions,
+        ])
+      )}
+      ON CONFLICT (canonical_name) DO UPDATE SET
+        aliases = EXCLUDED.aliases,
+        updated_at = NOW()
+      RETURNING id, canonical_name;
+    `;
 
-      const toolId = result[0].id;
-      console.log(`✓ ${tool.canonical} (ID: ${toolId})`);
+    // Log inserted tools
+    for (const result of toolResults) {
+      console.log(`✓ ${result.canonical_name} (ID: ${result.id})`);
+    }
 
-      // Insert aliases
+    // Build aliases list with tool IDs
+    const aliases: Array<[string, number]> = [];
+    for (let i = 0; i < TOOLS.length; i++) {
+      const tool = TOOLS[i];
+      const toolId = toolResults[i].id;
       for (const alias of tool.aliases) {
-        await sql`
-          INSERT INTO tool_aliases (alias, tool_id)
-          VALUES (${alias}, ${toolId})
-          ON CONFLICT (alias) DO UPDATE SET tool_id = ${toolId};
-        `;
+        aliases.push([alias, toolId]);
       }
     }
 
-    console.log(`\n✅ Seeded ${TOOLS.length} tools with ${TOOLS.reduce((sum, t) => sum + t.aliases.length, 0)} aliases`);
+    // Batch insert aliases
+    if (aliases.length > 0) {
+      await sql`
+        INSERT INTO tool_aliases (alias, tool_id)
+        VALUES
+        ${sql(aliases)}
+        ON CONFLICT (alias) DO UPDATE SET tool_id = EXCLUDED.tool_id;
+      `;
+    }
+
+    const totalAliases = TOOLS.reduce((sum, t) => sum + t.aliases.length, 0);
+    console.log(`\n✅ Seeded ${TOOLS.length} tools with ${totalAliases} aliases`);
   } catch (error) {
     console.error('❌ Seed failed:', error);
     process.exit(1);

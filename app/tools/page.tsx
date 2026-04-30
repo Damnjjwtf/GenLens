@@ -1,4 +1,5 @@
-import { getAllTools } from '@/lib/tools';
+import { getAllTools, canonicalNameToSlug } from '@/lib/tools';
+import { VERTICAL_LABELS } from '@/lib/constants';
 import Link from 'next/link';
 
 export const metadata = {
@@ -9,26 +10,23 @@ export const metadata = {
 export default async function ToolsPage() {
   const tools = await getAllTools();
 
-  // Group by vertical
+  // Group by vertical and category in a single pass
   const byVertical = {
-    product_photography: tools.filter(t => t.verticals?.includes('product_photography')),
-    filmmaking: tools.filter(t => t.verticals?.includes('filmmaking')),
-    digital_humans: tools.filter(t => t.verticals?.includes('digital_humans')),
+    product_photography: [] as typeof tools,
+    filmmaking: [] as typeof tools,
+    digital_humans: [] as typeof tools,
   };
+  const byCategory: Record<string, typeof tools> = {};
 
-  // Group by category
-  const byCategory = tools.reduce((acc, tool) => {
+  for (const tool of tools) {
+    tool.verticals?.forEach(v => {
+      if (v in byVertical) byVertical[v as keyof typeof byVertical].push(tool);
+    });
+
     const cat = tool.category || 'Other';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(tool);
-    return acc;
-  }, {} as Record<string, typeof tools>);
-
-  const verticalLabels = {
-    product_photography: 'Product Photography',
-    filmmaking: 'Commercial Filmmaking',
-    digital_humans: 'Digital Humans',
-  };
+    if (!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push(tool);
+  }
 
   return (
     <main className="min-h-screen bg-[var(--bg)]">
@@ -53,14 +51,14 @@ export default async function ToolsPage() {
             {Object.entries(byVertical).map(([vertical, verticalTools]) => (
               <div key={vertical} className="border border-[var(--border)] bg-[var(--bg2)] p-6 rounded">
                 <h3 className="font-serif text-lg text-[var(--text)] mb-3">
-                  {verticalLabels[vertical as keyof typeof verticalLabels]}
+                  {VERTICAL_LABELS[vertical as keyof typeof VERTICAL_LABELS]}
                 </h3>
                 <p className="text-xs text-[var(--text3)] mb-4">{verticalTools.length} tools</p>
                 <div className="space-y-2">
                   {verticalTools.slice(0, 8).map(tool => (
                     <Link
                       key={tool.id}
-                      href={`/tools/${tool.canonical_name.toLowerCase().replace(/\s+/g, '-')}`}
+                      href={`/tools/${canonicalNameToSlug(tool.canonical_name)}`}
                       className="block text-sm text-[var(--text2)] hover:text-[var(--accent)] transition-colors"
                     >
                       {tool.canonical_name}
@@ -92,7 +90,7 @@ export default async function ToolsPage() {
                     {categoryTools.map(tool => (
                       <Link
                         key={tool.id}
-                        href={`/tools/${tool.canonical_name.toLowerCase().replace(/\s+/g, '-')}`}
+                        href={`/tools/${canonicalNameToSlug(tool.canonical_name)}`}
                         className="px-2 py-1 text-xs border border-[var(--border)] rounded text-[var(--text2)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
                       >
                         {tool.canonical_name}
@@ -113,7 +111,7 @@ export default async function ToolsPage() {
               .map(tool => (
                 <Link
                   key={tool.id}
-                  href={`/tools/${tool.canonical_name.toLowerCase().replace(/\s+/g, '-')}`}
+                  href={`/tools/${canonicalNameToSlug(tool.canonical_name)}`}
                   className="border border-[var(--border)] bg-[var(--bg2)] p-4 rounded hover:bg-[var(--bg3)] transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3 mb-2">

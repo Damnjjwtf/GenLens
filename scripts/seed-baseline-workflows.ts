@@ -206,36 +206,39 @@ async function seed() {
   try {
     console.log('🌱 Seeding baseline workflows...');
 
-    for (const baseline of BASELINES) {
-      const result = await sql`
-        INSERT INTO baseline_workflows (
-          vertical,
-          workflow_stage,
-          product_category,
-          description,
-          traditional_time_hours,
-          traditional_cost_dollars,
-          ai_accelerated_time_hours,
-          ai_accelerated_cost_dollars,
-          baseline_year,
-          source
-        )
-        VALUES (
-          ${baseline.vertical},
-          ${baseline.workflow_stage},
-          ${baseline.product_category},
-          ${baseline.description},
-          ${baseline.traditional_time_hours},
-          ${baseline.traditional_cost_dollars},
-          ${baseline.ai_accelerated_time_hours},
-          ${baseline.ai_accelerated_cost_dollars},
-          ${baseline.baseline_year},
-          ${baseline.source}
-        )
-        RETURNING id, vertical, workflow_stage, product_category;
-      `;
+    const results = await sql`
+      INSERT INTO baseline_workflows (
+        vertical,
+        workflow_stage,
+        product_category,
+        description,
+        traditional_time_hours,
+        traditional_cost_dollars,
+        ai_accelerated_time_hours,
+        ai_accelerated_cost_dollars,
+        baseline_year,
+        source
+      )
+      VALUES
+      ${sql(
+        BASELINES.map(b => [
+          b.vertical,
+          b.workflow_stage,
+          b.product_category,
+          b.description,
+          b.traditional_time_hours,
+          b.traditional_cost_dollars,
+          b.ai_accelerated_time_hours,
+          b.ai_accelerated_cost_dollars,
+          b.baseline_year,
+          b.source,
+        ])
+      )}
+      RETURNING id, vertical, workflow_stage, product_category;
+    `;
 
-      const row = result[0];
+    for (let i = 0; i < BASELINES.length; i++) {
+      const baseline = BASELINES[i];
       const timeSavings = baseline.traditional_time_hours - baseline.ai_accelerated_time_hours;
       const costSavings = baseline.traditional_cost_dollars - baseline.ai_accelerated_cost_dollars;
 

@@ -1,5 +1,13 @@
 import { sql } from './db';
 
+export function canonicalNameToSlug(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '-');
+}
+
+export function slugToCanonicalName(tools: Tool[], slug: string): Tool | undefined {
+  return tools.find(t => canonicalNameToSlug(t.canonical_name) === slug);
+}
+
 export interface Tool {
   id: number;
   canonical_name: string;
