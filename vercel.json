@@ -5,6 +5,10 @@
       "schedule": "0 2 * * *"
     },
     {
+      "path": "/api/cron/score",
+      "schedule": "50 2 * * *"
+    },
+    {
       "path": "/api/cron/growth-agent",
       "schedule": "0 3 * * *"
     },

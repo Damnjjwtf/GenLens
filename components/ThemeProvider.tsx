@@ -33,11 +33,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.setAttribute('data-theme', eff);
   }
 
-  if (!mounted) return <>{children}</>;
-
   return (
     <ThemeContext.Provider value={{ theme, effective, setTheme }}>
-      {children}
+      {mounted ? children : <div suppressHydrationWarning>{children}</div>}
     </ThemeContext.Provider>
   );
 }

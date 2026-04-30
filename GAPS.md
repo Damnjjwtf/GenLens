@@ -2,7 +2,12 @@
 
 Comprehensive inventory of missing pieces. Organized by criticality and blocker status.
 
-**Last reviewed:** April 26, 2026
+**Last reviewed:** April 28, 2026
+
+**Recently resolved (Phase 2 build):**
+- ✅ #2 Baseline Workflows — table + 9 seed rows shipped in migration 006. Score formula anchors against baselines per (vertical, workflow_stage).
+- ✅ #3 Tool Taxonomy — `tools` table with `slug`, `canonical_name`, `aliases[]` shipped in migration 004. `seed-tools.ts` populated 21 canonical tools. Score compute matches signal `tool_names` against canonical + aliases.
+- ✅ #17 Historical Trend Analysis (partial) — `tool_scores` snapshots per `(tool_slug, vertical, snapshot_date)` give us week-over-week deltas. Index movers compute from this. No separate `scores_history` / `trends_history` table needed.
 
 ---
 
@@ -56,9 +61,11 @@ These must be addressed before launching Score, Index, or personalized briefings
 
 ---
 
-### 2. Baseline Workflows Table
+### 2. Baseline Workflows Table — ✅ RESOLVED 2026-04-28
 
-**What's missing:**
+Shipped in migration 006 (`lib/migrations/006_score_and_index.sql`). Table seeded with 9 baselines (3 per vertical, drawn from `GENLENS_SPEC_v2`). Score compute uses `pickBaseline(tool.workflow_stages, vertical, baselines)` and falls back to absolute scaling when no match — never to the wrong baseline.
+
+**Original ask (kept for reference):**
 - `baseline_workflows` table (workflow_stage, vertical, product_category, traditional_time_hours, traditional_cost_dollars, ai_accelerated_time_hours, ai_accelerated_cost_dollars, baseline_year, source)
 - Seed data: "Traditional hard goods rendering = 14 hours, $1,200 in farm costs"
 - Tool Score formula must anchor against baselines, not just raw deltas
@@ -86,9 +93,11 @@ source: GENLENS_SPEC_v2
 
 ---
 
-### 3. Tool Taxonomy & Master Tool List
+### 3. Tool Taxonomy & Master Tool List — ✅ RESOLVED 2026-04-28
 
-**What's missing:**
+Shipped in migration 004 (`tools` table with `slug`, `canonical_name`, `aliases[]`, `verticals[]`, `categories[]`, `workflow_stages[]`). `scripts/seed-tools.ts` populated 21 canonical tools with affiliate URL placeholders. Score compute reconciles classifier-emitted tool names against canonical + aliases (lowercased) before bucketing — fuzzy match without false positives.
+
+**Original ask (kept for reference):**
 - `tools` table (id, canonical_name, aliases[], category, vendor_name, website, pricing_tier, logo_url, created_at, updated_at)
 - Deduplication mapping ("elevenlabs" → "ElevenLabs" → "Eleven Labs" all map to tool_id: 42)
 - Tool scraper: extract tools from signals, normalize names, update tool table

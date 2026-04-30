@@ -12,6 +12,7 @@
 import { neon } from '@neondatabase/serverless'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { articleLD, breadcrumbLD, SITE_URL } from '@/lib/schema/jsonld'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -97,20 +98,45 @@ export default async function SignalPage({ params }: Params) {
 
   const accent = VERTICAL_ACCENT[signal.vertical] ?? '#c8f04a'
   const toolNames: string[] = Array.isArray(signal.tool_names) ? signal.tool_names : []
+  const signalUrl = `${SITE_URL}/signals/${signal.id}`
+
+  const jsonLd: object[] = [
+    articleLD({
+      id: signal.id as number,
+      title: signal.title as string,
+      geo_summary: (signal.geo_summary as string | null) ?? null,
+      hook_sentence: (signal.hook_sentence as string | null) ?? null,
+      description: (signal.description as string | null) ?? null,
+      source_name: (signal.source_name as string) ?? (signal.source_platform as string) ?? 'Unknown',
+      source_url: (signal.source_url as string) ?? signalUrl,
+      created_at: new Date(signal.created_at as string).toISOString(),
+      vertical: signal.vertical as string,
+      tool_names: (signal.tool_names as string[] | null) ?? null,
+    }),
+    breadcrumbLD([
+      { name: 'GenLens', url: SITE_URL },
+      { name: VERTICAL_LABELS[signal.vertical as string] ?? (signal.vertical as string), url: SITE_URL },
+      { name: signal.title as string, url: signalUrl },
+    ]),
+  ]
 
   return (
-    <div style={{ ...styles.page, '--accent': accent } as React.CSSProperties}>
-      {/* Breadcrumb */}
-      <div style={styles.breadcrumb}>
+    <article style={{ ...styles.page, '--accent': accent } as React.CSSProperties} itemScope itemType="https://schema.org/NewsArticle">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <link itemProp="mainEntityOfPage" href={signalUrl} />
+
+      <nav aria-label="Breadcrumb" style={styles.breadcrumb}>
         <a href="/" style={{ ...styles.link, color: accent }}>GenLens</a>
         <span style={styles.sep}>/</span>
         <span style={styles.muted}>{VERTICAL_LABELS[signal.vertical] ?? signal.vertical}</span>
         <span style={styles.sep}>/</span>
         <span style={styles.muted}>{DIMENSION_LABELS[signal.dimension] ?? `Dim ${signal.dimension}`}</span>
-      </div>
+      </nav>
 
-      {/* Signal header */}
-      <div style={styles.header}>
+      <header style={styles.header}>
         <div style={styles.signalMeta}>
           <span style={{ ...styles.verticalBadge, borderColor: accent + '44', color: accent, background: accent + '10' }}>
             {VERTICAL_LABELS[signal.vertical] ?? signal.vertical}
@@ -118,15 +144,15 @@ export default async function SignalPage({ params }: Params) {
           <span style={styles.dimensionBadge}>
             {DIMENSION_LABELS[signal.dimension]}
           </span>
-          <span style={styles.dateMuted}>
+          <time dateTime={new Date(signal.created_at).toISOString()} itemProp="datePublished" style={styles.dateMuted}>
             {new Date(signal.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-          </span>
+          </time>
         </div>
 
-        <h1 style={styles.title}>{signal.title}</h1>
+        <h1 style={styles.title} itemProp="headline">{signal.title}</h1>
 
         {signal.hook_sentence && (
-          <p style={{ ...styles.hook, borderColor: accent + '30' }}>{signal.hook_sentence}</p>
+          <p style={{ ...styles.hook, borderColor: accent + '30' }} itemProp="description">{signal.hook_sentence}</p>
         )}
 
         {/* Delta chips */}
@@ -149,10 +175,9 @@ export default async function SignalPage({ params }: Params) {
             )}
           </div>
         )}
-      </div>
+      </header>
 
-      {/* Body */}
-      <div style={styles.body}>
+      <div style={styles.body} itemProp="articleBody">
         {/* GEO summary (visible) */}
         {signal.geo_summary && (
           <div style={styles.summaryBlock}>
@@ -212,24 +237,25 @@ export default async function SignalPage({ params }: Params) {
         )}
       </div>
 
-      {/* Related signals */}
       {related.length > 0 && (
-        <div style={styles.related}>
-          <div style={styles.relatedLabel}>Related signals</div>
+        <aside style={styles.related} aria-labelledby="related-label">
+          <h2 id="related-label" style={styles.relatedLabel}>Related signals</h2>
           <div style={styles.relatedGrid}>
             {related.map((r: { id: number; title: string; geo_summary: string; dimension: number; created_at: string }) => (
               <a href={`/signals/${r.id}`} key={r.id} style={styles.relatedItem}>
-                <div style={styles.relatedDimension}>{DIMENSION_LABELS[r.dimension]}</div>
-                <div style={styles.relatedTitle}>{r.title}</div>
-                {r.geo_summary && (
-                  <div style={styles.relatedSummary}>{r.geo_summary.slice(0, 100)}…</div>
-                )}
+                <article>
+                  <div style={styles.relatedDimension}>{DIMENSION_LABELS[r.dimension]}</div>
+                  <h3 style={styles.relatedTitle}>{r.title}</h3>
+                  {r.geo_summary && (
+                    <p style={styles.relatedSummary}>{r.geo_summary.slice(0, 100)}…</p>
+                  )}
+                </article>
               </a>
             ))}
           </div>
-        </div>
+        </aside>
       )}
-    </div>
+    </article>
   )
 }
 

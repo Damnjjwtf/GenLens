@@ -10,10 +10,22 @@ The Growth Agent is the distribution engine for GenLens. It runs nightly after t
 |---|---|---|
 | `social_x` | X / Twitter — human posts after approval | Daily 9am |
 | `social_linkedin` | LinkedIn — human posts after approval | Daily 10am |
+| `social_discord` | Discord webhook — auto-posts on approve, routed by vertical + signal_type | Per-signal, immediate on approve |
 | `geo_block` | `genlens.app/tools/[slug]` — Q&A blocks + FAQ schema | Nightly, per tool |
 | `signal_page` | `genlens.app/signals/[id]` — public shareable URL | Nightly, top 5 signals |
 | `index_post` | `genlens.app/index/[date]` — weekly Monday Index | Sundays |
 | `comparison_page` | `genlens.app/compare/[a]-vs-[b]` | When tools co-appear in signals |
+
+**Discord routing** is the only output that auto-publishes on approval (no scheduled_for). Channel selection happens in `lib/social/discord.ts`:
+- `signal_type='legal'` → `legal_alerts`
+- `signal_type='hiring'` → `hiring`
+- `signal_type='tool_release'` → `tool_releases`
+- `signal_type='template'` → `templates`
+- `output_type='index_post'` → `announcements`
+- vertical match → `pp` / `fm` / `dh`
+- fallback → `general`
+
+Each channel has its own `DISCORD_WEBHOOK_URL_*` env var. Missing channel envs fall through to `DISCORD_WEBHOOK_URL_GENERAL`.
 
 Nothing publishes without human approval. Everything queues in `growth_agent_queue`.
 
@@ -23,13 +35,16 @@ Nothing publishes without human approval. Everything queues in `growth_agent_que
 
 ```
 lib/agent/growth-agent.ts           Core agent pipeline
+lib/social/discord.ts               Discord webhook poster + channel routing
 app/api/cron/growth-agent/route.ts  Vercel Cron + admin trigger endpoint
-app/api/agent/queue/route.ts        Queue CRUD API (approve, reject, publish)
+app/api/agent/queue/route.ts        Queue CRUD API (approve, reject, publish — auto-posts Discord on approve)
+app/api/agent/post/route.ts         Explicit posting endpoint (multi-platform shape, X / LinkedIn pending)
 app/admin/growth-agent/page.tsx     Admin review UI
 app/tools/[slug]/page.tsx           Public tool directory pages (GEO + affiliate)
 app/signals/[id]/page.tsx           Public signal pages (freemium hook)
 scripts/seed-tools.ts               Populates tools table from manifest
-lib/migrations/004_growth_agent.sql DB migration — run this first
+lib/migrations/004_growth_agent.sql DB migration — Growth Agent core tables
+lib/migrations/005_post_results.sql DB migration — post_results for social posting
 vercel.json                         Cron schedule config
 ```
 

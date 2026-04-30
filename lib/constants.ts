@@ -46,7 +46,12 @@ export const PRODUCT_CATEGORIES = [
   'deepfake_ethical', 'voiceover',
 ] as const;
 
-export const ANTHROPIC_MODEL = 'claude-sonnet-4-20250514';
+// Model selection — claude-sonnet-4-20250514 is deprecated (Apr 2026).
+// Classifier uses Haiku for speed/cost at batch scale; agents use Sonnet.
+export const ANTHROPIC_MODEL_CLASSIFIER = 'claude-haiku-4-5-20251001';
+export const ANTHROPIC_MODEL_AGENT = 'claude-sonnet-4-6';
+// Back-compat alias for any older imports.
+export const ANTHROPIC_MODEL = ANTHROPIC_MODEL_CLASSIFIER;
 
 export const INVITE_COOKIE = 'genlens_invite';
 export const INVITE_COOKIE_TTL_SECONDS = 60 * 30;

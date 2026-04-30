@@ -10,6 +10,7 @@
 
 import { neon } from '@neondatabase/serverless'
 import Anthropic from '@anthropic-ai/sdk'
+import { ANTHROPIC_MODEL_AGENT } from '@/lib/constants'
 
 const sql = neon(process.env.DATABASE_URL!)
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
@@ -19,6 +20,7 @@ const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 export type OutputType =
   | 'social_x'
   | 'social_linkedin'
+  | 'social_discord'
   | 'geo_block'
   | 'index_post'
   | 'signal_page'
@@ -192,7 +194,7 @@ export async function runGrowthAgent(runType: 'daily' | 'weekly_index' | 'on_dem
 
 async function generateSocialDrafts(signals: Signal[], date: string): Promise<AgentOutput[]> {
   const signalContext = signals.map(s =>
-    `SIGNAL [${s.id}] — Vertical: ${s.vertical} | Dimension: ${s.dimension} | Tools: ${(s.tool_names || []).join(', ')}
+    `SIGNAL [${s.id}] — Vertical: ${s.vertical} | Dimension: ${s.dimension} | Type: ${s.signal_type} | Tools: ${(s.tool_names || []).join(', ')}
 Title: ${s.title}
 Summary: ${s.summary || s.description}
 Time saved: ${s.time_saved_hours ? `${s.time_saved_hours}h` : 'N/A'} | Cost saved: ${s.cost_saved_dollars ? `$${s.cost_saved_dollars}` : 'N/A'}
@@ -200,13 +202,13 @@ Source: ${s.source_name}`
   ).join('\n\n')
 
   const response = await claude.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1500,
+    model: ANTHROPIC_MODEL_AGENT,
+    max_tokens: 2400,
     messages: [{
       role: 'user',
       content: `You are the Growth Agent for GenLens — an intelligence platform for creative technologists working in AI-accelerated visual production.
 
-Generate TWO social drafts from today's top signals. Both drafts should be written in GenLens's voice: warm, expert, direct. Not corporate. Not academic. Like a smart friend who's also a working creative.
+Generate social drafts from today's top signals. All drafts in GenLens's voice: warm, expert, direct. Not corporate. Not academic. Like a smart friend who's also a working creative.
 
 TODAY'S SIGNALS:
 ${signalContext}
@@ -220,7 +222,14 @@ OUTPUT FORMAT — respond with valid JSON only, no markdown:
   "linkedin_post": {
     "content": "2-3 short paragraphs. Professional but warm. Same signal, more context. Link to Index or tool page. No hashtag spam — max 3 relevant ones.",
     "signal_ids": [1, 2]
-  }
+  },
+  "discord_posts": [
+    {
+      "signal_id": 1,
+      "title": "Punchy headline. Max 80 chars. Becomes the embed title.",
+      "content": "1-3 short paragraphs. Conversational. Channel-native — community is reading, not scrolling. Lead with the stat or change. Add a question at the end to invite reply. Max 1500 chars."
+    }
+  ]
 }
 
 Rules:
@@ -229,12 +238,17 @@ Rules:
 - If there's a time/cost saving, lead with it
 - X post must be under 280 chars
 - LinkedIn post 150-300 words max
+- Discord: one entry per provided signal (preserve the signal_id from input). Discord readers want detail and context, not slogans — give them the so-what
 - Add confidence label (high/medium/low) on any specific claim`
     }]
   })
 
   const text = response.content[0].type === 'text' ? response.content[0].text : ''
-  let parsed: { x_post: { content: string; signal_ids: number[] }; linkedin_post: { content: string; signal_ids: number[] } }
+  let parsed: {
+    x_post: { content: string; signal_ids: number[] }
+    linkedin_post: { content: string; signal_ids: number[] }
+    discord_posts?: Array<{ signal_id: number; title: string; content: string }>
+  }
 
   try {
     parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
@@ -269,6 +283,24 @@ Rules:
     })
   }
 
+  // Discord: one draft per top signal — channel routes off vertical + signal_type.
+  // No scheduled_for — Discord posts ship the moment a human approves them.
+  if (parsed.discord_posts?.length) {
+    const byId = new Map(signals.map(s => [s.id, s]))
+    for (const d of parsed.discord_posts) {
+      const src = byId.get(d.signal_id) ?? topSignal
+      if (!d.content?.trim()) continue
+      outputs.push({
+        output_type: 'social_discord',
+        title: d.title || `Discord — ${src.vertical} — ${date}`,
+        content: JSON.stringify({ post_text: d.content, title: d.title }),
+        signal_ids: [src.id],
+        vertical: src.vertical,
+        briefing_date: date,
+      })
+    }
+  }
+
   return outputs
 }
 
@@ -282,7 +314,7 @@ async function generateGeoBlock(toolSlug: string, signals: Signal[], date: strin
   ).join('\n')
 
   const response = await claude.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: ANTHROPIC_MODEL_AGENT,
     max_tokens: 1200,
     messages: [{
       role: 'user',
@@ -358,7 +390,7 @@ async function generateSignalPages(signals: Signal[], date: string): Promise<Age
 
   for (const signal of signals) {
     const response = await claude.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: ANTHROPIC_MODEL_AGENT,
       max_tokens: 400,
       messages: [{
         role: 'user',
@@ -431,7 +463,7 @@ async function generateIndexPost(signals: Signal[], date: string): Promise<Agent
   }).join('\n')
 
   const response = await claude.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: ANTHROPIC_MODEL_AGENT,
     max_tokens: 800,
     messages: [{
       role: 'user',
@@ -498,7 +530,7 @@ async function generateComparisonPage(
   const slug = `${toolA}-vs-${toolB}`
 
   const response = await claude.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: ANTHROPIC_MODEL_AGENT,
     max_tokens: 800,
     messages: [{
       role: 'user',

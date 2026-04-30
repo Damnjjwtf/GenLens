@@ -1,155 +1,205 @@
-import { getAllTools, canonicalNameToSlug } from '@/lib/tools';
-import { VERTICAL_LABELS } from '@/lib/constants';
-import Link from 'next/link';
+/**
+ * app/tools/page.tsx
+ *
+ * Public tool directory.
+ * Lists all tools with current scores, grouped by vertical.
+ *
+ * genlens.app/tools
+ */
 
-export const metadata = {
-  title: 'Tool Directory | GenLens',
-  description: 'Browse 130+ AI tools for creative technologists. Find tools by vertical, category, and pricing.',
-};
+import { neon } from '@neondatabase/serverless'
+import type { Metadata } from 'next'
+import { breadcrumbLD, SITE_URL } from '@/lib/schema/jsonld'
+
+const sql = neon(process.env.DATABASE_URL!)
+
+export const metadata: Metadata = {
+  title: 'Tool Directory — GenLens Ratings & Scores',
+  description: 'AI creative tools rated by speed, cost, quality, and adoption velocity. Product photography, filmmaking, digital humans.',
+  openGraph: {
+    title: 'Tool Directory',
+    description: 'AI creative tools rated and ranked by GenLens Score.',
+    url: `${SITE_URL}/tools`,
+    siteName: 'GenLens',
+    type: 'website',
+  },
+  alternates: { canonical: `${SITE_URL}/tools` },
+}
+
+const VERTICAL_LABELS: Record<string, string> = {
+  product_photography: 'Product Photography',
+  filmmaking: 'Filmmaking',
+  digital_humans: 'Digital Humans',
+}
+
+const VERTICAL_ACCENT: Record<string, string> = {
+  product_photography: '#c8f04a',
+  filmmaking: '#f0a83c',
+  digital_humans: '#b07af0',
+}
 
 export default async function ToolsPage() {
-  const tools = await getAllTools();
+  const tools = await sql`
+    SELECT
+      id, slug, canonical_name, website_url, affiliate_url,
+      verticals, current_score, signal_count, affiliate_program, affiliate_commission_pct
+    FROM tools
+    ORDER BY current_score DESC NULLS LAST, canonical_name ASC
+  `
 
-  // Group by vertical and category in a single pass
-  const byVertical = {
-    product_photography: [] as typeof tools,
-    filmmaking: [] as typeof tools,
-    digital_humans: [] as typeof tools,
-  };
-  const byCategory: Record<string, typeof tools> = {};
-
+  // Group by vertical
+  const grouped = new Map<string, typeof tools>()
   for (const tool of tools) {
-    tool.verticals?.forEach(v => {
-      if (v in byVertical) byVertical[v as keyof typeof byVertical].push(tool);
-    });
-
-    const cat = tool.category || 'Other';
-    if (!byCategory[cat]) byCategory[cat] = [];
-    byCategory[cat].push(tool);
+    const toolVerticals = tool.verticals as string[] || []
+    for (const v of toolVerticals) {
+      if (!grouped.has(v)) grouped.set(v, [])
+      grouped.get(v)!.push(tool)
+    }
   }
 
+  // Sort each group by score
+  for (const [, group] of grouped) {
+    group.sort((a, b) => ((b.current_score ?? 0) - (a.current_score ?? 0)))
+  }
+
+  const jsonLd = breadcrumbLD([
+    { name: 'GenLens', url: SITE_URL },
+    { name: 'Tools', url: `${SITE_URL}/tools` },
+  ])
+
+  const verticalOrder = ['product_photography', 'filmmaking', 'digital_humans']
+
   return (
-    <main className="min-h-screen bg-[var(--bg)]">
-      {/* Header */}
-      <header className="border-b border-[var(--border)] bg-[var(--bg)]">
-        <div className="px-6 py-8 max-w-7xl mx-auto">
-          <Link href="/" className="text-xs uppercase tracking-widest text-[var(--text3)] hover:text-[var(--text2)] mb-4 inline-block">
-            ← Back
-          </Link>
-          <h1 className="font-serif text-4xl text-[var(--text)] mb-2">Tool Directory</h1>
-          <p className="text-sm text-[var(--text2)] max-w-2xl">
-            Browse {tools.length}+ AI tools tracked across product photography, commercial filmmaking, and digital humans.
-          </p>
-        </div>
+    <main style={styles.page}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <nav aria-label="Breadcrumb" style={styles.breadcrumb}>
+        <a href="/" style={{ ...styles.link, color: '#c8f04a' }}>GenLens</a>
+        <span style={styles.sep}>/</span>
+        <span style={styles.muted}>Tools</span>
+      </nav>
+
+      <header style={styles.header}>
+        <h1 style={styles.title}>Tool Directory</h1>
+        <p style={styles.subtitle}>
+          {tools.length} AI creative tools, rated by speed, cost, quality, and adoption velocity.
+        </p>
       </header>
 
-      <div className="px-6 py-12 max-w-7xl mx-auto space-y-12">
-        {/* By Vertical */}
-        <section>
-          <h2 className="font-serif text-2xl text-[var(--text)] mb-6">By Vertical</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(byVertical).map(([vertical, verticalTools]) => (
-              <div key={vertical} className="border border-[var(--border)] bg-[var(--bg2)] p-6 rounded">
-                <h3 className="font-serif text-lg text-[var(--text)] mb-3">
-                  {VERTICAL_LABELS[vertical as keyof typeof VERTICAL_LABELS]}
-                </h3>
-                <p className="text-xs text-[var(--text3)] mb-4">{verticalTools.length} tools</p>
-                <div className="space-y-2">
-                  {verticalTools.slice(0, 8).map(tool => (
-                    <Link
-                      key={tool.id}
-                      href={`/tools/${canonicalNameToSlug(tool.canonical_name)}`}
-                      className="block text-sm text-[var(--text2)] hover:text-[var(--accent)] transition-colors"
-                    >
-                      {tool.canonical_name}
-                    </Link>
-                  ))}
-                  {verticalTools.length > 8 && (
-                    <p className="text-xs text-[var(--text3)] pt-2">
-                      +{verticalTools.length - 8} more
-                    </p>
-                  )}
-                </div>
+      <div style={styles.sections}>
+        {verticalOrder.map(vertical => {
+          const toolsInVertical = grouped.get(vertical) || []
+          if (toolsInVertical.length === 0) return null
+
+          const accent = VERTICAL_ACCENT[vertical] ?? '#c8f04a'
+          const label = VERTICAL_LABELS[vertical] ?? vertical
+
+          return (
+            <section key={vertical} style={styles.section}>
+              <h2 style={{ ...styles.verticalTitle, color: accent }}>{label}</h2>
+              <div style={styles.toolGrid}>
+                {toolsInVertical.map((tool: any) => (
+                  <a
+                    key={tool.id}
+                    href={`/tools/${tool.slug}`}
+                    style={{
+                      ...styles.toolCard,
+                      borderColor: accent + '44',
+                      background: accent + '06',
+                    }}
+                  >
+                    <div style={styles.toolNameRow}>
+                      <h3 style={styles.toolName}>{tool.canonical_name}</h3>
+                      {tool.affiliate_program && (
+                        <div style={{ ...styles.affiliateBadge, color: accent }}>
+                          +{tool.affiliate_commission_pct}%
+                        </div>
+                      )}
+                    </div>
+
+                    {tool.current_score != null && (
+                      <div style={styles.scoreRow}>
+                        <div style={{ ...styles.score, color: accent }}>
+                          {tool.current_score}
+                        </div>
+                        <div style={styles.scoreLabel}>Score</div>
+                      </div>
+                    )}
+
+                    {tool.signal_count > 0 && (
+                      <div style={styles.signalCount}>
+                        {tool.signal_count} signal{tool.signal_count === 1 ? '' : 's'}
+                      </div>
+                    )}
+
+                    <div style={styles.cardMeta}>
+                      {tool.website_url ? (
+                        <a href={tool.website_url} target="_blank" rel="noopener" style={styles.linkSmall}>
+                          Visit →
+                        </a>
+                      ) : (
+                        <span style={styles.muted}>No website</span>
+                      )}
+                    </div>
+                  </a>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* By Category */}
-        <section>
-          <h2 className="font-serif text-2xl text-[var(--text)] mb-6">By Category</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Object.entries(byCategory)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([category, categoryTools]) => (
-                <div key={category} className="border border-[var(--border)] bg-[var(--bg2)] p-6 rounded">
-                  <h3 className="font-mono text-sm text-[var(--text)] mb-3 uppercase tracking-widest">
-                    {category}
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {categoryTools.map(tool => (
-                      <Link
-                        key={tool.id}
-                        href={`/tools/${canonicalNameToSlug(tool.canonical_name)}`}
-                        className="px-2 py-1 text-xs border border-[var(--border)] rounded text-[var(--text2)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-                      >
-                        {tool.canonical_name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </div>
-        </section>
-
-        {/* All Tools (searchable list) */}
-        <section>
-          <h2 className="font-serif text-2xl text-[var(--text)] mb-6">All Tools</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tools
-              .sort((a, b) => a.canonical_name.localeCompare(b.canonical_name))
-              .map(tool => (
-                <Link
-                  key={tool.id}
-                  href={`/tools/${canonicalNameToSlug(tool.canonical_name)}`}
-                  className="border border-[var(--border)] bg-[var(--bg2)] p-4 rounded hover:bg-[var(--bg3)] transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h3 className="font-mono text-sm text-[var(--text)]">{tool.canonical_name}</h3>
-                    <span className="text-xs px-2 py-1 rounded bg-[var(--bg3)] text-[var(--text3)]">
-                      {tool.pricing_tier}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[var(--text3)] mb-2">{tool.vendor_name}</p>
-                  <p className="text-xs text-[var(--text3)] mb-3">{tool.category}</p>
-                  <div className="flex gap-1 flex-wrap">
-                    {tool.verticals?.map(v => (
-                      <span key={v} className="text-xs px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text3)]">
-                        {v === 'product_photography' ? 'PP' : v === 'filmmaking' ? 'FM' : 'DH'}
-                      </span>
-                    ))}
-                  </div>
-                </Link>
-              ))}
-          </div>
-        </section>
-
-        {/* Footer CTA */}
-        <section className="border-t border-[var(--border)] pt-12">
-          <div className="bg-[var(--bg2)] border border-[var(--border)] p-8 rounded text-center">
-            <h3 className="font-serif text-xl text-[var(--text)] mb-2">Get Daily Intelligence</h3>
-            <p className="text-sm text-[var(--text2)] mb-4">
-              See how these tools are trending, what creators are shipping, and how much time & money they save.
-            </p>
-            <Link
-              href="/#early-access"
-              className="inline-block px-4 py-2 bg-[var(--accent)] text-[var(--bg)] text-xs uppercase tracking-widest font-mono rounded hover:opacity-80 transition-opacity"
-            >
-              Join Beta
-            </Link>
-          </div>
-        </section>
+            </section>
+          )
+        })}
       </div>
+
+      <footer style={styles.footer}>
+        <p style={styles.footerText}>
+          Score updates daily based on production workflow impact. See an issue? <a href="/" style={styles.link}>Get in touch</a>.
+        </p>
+      </footer>
     </main>
-  );
+  )
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  page: { maxWidth: 1000, margin: '0 auto', padding: '24px 20px 80px', fontFamily: '"IBM Plex Mono", monospace' },
+  breadcrumb: { display: 'flex', gap: 6, alignItems: 'center', fontSize: 11, marginBottom: 24, color: 'rgba(255,255,255,0.3)' },
+  link: { color: '#c8f04a', textDecoration: 'none' },
+  sep: { color: 'rgba(255,255,255,0.15)' },
+  muted: { color: 'rgba(255,255,255,0.3)' },
+
+  header: { marginBottom: 48, textAlign: 'center' as const },
+  title: { fontSize: 32, fontFamily: '"Playfair Display", serif', fontWeight: 700, color: '#fff', margin: '0 0 16px', lineHeight: 1.3 },
+  subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, maxWidth: 500, margin: '0 auto' },
+
+  sections: { display: 'flex', flexDirection: 'column' as const, gap: 48 },
+  section: { display: 'flex', flexDirection: 'column' as const, gap: 16 },
+  verticalTitle: { fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0 },
+
+  toolGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 },
+  toolCard: {
+    padding: '16px',
+    border: '0.5px solid',
+    borderRadius: 4,
+    textDecoration: 'none',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 12,
+    transition: 'background 200ms',
+  },
+  toolNameRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 8 },
+  toolName: { fontSize: 13, fontWeight: 600, color: '#fff', margin: 0, flex: 1 },
+  affiliateBadge: { fontSize: 9, fontWeight: 700, padding: '2px 6px', border: '0.5px solid currentColor', borderRadius: 2, whiteSpace: 'nowrap' },
+
+  scoreRow: { display: 'flex', alignItems: 'baseline', gap: 6 },
+  score: { fontSize: 18, fontWeight: 700 },
+  scoreLabel: { fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' },
+
+  signalCount: { fontSize: 10, color: 'rgba(255,255,255,0.4)' },
+
+  cardMeta: { marginTop: 'auto', paddingTop: 8, borderTop: '0.5px solid rgba(255,255,255,0.06)' },
+  linkSmall: { fontSize: 10, color: '#c8f04a', textDecoration: 'none', fontWeight: 600 },
+
+  footer: { marginTop: 60, paddingTop: 32, borderTop: '0.5px solid rgba(255,255,255,0.08)', textAlign: 'center' as const },
+  footerText: { fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0 },
 }

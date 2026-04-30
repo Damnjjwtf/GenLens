@@ -11,7 +11,10 @@ GenLens is daily intelligence for creative technologists working in
 AI-accelerated visual production. Three active verticals, three deferred.
 
 Stack: Next.js 14 (App Router), Neon Postgres, NextAuth v5, Resend,
-Anthropic Claude API (`claude-sonnet-4-20250514`), Tailwind, Vercel.
+Anthropic Claude API (`claude-haiku-4-5-20251001` for the classifier,
+`claude-sonnet-4-6` for the Growth Agent and Index editorial),
+Tailwind, Vercel. Models are imported from `lib/constants.ts` —
+update there, not in scattered string literals.
 
 **Active verticals:**
 1. Product Photography (hard goods, soft goods, lifestyle)

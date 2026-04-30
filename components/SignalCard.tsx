@@ -27,6 +27,8 @@ export function SignalCard({
   vertical,
   tools = [],
 }: SignalCardProps) {
+  const dimLabel = DIMENSIONS.find(d => d.id === dimension)?.label || 'Signal';
+
   // Get dimension color based on number
   const getDimensionColor = (dim: number) => {
     const colors: Record<number, string> = {
