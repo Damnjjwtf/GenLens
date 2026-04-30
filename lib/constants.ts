@@ -51,6 +51,47 @@ export const ANTHROPIC_MODEL = 'claude-sonnet-4-20250514';
 export const INVITE_COOKIE = 'genlens_invite';
 export const INVITE_COOKIE_TTL_SECONDS = 60 * 30;
 
+// TOOL TAXONOMY
+export const PRICING_TIERS = ['free', 'freemium', 'paid', 'enterprise'] as const;
+export type PricingTier = (typeof PRICING_TIERS)[number];
+
+export const TOOL_CATEGORIES = [
+  'CAD / 3D Modeling',
+  'Rendering',
+  'Texturing / Materials',
+  'AI Texture Generation',
+  'AI Image Generation',
+  'Background Generation / Compositing',
+  'Background Removal',
+  'AI Compositing',
+  'Compositing / Motion',
+  'Color Grading / Post',
+  'Editing / Color Grading',
+  'Editing',
+  'VFX / Compositing',
+  'VFX / Procedural',
+  'VFX / Animation',
+  'Motion Design',
+  'Interactive Motion',
+  'Audio / Video Editing',
+  'Real-time Rendering / Engine',
+  'Video Generation / Synthesis',
+  'Video Synthesis',
+  'Digital Character',
+  'Talking Head Avatar',
+  'Video Avatar',
+  'Voice Synthesis',
+  'Motion Capture',
+  'Music Generation',
+  'Audio Enhancement',
+  'Image Generation',
+  'Garment Simulation',
+  'Design / Prototyping',
+  'Suite',
+  'AI Model',
+] as const;
+export type ToolCategory = (typeof TOOL_CATEGORIES)[number];
+
 // X accounts monitored via web search fallback (not RSS-scraped).
 // Twitter API v2 free tier rate limits make direct scraping impractical.
 // Verify handles are still active before adding more.
