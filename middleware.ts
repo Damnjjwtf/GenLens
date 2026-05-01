@@ -22,7 +22,7 @@ export async function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = '/';
     url.hash = 'sign-in';
-    url.searchParams.set('next', pathname);
+    url.searchParams.set('next', pathname + req.nextUrl.search);
     return NextResponse.redirect(url);
   }
 

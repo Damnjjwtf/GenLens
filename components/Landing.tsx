@@ -69,10 +69,10 @@ async function loadSnapshots(): Promise<Map<Vertical, Snapshot>> {
 
 async function loadToolNames(slugs: string[]): Promise<Map<string, string>> {
   if (slugs.length === 0) return new Map();
-  const rows = await sql`
+  const rows = (await sql`
     SELECT slug, canonical_name FROM tools WHERE slug = ANY(${slugs})
-  `;
-  return new Map(rows.map((r: { slug: string; canonical_name: string }) => [r.slug, r.canonical_name]));
+  `) as { slug: string; canonical_name: string }[];
+  return new Map(rows.map((r) => [r.slug, r.canonical_name]));
 }
 
 export default async function Landing() {
@@ -80,7 +80,7 @@ export default async function Landing() {
 
   // Collect all tool slugs needed for ticker + cards
   const allSlugs = new Set<string>();
-  for (const snap of snapshots.values()) {
+  for (const snap of Array.from(snapshots.values())) {
     snap.top_tools?.forEach(t => allSlugs.add(t.tool_slug));
     snap.biggest_movers_up?.forEach(t => allSlugs.add(t.tool_slug));
     snap.biggest_movers_down?.forEach(t => allSlugs.add(t.tool_slug));
@@ -88,9 +88,9 @@ export default async function Landing() {
   const toolNames = await loadToolNames(Array.from(allSlugs));
   const name = (slug: string) => toolNames.get(slug) || slug;
 
-  // Combined ticker — biggest movers across all verticals, sorted by |delta|
+  // Combined ticker, biggest movers across all verticals, sorted by |delta|
   const tickerItems: { slug: string; delta: number; vertical: Vertical }[] = [];
-  for (const [vertical, snap] of snapshots) {
+  for (const [vertical, snap] of Array.from(snapshots.entries())) {
     snap.biggest_movers_up?.forEach(t => tickerItems.push({ slug: t.tool_slug, delta: t.delta, vertical }));
     snap.biggest_movers_down?.forEach(t => tickerItems.push({ slug: t.tool_slug, delta: t.delta, vertical }));
   }
