@@ -20,7 +20,8 @@ export async function middleware(req: NextRequest) {
 
   if (!sessionCookie && PROTECTED_PATHS.some((p) => pathname.startsWith(p))) {
     const url = req.nextUrl.clone();
-    url.pathname = '/auth/invite';
+    url.pathname = '/';
+    url.hash = 'sign-in';
     url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);
   }

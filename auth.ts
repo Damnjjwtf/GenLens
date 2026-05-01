@@ -1,10 +1,8 @@
 import NextAuth from 'next-auth';
 import Resend from 'next-auth/providers/resend';
+import GitHub from 'next-auth/providers/github';
 import PostgresAdapter from '@auth/pg-adapter';
 import { Pool } from '@neondatabase/serverless';
-import { cookies } from 'next/headers';
-import { consumeInviteCode } from '@/lib/db';
-import { INVITE_COOKIE } from '@/lib/constants';
 
 const pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL })
@@ -17,24 +15,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       apiKey: process.env.RESEND_API_KEY,
       from: process.env.EMAIL_FROM ?? 'brief@genlens.local',
     }),
+    GitHub({
+      clientId: process.env.GITHUB_ID,
+      clientSecret: process.env.GITHUB_SECRET,
+    }),
   ],
   pages: {
-    signIn: '/auth/invite',
+    signIn: '/',
     verifyRequest: '/auth/verify',
   },
   session: { strategy: 'database' },
-  events: {
-    async createUser({ user }) {
-      if (!user.id) return;
-      const inviteCode = cookies().get(INVITE_COOKIE)?.value;
-      if (inviteCode) {
-        try {
-          await consumeInviteCode(inviteCode, user.id);
-        } catch (e) {
-          console.error('Failed to consume invite code', e);
-        }
-        cookies().delete(INVITE_COOKIE);
-      }
-    },
-  },
 });
