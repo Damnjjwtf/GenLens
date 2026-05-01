@@ -8,6 +8,10 @@ export const pool: Pool | null = connectionString
   ? new Pool({ connectionString })
   : null;
 
+let _lazy: ReturnType<typeof neon> | undefined;
+export const db: ReturnType<typeof neon> = ((s: TemplateStringsArray, ...v: unknown[]) =>
+  (_lazy ??= neon(process.env.DATABASE_URL!))(s, ...v)) as ReturnType<typeof neon>;
+
 function requireSql() {
   if (!sql) throw new Error('DATABASE_URL is not set');
   return sql;

@@ -13,7 +13,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import {
   computeScore,
   pickBaseline,
@@ -22,8 +22,6 @@ import {
 } from '@/lib/score/compute'
 
 export const maxDuration = 120
-
-const sql = neon(process.env.DATABASE_URL!)
 
 const LOOKBACK_DAYS = 30
 

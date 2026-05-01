@@ -8,11 +8,10 @@
  * Nothing publishes without human approval.
  */
 
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import Anthropic from '@anthropic-ai/sdk'
 import { ANTHROPIC_MODEL_AGENT } from '@/lib/constants'
 
-const sql = neon(process.env.DATABASE_URL!)
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
 // ─── Types ────────────────────────────────────────────────────

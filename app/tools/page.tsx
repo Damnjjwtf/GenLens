@@ -7,11 +7,9 @@
  * genlens.app/tools
  */
 
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import type { Metadata } from 'next'
 import { breadcrumbLD, SITE_URL } from '@/lib/schema/jsonld'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 export const metadata: Metadata = {
   title: 'Tool Directory — GenLens Ratings & Scores',
