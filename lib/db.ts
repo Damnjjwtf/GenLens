@@ -13,33 +13,6 @@ function requireSql() {
   return sql;
 }
 
-export type InviteCode = {
-  id: number;
-  code: string;
-  max_uses: number;
-  uses: number;
-  active: boolean;
-};
-
-export async function findInviteCode(code: string): Promise<InviteCode | null> {
-  const rows = (await requireSql()`
-    SELECT id, code, max_uses, uses, active
-    FROM invite_codes
-    WHERE code = ${code} AND active = true
-    LIMIT 1
-  `) as InviteCode[];
-  return rows[0] ?? null;
-}
-
-export async function consumeInviteCode(code: string, userId: string): Promise<void> {
-  await requireSql()`
-    UPDATE invite_codes SET uses = uses + 1 WHERE code = ${code}
-  `;
-  await requireSql()`
-    UPDATE users SET invite_code_used = ${code} WHERE id = ${userId}::uuid
-  `;
-}
-
 export type UserPreferences = {
   user_id: string;
   active_verticals: string[];

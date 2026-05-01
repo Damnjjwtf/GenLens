@@ -4,7 +4,7 @@
  * Server-rendered marketing homepage that doubles as a live dashboard.
  * Pulls the latest published snapshot per vertical, renders a top
  * movers ticker and three "market index" cards (GLI-PP / FM / DH),
- * SportsBizNow-influenced. Single conversion point: the waitlist form.
+ * SportsBizNow-influenced. Single conversion point: the sign-in form.
  */
 
 import { neon } from '@neondatabase/serverless';

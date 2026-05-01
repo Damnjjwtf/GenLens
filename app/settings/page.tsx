@@ -5,7 +5,7 @@ import SettingsForm from './settings-form';
 
 export default async function SettingsPage() {
   const session = await auth();
-  if (!session?.user?.id) redirect('/auth/invite');
+  if (!session?.user?.id) redirect('/?next=/settings#sign-in');
 
   const preferences = await getUserPreferences(session.user.id);
 

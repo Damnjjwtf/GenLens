@@ -274,8 +274,8 @@ export default async function ToolPage({ params }: Params) {
               <p style={styles.ctaText}>
                 GenLens watches 130+ sources and sends you what changed, what it means for your workflow, and what to do about it.
               </p>
-              <a href="/auth/invite" style={styles.ctaBtn}>
-                Get early access →
+              <a href="/#sign-in" style={styles.ctaBtn}>
+                Sign in →
               </a>
             </aside>
           </aside>

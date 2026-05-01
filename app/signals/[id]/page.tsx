@@ -202,10 +202,10 @@ export default async function SignalPage({ params }: Params) {
               <p style={styles.gateText}>
                 GenLens members get the action item, all 10 intelligence dimensions, and a daily briefing across 130+ sources.
               </p>
-              <a href="/auth/invite" style={{ ...styles.gateBtn, background: accent, color: '#0e0e0e' }}>
-                Get early access →
+              <a href="/#sign-in" style={{ ...styles.gateBtn, background: accent, color: '#0e0e0e' }}>
+                Sign in →
               </a>
-              <div style={styles.gateNote}>Invite-only beta. Free to join.</div>
+              <div style={styles.gateNote}>Free to join. One click with GitHub.</div>
             </div>
           </div>
           <div style={styles.gateBlurred}>
