@@ -53,6 +53,47 @@ export const ANTHROPIC_MODEL_AGENT = 'claude-sonnet-4-6';
 // Back-compat alias for any older imports.
 export const ANTHROPIC_MODEL = ANTHROPIC_MODEL_CLASSIFIER;
 
+// TOOL TAXONOMY
+export const PRICING_TIERS = ['free', 'freemium', 'paid', 'enterprise'] as const;
+export type PricingTier = (typeof PRICING_TIERS)[number];
+
+export const TOOL_CATEGORIES = [
+  'CAD / 3D Modeling',
+  'Rendering',
+  'Texturing / Materials',
+  'AI Texture Generation',
+  'AI Image Generation',
+  'Background Generation / Compositing',
+  'Background Removal',
+  'AI Compositing',
+  'Compositing / Motion',
+  'Color Grading / Post',
+  'Editing / Color Grading',
+  'Editing',
+  'VFX / Compositing',
+  'VFX / Procedural',
+  'VFX / Animation',
+  'Motion Design',
+  'Interactive Motion',
+  'Audio / Video Editing',
+  'Real-time Rendering / Engine',
+  'Video Generation / Synthesis',
+  'Video Synthesis',
+  'Digital Character',
+  'Talking Head Avatar',
+  'Video Avatar',
+  'Voice Synthesis',
+  'Motion Capture',
+  'Music Generation',
+  'Audio Enhancement',
+  'Image Generation',
+  'Garment Simulation',
+  'Design / Prototyping',
+  'Suite',
+  'AI Model',
+] as const;
+export type ToolCategory = (typeof TOOL_CATEGORIES)[number];
+
 // X accounts monitored via web search fallback (not RSS-scraped).
 // Twitter API v2 free tier rate limits make direct scraping impractical.
 // Verify handles are still active before adding more.
