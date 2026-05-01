@@ -38,6 +38,7 @@ export interface Classification {
   signal_type: SignalType
   summary: string                 // 1-2 sentence editorial summary
   tool_names: string[]
+  tool_ids: number[] | null       // resolved tool IDs (populated by normalization)
   workflow_stages: string[]
   product_categories: string[]
   time_saved_hours: number | null

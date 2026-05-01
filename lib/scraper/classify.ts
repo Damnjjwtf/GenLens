@@ -10,6 +10,7 @@
 
 import Anthropic from '@anthropic-ai/sdk'
 import { ANTHROPIC_MODEL, VERTICALS } from '@/lib/constants'
+import { resolveToolIds } from '@/lib/tools/normalize'
 import type { RawSignal, Classification, SignalType } from './types'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
@@ -70,11 +71,16 @@ async function classifyBatch(batch: RawSignal[]): Promise<(Classification | null
       return batch.map(() => null)
     }
 
-    return batch.map((_, idx) => {
+    const normalized: (Classification | null)[] = []
+    for (let idx = 0; idx < batch.length; idx++) {
       const c = parsed.classifications[idx]
-      if (!c) return null
-      return normalize(c)
-    })
+      if (!c) {
+        normalized.push(null)
+      } else {
+        normalized.push(await normalize(c))
+      }
+    }
+    return normalized
   } catch (err) {
     console.error('[classifier] batch failed:', err instanceof Error ? err.message : err)
     return batch.map(() => null)
@@ -170,7 +176,7 @@ Constraints:
 `
 }
 
-function normalize(c: Record<string, unknown>): Classification | null {
+async function normalize(c: Record<string, unknown>): Promise<Classification | null> {
   const vertical = c.vertical as Classification['vertical']
   if (!VERTICALS.includes(vertical as never)) return null
 
@@ -180,12 +186,25 @@ function normalize(c: Record<string, unknown>): Classification | null {
   const signal_type = c.signal_type as SignalType
   if (!SIGNAL_TYPES.includes(signal_type)) return null
 
+  const tool_names = Array.isArray(c.tool_names) ? (c.tool_names as string[]).slice(0, 10) : []
+  let tool_ids: number[] | null = null
+
+  if (tool_names.length > 0) {
+    try {
+      tool_ids = await resolveToolIds(tool_names)
+    } catch (err) {
+      console.warn('[classify] tool normalization failed:', err)
+      tool_ids = null
+    }
+  }
+
   return {
     vertical,
     dimension,
     signal_type,
     summary: String(c.summary ?? '').slice(0, 1000),
-    tool_names: Array.isArray(c.tool_names) ? (c.tool_names as string[]).slice(0, 10) : [],
+    tool_names,
+    tool_ids,
     workflow_stages: Array.isArray(c.workflow_stages) ? (c.workflow_stages as string[]).slice(0, 10) : [],
     product_categories: Array.isArray(c.product_categories) ? (c.product_categories as string[]).slice(0, 10) : [],
     time_saved_hours: typeof c.time_saved_hours === 'number' ? c.time_saved_hours : null,

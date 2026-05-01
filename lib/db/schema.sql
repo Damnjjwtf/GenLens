@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS signals (
   workflow_stages TEXT[],
   product_categories TEXT[],
   tool_names TEXT[],
+  tool_ids INT[],
   time_saved_hours DECIMAL,
   cost_saved_dollars DECIMAL,
   quality_improvement_percent DECIMAL,
@@ -215,6 +216,35 @@ CREATE TABLE IF NOT EXISTS subscribers (
   user_id UUID REFERENCES users(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ═══════════════════════════════════════════════════════════
+-- TOOLS TAXONOMY (Master Tool List)
+-- ═══════════════════════════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS tools (
+  id SERIAL PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  canonical_name TEXT NOT NULL,
+  aliases TEXT[] DEFAULT ARRAY[],
+  verticals TEXT[] DEFAULT ARRAY[],
+  categories TEXT[] DEFAULT ARRAY[],
+  workflow_stages TEXT[] DEFAULT ARRAY[],
+  vendor_name TEXT,
+  website_url TEXT,
+  pricing_tier VARCHAR,
+  logo_url TEXT,
+  affiliate_url TEXT,
+  affiliate_program TEXT,
+  affiliate_commission_pct DECIMAL(5,2),
+  is_public BOOLEAN DEFAULT true,
+  is_featured BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tools_slug ON tools(slug);
+CREATE INDEX IF NOT EXISTS idx_tools_verticals ON tools USING GIN(verticals);
+CREATE INDEX IF NOT EXISTS idx_tools_aliases ON tools USING GIN(aliases);
 
 -- ═══════════════════════════════════════════════════════════
 -- OPERATIONAL
