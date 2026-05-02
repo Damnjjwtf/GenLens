@@ -9,10 +9,8 @@
  */
 
 import type { MetadataRoute } from 'next'
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import { SITE_URL } from '@/lib/schema/jsonld'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 export const revalidate = 3600 // 1 hour — sitemap can be slightly stale
 

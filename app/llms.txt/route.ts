@@ -11,12 +11,10 @@
  * actually public right now (top-scored tools, latest Index, etc.).
  */
 
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import { SITE_URL } from '@/lib/schema/jsonld'
 
 export const revalidate = 3600 // 1 hour
-
-const sql = neon(process.env.DATABASE_URL!)
 
 export async function GET() {
   const [tools, indices, comparisons] = await Promise.all([

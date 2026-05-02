@@ -7,10 +7,8 @@
  * Semantic dedup (Claude embeddings + cosine similarity) is GAPS #5, not in scope here.
  */
 
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import type { RawSignal } from './types'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 /**
  * Returns only signals whose content_hash isn't already in the signals table.
