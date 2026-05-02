@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/', '/auth/invite', '/auth/signin', '/auth/verify', '/api/auth', '/api/invite', '/api/waitlist'];
+const PUBLIC_PATHS = ['/', '/auth/signin', '/auth/verify', '/api/auth', '/api/waitlist'];
 const PROTECTED_PATHS = ['/dashboard', '/settings', '/templates', '/leaderboard', '/admin'];
 
 export async function middleware(req: NextRequest) {
@@ -20,8 +20,9 @@ export async function middleware(req: NextRequest) {
 
   if (!sessionCookie && PROTECTED_PATHS.some((p) => pathname.startsWith(p))) {
     const url = req.nextUrl.clone();
-    url.pathname = '/auth/invite';
-    url.searchParams.set('next', pathname);
+    url.pathname = '/';
+    url.hash = 'sign-in';
+    url.searchParams.set('next', pathname + req.nextUrl.search);
     return NextResponse.redirect(url);
   }
 

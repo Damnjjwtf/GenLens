@@ -27,7 +27,7 @@ export default async function Dashboard() {
             <span className="text-[var(--text3)]">·</span>
             <span className="text-[var(--text3)]">{session?.user?.email}</span>
             <ThemeToggle />
-            <form action={async () => { 'use server'; await signOut({ redirectTo: '/auth/invite' }); }}>
+            <form action={async () => { 'use server'; await signOut({ redirectTo: '/' }); }}>
               <button type="submit" className="hover:text-[var(--red)]">Sign out</button>
             </form>
           </nav>
