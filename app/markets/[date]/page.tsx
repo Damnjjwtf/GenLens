@@ -8,12 +8,10 @@
  * genlens.app/markets/2026-04-28  (or /markets/filmmaking-2026-04-28)
  */
 
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { breadcrumbLD, SITE_URL } from '@/lib/schema/jsonld'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 interface Params { params: { date: string } }
 

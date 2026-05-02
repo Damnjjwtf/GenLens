@@ -12,15 +12,13 @@
  * One source failing does not abort the run.
  */
 
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import { SOURCES, type Source } from './sources'
 import { parseRssSource } from './parsers/rss'
 import { parseHtmlSource } from './parsers/html'
 import { filterNewSignals } from './dedup'
 import { classifySignals } from './classify'
 import type { RawSignal, ScrapeResult, Classification } from './types'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 const CONCURRENCY = 5
 const BATCH_DELAY_MS = 1000

@@ -10,13 +10,11 @@
  * digital-humans) so we avoid colliding with the [date] dynamic segment.
  */
 
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { breadcrumbLD, SITE_URL } from '@/lib/schema/jsonld'
 import { VERTICAL_LABELS, type Vertical } from '@/lib/constants'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 export const VERTICAL_SLUG: Record<Vertical, string> = {
   product_photography: 'product-photography',

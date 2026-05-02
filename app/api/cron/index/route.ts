@@ -17,7 +17,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import Anthropic from '@anthropic-ai/sdk'
 import { ANTHROPIC_MODEL_AGENT, VERTICALS } from '@/lib/constants'
 import {
@@ -29,7 +29,6 @@ import {
 
 export const maxDuration = 120
 
-const sql = neon(process.env.DATABASE_URL!)
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
 interface ScoreRow {
