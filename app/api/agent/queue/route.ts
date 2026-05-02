@@ -9,11 +9,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
+import { db as sql } from '@/lib/db'
 import { auth } from '@/auth'
 import { postToDiscord } from '@/lib/social/discord'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 // GET — list queue items
 export async function GET(req: NextRequest) {

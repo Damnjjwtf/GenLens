@@ -212,3 +212,20 @@ If a feature decision is ambiguous, prefer:
 - Shipping Score + Index well, not adding a fourth surface
 
 Ask before adding new dependencies or new top-level routes.
+
+---
+
+## SESSION COMMANDS
+
+Two slash commands ship in `.claude/commands/` for cross-surface session
+hygiene (CLI, desktop, web/Cloud all see them after opening this repo):
+
+- `/start` — fetches `origin`, surfaces uncommitted work, new commits on
+  `main`, open PRs, and the top items in BACKLOG.md / GAPS.md. Recommends
+  but never auto-pulls or auto-merges. Run this first thing every session.
+- `/end` — flags uncommitted changes, unpushed commits, dangling PRs, and
+  proposes a commit message if needed. Recommends but never auto-commits or
+  auto-pushes. Run this before closing the session.
+
+This avoids the multi-surface divergence problem (PRs landing on `origin`
+while a local branch drifts ahead unaware).
