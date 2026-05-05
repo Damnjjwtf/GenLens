@@ -2,12 +2,14 @@
 
 Comprehensive inventory of missing pieces. Organized by criticality and blocker status.
 
-**Last reviewed:** April 28, 2026
+**Last reviewed:** May 5, 2026
 
 **Recently resolved (Phase 2 build):**
-- ✅ #2 Baseline Workflows — table + 9 seed rows shipped in migration 006. Score formula anchors against baselines per (vertical, workflow_stage).
-- ✅ #3 Tool Taxonomy — `tools` table with `slug`, `canonical_name`, `aliases[]` shipped in migration 004. `seed-tools.ts` populated 21 canonical tools. Score compute matches signal `tool_names` against canonical + aliases.
-- ✅ #17 Historical Trend Analysis (partial) — `tool_scores` snapshots per `(tool_slug, vertical, snapshot_date)` give us week-over-week deltas. Index movers compute from this. No separate `scores_history` / `trends_history` table needed.
+- ✅ #2 Baseline Workflows — migration 006 with 15 seed rows (3 per vertical × 5 workflow stages). Score formula anchors against baselines per (vertical, workflow_stage, product_category).
+- ✅ #3 Tool Taxonomy — migration 005 with 50+ canonical tools, aliases, verticals, dimensions. Scraper classifier reconciles raw tool names against canonical + aliases for dedup.
+- ✅ #17 Score Computation — lib/score/compute.ts + migration 008 (tool_scores + tool_score_history tables). Nightly cron (2:50 AM UTC) computes 0-100 scores from signals. Formula: speed (40%) + cost (30%) + quality (20%) + adoption (10%).
+- ✅ #18 Real Signals Pipeline — Dashboard wires to live scraper signals. Falls back to demo data if empty. Shows time/cost deltas, source, relative dates.
+
 
 ---
 
