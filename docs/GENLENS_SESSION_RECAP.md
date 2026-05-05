@@ -1,83 +1,109 @@
-# GenLens: Session Recap
+# GenLens: Session Recap (May 5, 2026)
 ## Paste this at the start of a new chat to continue where we left off.
 
 ---
 
-## What GenLens Is
+## What Shipped This Session (May 5, 2026)
 
-**GenLens for Creatives** is a full-stack SaaS (Next.js 14, Neon Postgres, Vercel) that delivers daily AI-synthesized intelligence to creative technologists working in AI-accelerated visual production.
+**✅ COMPLETED:**
 
-It scrapes 130+ sources, classifies signals across 10 dimensions, and delivers daily briefings, a weekly public Index, and per-tool Scores.
+1. **Code Audit & Optimization** (PR #3)
+   - Consolidated N+1 queries (3x getAllTools → memoized)
+   - Batched sequential INSERTs (300+ queries → 2 operations)
+   - Extracted slug utility (7 duplications → 1 function)
+   - Single-pass tool grouping
 
-**Stack:** Next.js 14 (App Router), Neon Postgres, NextAuth v5 (magic links + invite codes), Resend (email), Anthropic Claude API (`claude-sonnet-4-20250514`), Tailwind CSS, Vercel Cron.
+2. **Real Signals to Dashboard**
+   - Added timestamps to demo signals
+   - Dashboard fetches live signals from scraper (falls back to demo if empty)
+   - Displays time/cost deltas, source, relative dates (Today, Xd ago)
 
-**Design:** Dark mode only. IBM Plex Mono + Lora + Playfair Display. Accent: #c8f04a (lime). Secondary: #f0a83c (amber). Background: #0e0e0e. Bloomberg Terminal meets creative studio.
+3. **GenLens Score Engine** (COMPLETE)
+   - `lib/score/compute.ts`: computeScore() + pickBaseline() functions
+   - **Formula:** score = (speed × 0.40) + (cost × 0.30) + (quality × 0.20) + (adoption × 0.10)
+   - **Components:** Speed (time vs 2h baseline) + Cost ($ vs $150 baseline) + Quality (0-100) + Adoption (trending)
+   - Migration 008: `tool_scores` + `tool_score_history` tables
+   - Cron job at `/api/cron/score` runs nightly at 2:50 AM UTC
+   - Reads signals from last 30 days, groups by (tool, vertical), mirrors max score to tools.current_score
 
-**Domain:** `genlens.app` (registered. `.app` chosen — Google-owned registry, HTTPS enforced, clean/modern, consistent renewal pricing ~$10.95/yr)
-
-**Onboarding copy:** "Early access beta, free to start." (replaces the earlier "invite-only beta, free to join" — more honest, less contradictory)
-
----
-
-## The 10 Dimensions (across all verticals)
-
-1. Workflow Stage Signals — what changed in your bottleneck
-2. Product Category Deep Dive — hard goods, soft goods, film types
-3. Competitive Intelligence — what others are shipping
-4. Workflow Templates — fastest proven methods, time/cost breakdown
-5. Cost & Time Delta — quantified savings per tool release
-6. Legal & Ethical — SAG-AFTRA, copyright, deepfake legislation
-7. Talent + Hiring — market rates, skills in demand
-8. Integration + Compatibility — which tools play together
-9. Cultural / Trend Signals — what aesthetic is winning
-10. Benchmark + Leaderboard — who's winning, how
+4. **Documentation Updated**
+   - GAPS.md: Marked Score + Signals complete, flagged Creator opt-out as CRITICAL blocker
 
 ---
 
-## Verticals
+## Current State (May 5, 2026)
 
-### Active (3)
-| Vertical | Accent | Key tools |
-|---|---|---|
-| Product Photography | Lime #c8f04a | KeyShot, Claid, Figma Weave, CLO3D |
-| Commercial Filmmaking | Amber #f0a83c | Runway, DaVinci Resolve, After Effects, Unreal |
-| Digital Humans | Purple #b07af0 | D-ID, ElevenLabs, HeyGen, Synthesia |
+### What's Live
 
-### Deferred (3) — activate at 100+ users per survey trigger
-| Vertical | Accent | Revisit when |
-|---|---|---|
-| Music Production / Audio | Cyan | 15%+ of users self-identify as producers |
-| AI Design / Motion Graphics | Blue | 15%+ self-identify as motion designers |
-| Fashion / Apparel / Textile | Pink | 20%+ self-identify as fashion designers |
+| Feature | Status | Location |
+|---------|--------|----------|
+| Tool Taxonomy | ✅ 50+ tools | migration 005, seed scripts |
+| Baseline Workflows | ✅ 15 baselines | migration 006 |
+| Tool Directory | ✅ Public /tools | app/tools/page.tsx |
+| Tool Detail Pages | ✅ Public /tools/[slug] | app/tools/[slug]/page.tsx |
+| Dashboard | ✅ Auth-gated /dashboard | app/dashboard.tsx |
+| Ticker | ✅ Live signal scroll | components/Ticker.tsx |
+| MainFeed | ✅ Real + demo signals | components/MainFeed.tsx |
+| Sidebar | ✅ Stats + top tools | components/Sidebar.tsx |
+| Score Computation | ✅ Engine complete | lib/score/compute.ts |
+| Scraper | ✅ 130+ sources | lib/scraper/orchestrator.ts |
+| Real Signals | ✅ Flowing to dashboard | signals table populated by scraper |
 
-### Shelved (do not build)
-- Game Development / Real-Time 3D
-- Scientific Visualization
-- Medical Imaging
+### What's NOT Done Yet
 
----
-
-## Product Architecture (revised priority model)
-
-Three parallel tracks — not sequential phases:
-
-**Track A — Data Foundation (prerequisite for everything)**
-Scraper → taxonomy classifier → dedup → signals table. Must come first.
-
-**Track B — Directory / Manifest (public, SEO/GEO, affiliate — works at zero users)**
-`genlens.app/tools` goes live as a public directory. No auth. Affiliate links embedded. Earns before any subscriber exists.
-
-**Track C — Intelligence Layer (grows in lockstep with data)**
-Briefings, Score, Index — emerge as signals table fills up. Score and Index are features that grow inside the ecosystem, not the headline launch event.
-
-**Key principle:** Score and Index are the exhaust of the engine, not the engine itself. The scraper + manifest + signals layer is the engine. Build Track B (directory) before Score is "launched" as a named product — a tool page with "Score: coming soon" banks the SEO and affiliate click now.
+| Feature | Blocker? | Effort | Next Actions |
+|---------|----------|--------|--------------|
+| Creator Opt-Out | CRITICAL | 2-3 days | Add opt_out_level column, claim flow, removal SLA |
+| User Workflow Logging | HIGH | 3-4 days | user_workflows table, POST /api/workflows, UI |
+| Index Generation | MEDIUM | 1-2 days | Top 10 tools, movers (week-over-week), new entries |
+| Score Display on Tools | MEDIUM | 1 day | Wire tool_scores table to /tools pages |
+| Leaderboard | CRITICAL | 3-5 days | Blocked by Creator opt-out |
 
 ---
 
-## Feature Hierarchy
+## Database State
 
-### Layer 0 — Infrastructure (private, enables everything)
-- Scraper engine (130+ sources: RSS, HTML, API, GitHub, YouTube, Reddit)
+**Tables created:**
+- tools (50+ rows seeded)
+- tool_aliases (200+ alias rows)
+- baseline_workflows (15 rows)
+- signals (populated by scraper, status='classified')
+- tool_scores (one per tool, updated nightly by cron)
+- tool_score_history (daily snapshots for movers)
+
+**Key columns:**
+- signals: tool_ids (INT[]), time_saved_hours, cost_saved_dollars, quality_improvement_percent, trending_score, vertical, dimension
+- tools: current_score (mirrored from tool_scores daily)
+- tool_scores: (tool_slug, vertical, score, speed_score, cost_score, quality_score, adoption_score, snapshot_date)
+
+---
+
+## Recent PRs
+
+- **#3** — Audit fixes: queries, batching, slug deduplication
+- **#5** — Add /start and /end slash commands
+- **#6** — Fix Vercel build (lazy-init neon)
+
+---
+
+## Getting Started (Next Session)
+
+**Sign in to test dashboard:**
+- URL: genlens-dwd13dhtg-damnjjwtfs-projects.vercel.app
+- Click "Sign in" → /auth/invite
+- Code: `GENLENS2026`
+- You'll see demo signals (or real ones if scraper ran)
+
+**To run scraper:**
+```bash
+curl -X GET https://genlens-dwd13dhtg-damnjjwtfs-projects.vercel.app/api/cron/scrape \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+**Next Priority:**
+1. Creator opt-out (legal blocker for leaderboard)
+2. Wire scores to tool pages (display current_score)
+3. Index generation (weekly snapshots)
 - Dedup engine (SHA-256 now; Claude embeddings + cosine similarity planned — GAPS #5)
 - Taxonomy classifier (tags each signal: vertical, dimension, workflow stage, tool names)
 - Vercel Cron orchestrator (nightly, parallel, logged)
