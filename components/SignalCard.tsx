@@ -13,6 +13,7 @@ interface SignalCardProps {
   costSaved?: number;
   vertical: 'product_photography' | 'filmmaking' | 'digital_humans';
   tools?: string[];
+  createdAt?: Date;
 }
 
 export function SignalCard({
@@ -26,7 +27,18 @@ export function SignalCard({
   costSaved,
   vertical,
   tools = [],
+  createdAt,
 }: SignalCardProps) {
+  const formatDate = (date?: Date) => {
+    if (!date) return null;
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
   const dimLabel = DIMENSIONS.find(d => d.id === dimension)?.label || 'Signal';
 
   // Get dimension color based on number
@@ -88,14 +100,19 @@ export function SignalCard({
       )}
 
       <div className="flex items-center justify-between text-xs">
-        <a
-          href={sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[var(--text3)] hover:text-[var(--blue)]"
-        >
-          {source}
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--text3)] hover:text-[var(--blue)]"
+          >
+            {source}
+          </a>
+          {createdAt && (
+            <span className="text-[var(--text3)]">· {formatDate(createdAt)}</span>
+          )}
+        </div>
         <button className="text-[var(--text3)] hover:text-[var(--text)] transition-colors">
           ↗
         </button>

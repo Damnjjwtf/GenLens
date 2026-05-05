@@ -25,6 +25,7 @@ const DEMO_SIGNALS = [
     costSaved: 0,
     vertical: 'product_photography' as Vertical,
     tools: ['KeyShot', 'Substance 3D'],
+    createdAt: new Date('2026-05-03'),
   },
   {
     id: 2,
@@ -37,6 +38,7 @@ const DEMO_SIGNALS = [
     costSaved: 180,
     vertical: 'digital_humans' as Vertical,
     tools: ['ElevenLabs'],
+    createdAt: new Date('2026-05-02'),
   },
   {
     id: 3,
@@ -49,6 +51,7 @@ const DEMO_SIGNALS = [
     costSaved: 240,
     vertical: 'filmmaking' as Vertical,
     tools: ['Runway Gen-3'],
+    createdAt: new Date('2026-05-01'),
   },
   {
     id: 4,
@@ -61,6 +64,7 @@ const DEMO_SIGNALS = [
     costSaved: 0,
     vertical: 'digital_humans' as Vertical,
     tools: [],
+    createdAt: new Date('2026-04-30'),
   },
   {
     id: 5,
@@ -73,6 +77,7 @@ const DEMO_SIGNALS = [
     costSaved: 350,
     vertical: 'product_photography' as Vertical,
     tools: ['Claid', 'KeyShot'],
+    createdAt: new Date('2026-04-28'),
   },
 ];
 
