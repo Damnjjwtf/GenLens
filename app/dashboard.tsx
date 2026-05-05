@@ -1,4 +1,5 @@
 import { auth, signOut } from '@/auth';
+import { db as sql } from '@/lib/db';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Ticker } from '@/components/Ticker';
@@ -7,6 +8,23 @@ import { Sidebar } from '@/components/Sidebar';
 
 export default async function Dashboard() {
   const session = await auth();
+
+  // Fetch real signals from database
+  let signals = [];
+  try {
+    signals = await sql`
+      SELECT id, title, dimension, summary, source_name, source_url,
+             time_saved_hours, cost_saved_dollars, vertical, tool_names, created_at
+      FROM signals
+      WHERE status = 'classified' AND is_public = true
+      ORDER BY created_at DESC
+      LIMIT 50
+    `;
+  } catch (err) {
+    console.error('Failed to fetch signals:', err);
+    // Fall back to demo signals in MainFeed
+    signals = [];
+  }
 
   return (
     <main className="min-h-screen bg-[var(--bg)]">
@@ -40,7 +58,7 @@ export default async function Dashboard() {
       {/* Main content */}
       <div className="px-6 py-8 max-w-7xl mx-auto">
         <div className="flex gap-6">
-          <MainFeed defaultVertical="product_photography" />
+          <MainFeed defaultVertical="product_photography" signals={signals} />
           <Sidebar />
         </div>
       </div>

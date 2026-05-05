@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DimensionFilter } from './DimensionFilter';
 import { DateRangePicker } from './DateRangePicker';
 import { SignalCard } from './SignalCard';
@@ -10,9 +10,22 @@ type Vertical = 'product_photography' | 'filmmaking' | 'digital_humans';
 
 interface MainFeedProps {
   defaultVertical?: Vertical;
+  signals?: Array<{
+    id: number;
+    title: string;
+    dimension: number;
+    summary: string;
+    source_name: string;
+    source_url: string;
+    time_saved_hours: number | null;
+    cost_saved_dollars: number | null;
+    vertical: Vertical;
+    tool_names: string[];
+    created_at: string;
+  }>;
 }
 
-// Placeholder signals for demo
+// Fallback demo signals for demo
 const DEMO_SIGNALS = [
   {
     id: 1,
@@ -81,12 +94,23 @@ const DEMO_SIGNALS = [
   },
 ];
 
-export function MainFeed({ defaultVertical = 'product_photography' }: MainFeedProps) {
+export function MainFeed({ defaultVertical = 'product_photography', signals: propsSignals }: MainFeedProps) {
   const [vertical, setVertical] = useState<Vertical>(defaultVertical);
   const [dimensions, setDimensions] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   const [daysBack, setDaysBack] = useState(0);
 
-  const filteredSignals = DEMO_SIGNALS.filter(signal => {
+  // Convert real signals to display format, or fall back to demo
+  const signals = propsSignals?.map(s => ({
+    ...s,
+    source: s.source_name,
+    sourceUrl: s.source_url,
+    timeSaved: s.time_saved_hours,
+    costSaved: s.cost_saved_dollars,
+    tools: s.tool_names || [],
+    createdAt: new Date(s.created_at),
+  })) || DEMO_SIGNALS;
+
+  const filteredSignals = signals.filter(signal => {
     const matchesVertical = signal.vertical === vertical;
     const matchesDimension = dimensions.includes(signal.dimension);
     return matchesVertical && matchesDimension;
