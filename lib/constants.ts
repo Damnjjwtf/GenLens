@@ -53,9 +53,6 @@ export const ANTHROPIC_MODEL_AGENT = 'claude-sonnet-4-6';
 // Back-compat alias for any older imports.
 export const ANTHROPIC_MODEL = ANTHROPIC_MODEL_CLASSIFIER;
 
-export const INVITE_COOKIE = 'genlens_invite';
-export const INVITE_COOKIE_TTL_SECONDS = 60 * 30;
-
 // TOOL TAXONOMY
 export const PRICING_TIERS = ['free', 'freemium', 'paid', 'enterprise'] as const;
 export type PricingTier = (typeof PRICING_TIERS)[number];

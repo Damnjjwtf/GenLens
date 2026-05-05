@@ -28,7 +28,7 @@ Toggle between:
 
 ### Phase 1 — Foundation
 
-✅ Public landing page, invite-code auth (NextAuth v5 + Resend magic links), dark/light mode, user settings, base DB schema, editorial UI (IBM Plex Mono + Lora + Playfair Display).
+✅ Live market-dashboard landing page, sign-in (NextAuth v5: Resend email magic links + GitHub OAuth), dark/light mode, user settings, base DB schema, editorial UI (IBM Plex Mono + Lora + Playfair Display).
 
 ### Phase 2 — Intelligence layer (current)
 
@@ -53,7 +53,7 @@ Toggle between:
 
 - **Frontend:** Next.js 14 (App Router), React 18, Tailwind CSS
 - **Database:** Neon Postgres (serverless)
-- **Auth:** NextAuth v5 + Resend (email magic links)
+- **Auth:** NextAuth v5 with Resend (email magic links) and GitHub OAuth
 - **AI:** Anthropic Claude API (`claude-haiku-4-5-20251001` for the classifier, `claude-sonnet-4-6` for the Growth Agent and Index editorial — managed via `lib/constants.ts`)
 - **Deployment:** Vercel (with Cron)
 
@@ -78,12 +78,16 @@ Run the schema migration:
 psql "$DATABASE_URL" -f lib/db/schema.sql
 ```
 
-Seed an invite code:
-```bash
-psql "$DATABASE_URL" -c "INSERT INTO invite_codes (code, max_uses) VALUES ('GL-LAUNCH-0001', 50);"
-```
+### 4. Register a GitHub OAuth app
 
-### 4. Configure `.env.local`
+Create one at https://github.com/settings/developers (separate apps for dev and prod):
+
+- **Homepage URL:** `http://localhost:3000` (or your prod domain)
+- **Authorization callback URL:** `http://localhost:3000/api/auth/callback/github` (or your prod equivalent)
+
+Save the Client ID and generate a client secret.
+
+### 5. Configure `.env.local`
 
 Copy from `.env.example` and fill in:
 
@@ -97,39 +101,40 @@ NEXTAUTH_SECRET=<same as AUTH_SECRET>
 AUTH_URL=http://localhost:3000
 NEXTAUTH_URL=http://localhost:3000
 
-# Email (from Resend)
+# Email magic-link sender (from Resend)
 RESEND_API_KEY=re_xxx
 EMAIL_FROM=brief@yourdomain.com
+
+# GitHub OAuth (from step 4)
+GITHUB_ID=<Client ID>
+GITHUB_SECRET=<Client secret>
 
 # AI (from Anthropic)
 ANTHROPIC_API_KEY=sk-ant-xxx
 
 # Other
 CRON_SECRET=<run: openssl rand -hex 32>
-INVITE_CODE_DEFAULT=GL-LAUNCH-0001
 ```
 
-### 5. Run dev server
+### 6. Run dev server
 ```bash
 npm run dev
 ```
 
 Visit **http://localhost:3000**
 
-- **Public:** Landing page with feature showcase and email signup
+- **Public:** Landing page with the live market dashboard and a sign-in form
 - **Authenticated:** Dashboard with briefing status (Phase 2+)
-- **Sign up:** `/auth/invite` → enter code + email → magic link
+- **Sign in:** Homepage `#sign-in` form, either email magic link or "Continue with GitHub"
 
 ## Auth Flow
 
-1. **Unauthenticated users** → Public landing page at `/`
-2. **"Join beta"** → `/auth/invite` (enter invite code)
-3. **Code validates** → Email form (enter email)
-4. **Magic link sent** → Resend email with 24-hour link
-5. **User clicks link** → Session created, redirected to `/`
-6. **Now authenticated** → See dashboard (Phase 2+)
+1. **Unauthenticated users** → Public landing page at `/`. Sign-in form is the single CTA.
+2. **Email path** → enter email → Resend sends a 24-hour magic link → click → session created.
+3. **GitHub path** → click "Continue with GitHub" → OAuth round-trip → session created.
+4. **Hitting a protected route while signed out** → redirected to `/?next=<path>#sign-in`. After sign-in, returned to `next`.
 
-Invite codes are stored in `invite_codes` table. Each code has a max use limit (default 50). After sign-in, `users.invite_code_used` is stamped for tracking.
+The Postgres adapter writes to `users`, `accounts`, `sessions`, and `verification_token`. There is no invite-code gate; sign-up is open.
 
 ## Architecture
 
@@ -137,10 +142,9 @@ Invite codes are stored in `invite_codes` table. Each code has a max use limit (
 app/                          # Next.js App Router
 ├── page.tsx                  # Routes to Landing (public) or Dashboard (auth)
 ├── layout.tsx                # Root layout, theme provider
-├── (auth)/
-│   ├── invite/page.tsx       # Invite code + email entry
-│   ├── signin/page.tsx       # Redirect to /auth/invite
-│   └── verify/page.tsx       # "Check your email" page
+├── auth/
+│   ├── signin/page.tsx       # Redirect to /#sign-in (preserves ?next)
+│   └── verify/page.tsx       # "Check your email" page (post magic-link send)
 ├── settings/page.tsx         # User preferences (auth required)
 └── api/
     ├── auth/[...nextauth]/   # NextAuth endpoints
