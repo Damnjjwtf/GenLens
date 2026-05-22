@@ -1,4 +1,4 @@
-import { runScraper } from '../lib/scraper/orchestrator.js';
+import { runScraper } from '../lib/scraper/orchestrator';
 
 async function main() {
   console.log('🚀 Starting scraper...\n');
