@@ -6,11 +6,13 @@ import { Ticker } from '@/components/Ticker';
 import { MainFeed } from '@/components/MainFeed';
 import { Sidebar } from '@/components/Sidebar';
 
+type DashboardSignal = NonNullable<Parameters<typeof MainFeed>[0]['signals']>[number];
+
 export default async function Dashboard() {
   const session = await auth();
 
   // Fetch real signals from database
-  let signals = [];
+  let signals: DashboardSignal[] = [];
   try {
     signals = await sql`
       SELECT id, title, dimension, summary, source_name, source_url,
@@ -19,7 +21,7 @@ export default async function Dashboard() {
       WHERE status = 'classified' AND is_public = true
       ORDER BY created_at DESC
       LIMIT 50
-    `;
+    ` as DashboardSignal[];
   } catch (err) {
     console.error('Failed to fetch signals:', err);
     // Fall back to demo signals in MainFeed

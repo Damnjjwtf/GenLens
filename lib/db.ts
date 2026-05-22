@@ -8,9 +8,13 @@ export const pool: Pool | null = connectionString
   ? new Pool({ connectionString })
   : null;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DbRow = Record<string, any>;
+type DbQuery = (s: TemplateStringsArray, ...v: unknown[]) => Promise<DbRow[]>;
+
 let _lazy: ReturnType<typeof neon> | undefined;
-export const db: ReturnType<typeof neon> = ((s: TemplateStringsArray, ...v: unknown[]) =>
-  (_lazy ??= neon(process.env.DATABASE_URL!))(s, ...v)) as ReturnType<typeof neon>;
+export const db: DbQuery = ((s: TemplateStringsArray, ...v: unknown[]) =>
+  (_lazy ??= neon(process.env.DATABASE_URL!))(s, ...v)) as DbQuery;
 
 function requireSql() {
   if (!sql) throw new Error('DATABASE_URL is not set');

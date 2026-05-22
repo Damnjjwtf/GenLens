@@ -22,10 +22,47 @@ import {
 
 interface Params { params: { slug: string } }
 
+type ToolRow = {
+  slug: string
+  canonical_name: string
+  meta_description: string | null
+  website_url: string | null
+  affiliate_url: string | null
+  affiliate_program: string | null
+  geo_summary: string | null
+  geo_qa_blocks: { q: string; a: string; confidence: string; source_url?: string }[] | null
+  faq_schema: object | null
+  verticals: string[] | null
+  categories: string[] | null
+  current_score: number | null
+  signal_count: number | null
+  score_history: { date: string; score: number; reason?: string }[] | null
+}
+
+type ToolSignal = {
+  id: number
+  title: string
+  summary: string | null
+  dimension: number
+  vertical: string
+  time_saved_hours: number | null
+  cost_saved_dollars: number | null
+  created_at: string
+  source_url: string | null
+  source_name: string | null
+}
+
+type ToolComparison = {
+  slug: string
+  tool_a_slug: string
+  tool_b_slug: string
+  summary: string | null
+}
+
 // ─── Metadata (SEO + GEO) ──────────────────────────────────────
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const [tool] = await sql`SELECT * FROM tools WHERE slug = ${params.slug} AND is_public = true LIMIT 1`
+  const [tool] = await sql`SELECT * FROM tools WHERE slug = ${params.slug} AND is_public = true LIMIT 1` as ToolRow[]
   if (!tool) return { title: 'Tool not found — GenLens' }
 
   return {
@@ -33,7 +70,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     description: tool.meta_description || `GenLens intelligence on ${tool.canonical_name}: signals, score, workflow templates, and more.`,
     openGraph: {
       title: `${tool.canonical_name} — GenLens`,
-      description: tool.meta_description,
+      description: tool.meta_description || undefined,
       url: `https://genlens.app/tools/${params.slug}`,
       siteName: 'GenLens',
       type: 'website',
@@ -47,7 +84,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 // ─── Page ─────────────────────────────────────────────────────
 
 export default async function ToolPage({ params }: Params) {
-  const [tool] = await sql`SELECT * FROM tools WHERE slug = ${params.slug} AND is_public = true LIMIT 1`
+  const [tool] = await sql`SELECT * FROM tools WHERE slug = ${params.slug} AND is_public = true LIMIT 1` as ToolRow[]
   if (!tool) notFound()
 
   // Recent signals about this tool (last 10)
@@ -58,7 +95,7 @@ export default async function ToolPage({ params }: Params) {
       AND is_public = true
     ORDER BY created_at DESC
     LIMIT 10
-  `
+  ` as ToolSignal[]
 
   // Comparison pages featuring this tool
   const comparisons = await sql`
@@ -67,7 +104,7 @@ export default async function ToolPage({ params }: Params) {
     WHERE (tool_a_slug = ${params.slug} OR tool_b_slug = ${params.slug})
       AND is_public = true
     LIMIT 5
-  `
+  ` as ToolComparison[]
 
   const qaBlocks = Array.isArray(tool.geo_qa_blocks) ? tool.geo_qa_blocks : []
   const verticals: string[] = Array.isArray(tool.verticals) ? tool.verticals : []
@@ -204,11 +241,7 @@ export default async function ToolPage({ params }: Params) {
               <section style={styles.section} aria-labelledby="signals-heading">
                 <h2 id="signals-heading" style={styles.sectionTitle}>Recent intelligence</h2>
                 <ul style={{ ...styles.signalList, listStyle: 'none', padding: 0, margin: 0 }}>
-                  {signals.map((s: {
-                    id: number; title: string; summary: string; dimension: number;
-                    vertical: string; time_saved_hours: number | null; cost_saved_dollars: number | null;
-                    created_at: string; source_url: string; source_name: string;
-                  }) => (
+                  {signals.map((s) => (
                     <li key={s.id}>
                       <a href={`/signals/${s.id}`} style={styles.signalItem}>
                         <article>
@@ -244,7 +277,7 @@ export default async function ToolPage({ params }: Params) {
             {comparisons.length > 0 && (
               <nav style={styles.sidebar} aria-label="Tool comparisons">
                 <h2 style={styles.sidebarLabel}>Compare</h2>
-                {comparisons.map((c: { slug: string; tool_a_slug: string; tool_b_slug: string; summary: string }) => {
+                {comparisons.map((c) => {
                   const other = c.tool_a_slug === params.slug ? c.tool_b_slug : c.tool_a_slug
                   return (
                     <a href={`/compare/${c.slug}`} key={c.slug} style={styles.comparisonLink}>

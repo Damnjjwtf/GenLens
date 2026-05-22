@@ -16,18 +16,54 @@ import { articleLD, breadcrumbLD, SITE_URL } from '@/lib/schema/jsonld'
 
 interface Params { params: { id: string } }
 
+type SignalRow = {
+  id: number
+  title: string
+  description: string | null
+  summary: string | null
+  geo_summary: string | null
+  hook_sentence: string | null
+  vertical: string
+  dimension: number
+  signal_type: string
+  tool_names: string[] | null
+  workflow_stages: string[] | null
+  time_saved_hours: number | null
+  cost_saved_dollars: number | null
+  quality_improvement_percent: number | null
+  source_url: string | null
+  source_name: string | null
+  source_platform: string | null
+  trending_score: number | null
+  created_at: string
+  published_at: string | null
+  is_public: boolean
+  public_views: number
+}
+
+type RelatedSignal = {
+  id: number
+  title: string
+  geo_summary: string | null
+  dimension: number
+  vertical: string
+  created_at: string
+}
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const [signal] = await sql`
     SELECT * FROM signals WHERE id = ${parseInt(params.id)} AND is_public = true LIMIT 1
-  `
+  ` as SignalRow[]
   if (!signal) return { title: 'Signal not found — GenLens' }
+
+  const description = signal.geo_summary || signal.summary || undefined
 
   return {
     title: `${signal.title} — GenLens`,
-    description: signal.geo_summary || signal.summary,
+    description,
     openGraph: {
       title: signal.hook_sentence || signal.title,
-      description: signal.geo_summary || signal.summary,
+      description,
       url: `https://genlens.app/signals/${signal.id}`,
       siteName: 'GenLens',
       type: 'article',
@@ -37,7 +73,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: signal.hook_sentence || signal.title,
-      description: signal.geo_summary || signal.summary,
+      description,
       images: [`https://genlens.app/api/og/signal/${signal.id}`],
     },
     alternates: { canonical: `https://genlens.app/signals/${signal.id}` },
@@ -76,7 +112,7 @@ export default async function SignalPage({ params }: Params) {
     FROM signals
     WHERE id = ${signalId} AND is_public = true
     LIMIT 1
-  `
+  ` as SignalRow[]
   if (!signal) notFound()
 
   // Increment view count (fire and forget)
@@ -92,7 +128,7 @@ export default async function SignalPage({ params }: Params) {
       AND is_public = true
     ORDER BY created_at DESC
     LIMIT 4
-  `
+  ` as RelatedSignal[]
 
   const accent = VERTICAL_ACCENT[signal.vertical] ?? '#c8f04a'
   const toolNames: string[] = Array.isArray(signal.tool_names) ? signal.tool_names : []
@@ -239,7 +275,7 @@ export default async function SignalPage({ params }: Params) {
         <aside style={styles.related} aria-labelledby="related-label">
           <h2 id="related-label" style={styles.relatedLabel}>Related signals</h2>
           <div style={styles.relatedGrid}>
-            {related.map((r: { id: number; title: string; geo_summary: string; dimension: number; created_at: string }) => (
+            {related.map((r) => (
               <a href={`/signals/${r.id}`} key={r.id} style={styles.relatedItem}>
                 <article>
                   <div style={styles.relatedDimension}>{DIMENSION_LABELS[r.dimension]}</div>

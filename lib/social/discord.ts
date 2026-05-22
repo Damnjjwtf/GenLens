@@ -140,7 +140,7 @@ export async function postToDiscord(input: PostInput): Promise<PostOutcome> {
   }
 
   if (input.use_embed && input.title) {
-    const color = (input.vertical && VERTICAL_COLOR[input.vertical]) ?? 0xc8f04a
+    const color = input.vertical ? (VERTICAL_COLOR[input.vertical] ?? 0xc8f04a) : 0xc8f04a
     payload.embeds = [
       {
         title: input.title,

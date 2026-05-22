@@ -147,7 +147,7 @@ export async function normalizeSignalTools(rawToolNames: string[]): Promise<numb
     }
   }
 
-  return [...new Set(toolIds)]; // Remove duplicates
+  return Array.from(new Set(toolIds)); // Remove duplicates
 }
 
 /**

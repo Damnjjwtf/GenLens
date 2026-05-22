@@ -34,6 +34,38 @@ const VERTICAL_TICKER_SYMBOL: Record<Vertical, string> = {
   digital_humans: 'GLI-DH',
 }
 
+type SnapshotTool = {
+  tool_slug: string
+  score?: number
+  score_delta?: number | null
+  delta?: number
+  prev_score?: number
+}
+
+type IndexSnapshot = {
+  headline: string | null
+  lede: string | null
+  week_start_date: string
+  published_at: string | null
+  top_tools: SnapshotTool[] | null
+  biggest_movers_up: SnapshotTool[] | null
+  biggest_movers_down: SnapshotTool[] | null
+  new_entries: SnapshotTool[] | null
+  notable_exits: SnapshotTool[] | null
+}
+
+type IssueRow = {
+  issue: number
+}
+
+type ToolRow = {
+  id: number
+  slug: string
+  canonical_name: string
+  affiliate_url: string | null
+  current_score: number | null
+}
+
 export async function generateVerticalMetadata(vertical: Vertical): Promise<Metadata> {
   const slug = VERTICAL_SLUG[vertical]
   const [snapshot] = await sql`
@@ -42,7 +74,7 @@ export async function generateVerticalMetadata(vertical: Vertical): Promise<Meta
     WHERE vertical = ${vertical} AND status = 'published'
     ORDER BY week_start_date DESC
     LIMIT 1
-  `
+  ` as Pick<IndexSnapshot, 'headline' | 'lede' | 'week_start_date'>[]
   const label = VERTICAL_LABELS[vertical]
   const title = snapshot?.headline || `${label} Index — GenLens`
   const description = snapshot?.lede || `This week's top AI tools for ${label.toLowerCase()}.`
@@ -67,7 +99,7 @@ export async function renderVerticalIndex(vertical: Vertical) {
     WHERE vertical = ${vertical} AND status = 'published'
     ORDER BY week_start_date DESC
     LIMIT 1
-  `
+  ` as IndexSnapshot[]
   if (!snapshot) notFound()
 
   // Issue # = count of published snapshots for this vertical up to and
@@ -78,14 +110,14 @@ export async function renderVerticalIndex(vertical: Vertical) {
     WHERE vertical = ${vertical}
       AND status = 'published'
       AND week_start_date <= ${snapshot.week_start_date}
-  `
+  ` as IssueRow[]
 
   // Movers feed for ticker, ordered by absolute delta size.
   const tickerItems: { slug: string; delta: number }[] = [
     ...(snapshot.biggest_movers_up || []),
     ...(snapshot.biggest_movers_down || []),
   ]
-    .map((t: { tool_slug: string; delta: number }) => ({ slug: t.tool_slug, delta: t.delta }))
+    .map((t) => ({ slug: t.tool_slug, delta: t.delta ?? 0 }))
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
 
   const allToolSlugs = [
@@ -97,9 +129,9 @@ export async function renderVerticalIndex(vertical: Vertical) {
   ].filter((v, i, a) => a.indexOf(v) === i)
 
   const tools = allToolSlugs.length > 0
-    ? await sql`SELECT id, slug, canonical_name, affiliate_url, current_score FROM tools WHERE slug = ANY(${allToolSlugs})`
+    ? await sql`SELECT id, slug, canonical_name, affiliate_url, current_score FROM tools WHERE slug = ANY(${allToolSlugs})` as ToolRow[]
     : []
-  const toolMap = new Map(tools.map((t: { slug: string }) => [t.slug, t]))
+  const toolMap = new Map(tools.map((t) => [t.slug, t]))
 
   const accent = VERTICAL_ACCENT[vertical]
   const verticalLabel = VERTICAL_LABELS[vertical]
@@ -190,7 +222,7 @@ export async function renderVerticalIndex(vertical: Vertical) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: accent }}>Top 10 Tools</h2>
             <div style={styles.toolGrid}>
-              {snapshot.top_tools.map((tool: { tool_slug: string; score: number; score_delta: number | null }, i: number) => {
+              {snapshot.top_tools.map((tool, i) => {
                 const details = toolMap.get(tool.tool_slug) as { canonical_name?: string } | undefined
                 return (
                   <a
@@ -221,16 +253,16 @@ export async function renderVerticalIndex(vertical: Vertical) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: '#4ae60b' }}>Rising</h2>
             <div style={styles.moversGrid}>
-              {snapshot.biggest_movers_up.map((tool: { tool_slug: string; score: number; delta: number; prev_score: number }) => {
+              {snapshot.biggest_movers_up.map((tool) => {
                 const details = toolMap.get(tool.tool_slug) as { canonical_name?: string } | undefined
                 return (
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.moverCard}>
                     <div style={styles.moverName}>{details?.canonical_name || tool.tool_slug}</div>
                     <div style={{ ...styles.moverDelta, color: '#4ae60b' }}>
-                      ↑ {tool.delta > 0 ? '+' : ''}{tool.delta}
+                      ↑ {(tool.delta ?? 0) > 0 ? '+' : ''}{tool.delta ?? 0}
                     </div>
                     <div style={styles.moverScore}>
-                      {tool.prev_score} → {tool.score}
+                      {tool.prev_score ?? 0} → {tool.score ?? 0}
                     </div>
                   </a>
                 )
@@ -243,16 +275,16 @@ export async function renderVerticalIndex(vertical: Vertical) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: '#ff6b6b' }}>Falling</h2>
             <div style={styles.moversGrid}>
-              {snapshot.biggest_movers_down.map((tool: { tool_slug: string; score: number; delta: number; prev_score: number }) => {
+              {snapshot.biggest_movers_down.map((tool) => {
                 const details = toolMap.get(tool.tool_slug) as { canonical_name?: string } | undefined
                 return (
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.moverCard}>
                     <div style={styles.moverName}>{details?.canonical_name || tool.tool_slug}</div>
                     <div style={{ ...styles.moverDelta, color: '#ff6b6b' }}>
-                      ↓ {tool.delta}
+                      ↓ {tool.delta ?? 0}
                     </div>
                     <div style={styles.moverScore}>
-                      {tool.prev_score} → {tool.score}
+                      {tool.prev_score ?? 0} → {tool.score ?? 0}
                     </div>
                   </a>
                 )
@@ -265,12 +297,12 @@ export async function renderVerticalIndex(vertical: Vertical) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: accent }}>New This Week</h2>
             <div style={styles.entriesGrid}>
-              {snapshot.new_entries.map((tool: { tool_slug: string; score: number }) => {
+              {snapshot.new_entries.map((tool) => {
                 const details = toolMap.get(tool.tool_slug) as { canonical_name?: string } | undefined
                 return (
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.entryCard}>
                     <div style={styles.entryName}>{details?.canonical_name || tool.tool_slug}</div>
-                    <div style={{ ...styles.entryScore, color: accent }}>Score {tool.score}</div>
+                    <div style={{ ...styles.entryScore, color: accent }}>Score {tool.score ?? 0}</div>
                   </a>
                 )
               })}
@@ -282,12 +314,12 @@ export async function renderVerticalIndex(vertical: Vertical) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: 'rgba(255,255,255,0.4)' }}>Dropped Below Threshold</h2>
             <div style={styles.entriesGrid}>
-              {snapshot.notable_exits.map((tool: { tool_slug: string; score: number; prev_score: number }) => {
+              {snapshot.notable_exits.map((tool) => {
                 const details = toolMap.get(tool.tool_slug) as { canonical_name?: string } | undefined
                 return (
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.exitCard}>
                     <div style={styles.exitName}>{details?.canonical_name || tool.tool_slug}</div>
-                    <div style={styles.exitScore}>{tool.prev_score} → {tool.score}</div>
+                    <div style={styles.exitScore}>{tool.prev_score ?? 0} → {tool.score ?? 0}</div>
                   </a>
                 )
               })}

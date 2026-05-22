@@ -8,6 +8,7 @@ if (!DATABASE_URL) {
 }
 
 const sql = neon(DATABASE_URL);
+const bulk = sql as unknown as (rows: unknown[][]) => unknown;
 
 // Define all tools with canonical names, aliases, and metadata
 const TOOLS = [
@@ -494,6 +495,24 @@ const TOOLS = [
     verticals: ['product_photography', 'filmmaking', 'digital_humans'],
     dimensions: [1, 5],
   },
+  {
+    canonical: 'GStack',
+    aliases: ['gstack', 'gk', 'garry tan stack'],
+    vendor: 'GStack',
+    category: 'Agent Workflow',
+    pricing: 'free',
+    verticals: ['product_photography', 'filmmaking', 'digital_humans'],
+    dimensions: [1, 4, 8],
+  },
+  {
+    canonical: 'Caveman',
+    aliases: ['caveman ai', 'caveman prompt', 'caveman prompting', 'cavemen ai'],
+    vendor: 'Cavemen AI',
+    category: 'Prompting / Agent Workflow',
+    pricing: 'freemium',
+    verticals: ['product_photography', 'filmmaking', 'digital_humans'],
+    dimensions: [1, 4, 8],
+  },
 ] as const;
 
 async function seed() {
@@ -504,7 +523,7 @@ async function seed() {
     const toolResults = await sql`
       INSERT INTO tools (canonical_name, aliases, category, vendor_name, pricing_tier, verticals, dimensions)
       VALUES
-      ${sql(
+      ${bulk(
         TOOLS.map(t => [
           t.canonical,
           t.aliases,
@@ -541,7 +560,7 @@ async function seed() {
       await sql`
         INSERT INTO tool_aliases (alias, tool_id)
         VALUES
-        ${sql(aliases)}
+        ${bulk(aliases)}
         ON CONFLICT (alias) DO UPDATE SET tool_id = EXCLUDED.tool_id;
       `;
     }

@@ -36,7 +36,7 @@ async function buildLookupMap(): Promise<Map<string, number>> {
 
   // Index aliases
   for (const alias of aliases) {
-    map.set(alias.toLowerCase(), alias.tool_id);
+    map.set(alias.alias.toLowerCase(), alias.tool_id);
   }
 
   return map;

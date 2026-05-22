@@ -121,8 +121,8 @@ export function computeScore(signals: ScoreSignal[], baseline: ScoreBaseline | n
 export function pickBaseline(
   workflowStages: string[] | null,
   vertical: string,
-  baselines: Array<{ id: number; vertical: string; workflow_stage: string }>,
-): { id: number; vertical: string; workflow_stage: string } | null {
+  baselines: Array<ScoreBaseline & { vertical: string; workflow_stage: string }>,
+): ScoreBaseline | null {
   if (!workflowStages || workflowStages.length === 0) return null
 
   // Find baseline matching vertical and one of the tool's workflow stages

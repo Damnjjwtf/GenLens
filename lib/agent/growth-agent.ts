@@ -57,6 +57,14 @@ interface AgentOutput {
   scheduled_for?: string
 }
 
+type AgentRunRow = {
+  id: number
+}
+
+type ToolRecord = {
+  canonical_name: string | null
+}
+
 // ─── Main entry point ─────────────────────────────────────────
 
 export async function runGrowthAgent(runType: 'daily' | 'weekly_index' | 'on_demand' = 'daily') {
@@ -65,7 +73,7 @@ export async function runGrowthAgent(runType: 'daily' | 'weekly_index' | 'on_dem
     INSERT INTO agent_runs (run_type, triggered_by, status)
     VALUES (${runType}, 'cron', 'running')
     RETURNING id
-  `
+  ` as AgentRunRow[]
   const runId = run.id
   const log: string[] = []
   let signalsProcessed = 0
@@ -83,7 +91,7 @@ export async function runGrowthAgent(runType: 'daily' | 'weekly_index' | 'on_dem
         AND status IN ('classified', 'synthesized')
       ORDER BY trending_score DESC, dimension ASC
       LIMIT 40
-    ` as Signal[]
+    ` as unknown as Signal[]
 
     signalsProcessed = signals.length
     log.push(`Loaded ${signals.length} signals for ${today}`)
@@ -305,7 +313,7 @@ Rules:
 
 async function generateGeoBlock(toolSlug: string, signals: Signal[], date: string): Promise<AgentOutput | null> {
   // Fetch existing tool record
-  const [tool] = await sql`SELECT * FROM tools WHERE slug = ${toolSlug} LIMIT 1`
+  const [tool] = await sql`SELECT * FROM tools WHERE slug = ${toolSlug} LIMIT 1` as ToolRecord[]
   const toolName = tool?.canonical_name || toolSlug
 
   const signalContext = signals.map(s =>

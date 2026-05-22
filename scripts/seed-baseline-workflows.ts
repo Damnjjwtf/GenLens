@@ -13,6 +13,7 @@ if (!DATABASE_URL) {
 }
 
 const sql = neon(DATABASE_URL);
+const bulk = sql as unknown as (rows: unknown[][]) => unknown;
 
 const BASELINES = [
   // PRODUCT PHOTOGRAPHY
@@ -220,7 +221,7 @@ async function seed() {
         source
       )
       VALUES
-      ${sql(
+      ${bulk(
         BASELINES.map(b => [
           b.vertical,
           b.workflow_stage,

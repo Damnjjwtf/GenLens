@@ -186,6 +186,28 @@ const TOOLS = [
     affiliate_url: null,
     affiliate_program: null,
   },
+  {
+    slug: 'gstack',
+    canonical_name: 'GStack',
+    aliases: ['gstack', 'gk', 'garry tan stack'],
+    verticals: ['filmmaking', 'digital_humans', 'product_photography'],
+    categories: ['agent_workflow', 'developer_tooling', 'automation'],
+    workflow_stages: ['concept', 'composite', 'automation'],
+    website_url: 'https://docs.gstack.io/getting-started/',
+    affiliate_url: null,
+    affiliate_program: null,
+  },
+  {
+    slug: 'caveman',
+    canonical_name: 'Caveman',
+    aliases: ['caveman ai', 'caveman prompt', 'caveman prompting', 'cavemen ai'],
+    verticals: ['filmmaking', 'digital_humans', 'product_photography'],
+    categories: ['prompting', 'agent_workflow', 'content_automation'],
+    workflow_stages: ['concept', 'automation'],
+    website_url: 'https://cavemenai.com',
+    affiliate_url: null,
+    affiliate_program: null,
+  },
 
   // ── DIGITAL HUMANS ───────────────────────────────────────
   {

@@ -240,7 +240,7 @@ export default async function IndexPage({ params }: Params) {
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.moverCard}>
                     <div style={styles.moverName}>{details?.canonical_name || tool.tool_slug}</div>
                     <div style={{ ...styles.moverDelta, color: '#4ae60b' }}>
-                      ↑ {tool.delta > 0 ? '+' : ''}{tool.delta}
+                      ↑ {(tool.delta ?? 0) > 0 ? '+' : ''}{tool.delta ?? 0}
                     </div>
                     <div style={styles.moverScore}>
                       {tool.prev_score} → {tool.score}
@@ -263,7 +263,7 @@ export default async function IndexPage({ params }: Params) {
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.moverCard}>
                     <div style={styles.moverName}>{details?.canonical_name || tool.tool_slug}</div>
                     <div style={{ ...styles.moverDelta, color: '#ff6b6b' }}>
-                      ↓ {tool.delta}
+                      ↓ {tool.delta ?? 0}
                     </div>
                     <div style={styles.moverScore}>
                       {tool.prev_score} → {tool.score}
