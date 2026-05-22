@@ -60,7 +60,7 @@ export default function Landing() {
           Daily intelligence for<br />Creative Technologists
         </h2>
         <p className="text-lg text-[var(--text2)] max-w-2xl mb-8 font-serif">
-          Stay ahead of what's changing in AI-accelerated visual production. Product photography, filmmaking, digital humans — all in one feed.
+          Stay ahead of what&apos;s changing in AI-accelerated visual production. Product photography, filmmaking, digital humans — all in one feed.
         </p>
         <div className="flex gap-4 flex-wrap">
           <a
@@ -82,7 +82,7 @@ export default function Landing() {
       <section id="early-access" className="border border-[var(--border)] bg-[var(--bg2)] p-8 mb-20 max-w-2xl scroll-mt-8">
         <h3 className="font-serif text-xl text-[var(--text)] mb-2">Early access</h3>
         <p className="text-sm text-[var(--text2)] mb-6">
-          Join the waitlist. We'll send you an invite code and weekly intelligence briefings.
+          Join the waitlist. We&apos;ll send you an invite code and weekly intelligence briefings.
         </p>
         {subscribed ? (
           <p className="text-sm text-[var(--accent)]">✓ Thanks. Check your email.</p>
@@ -151,7 +151,7 @@ export default function Landing() {
             <div className="text-[var(--accent2)] font-mono text-xs uppercase tracking-widest mb-2">Dimension 7</div>
             <h4 className="font-serif text-lg text-[var(--text)] mb-2">Talent + Hiring</h4>
             <p className="text-sm text-[var(--text2)]">
-              Market rates, skills in demand, salary trends. Know your value. See what's hiring and at what rates.
+              Market rates, skills in demand, salary trends. Know your value. See what&apos;s hiring and at what rates.
             </p>
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function Landing() {
       {/* CTA */}
       <section className="border border-[var(--border)] bg-[var(--bg2)] p-12 text-center mb-20">
         <h3 className="font-serif text-3xl text-[var(--text)] mb-3">Ready?</h3>
-        <p className="text-[var(--text2)] mb-6">Join the waitlist. We'll send your invite when the next batch opens.</p>
+        <p className="text-[var(--text2)] mb-6">Join the waitlist. We&apos;ll send your invite when the next batch opens.</p>
         <a
           href="#early-access"
           className="inline-block bg-[var(--accent)] text-[var(--bg)] px-8 py-3 font-mono uppercase tracking-widest hover:bg-[var(--accent2)]"

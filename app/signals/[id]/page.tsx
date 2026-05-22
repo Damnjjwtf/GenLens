@@ -207,8 +207,8 @@ export default async function SignalPage({ params }: Params) {
             </div>
           </div>
           <div style={styles.gateBlurred}>
-            <p>Immediately update your rendering pipeline. Switch to the new batch mode — it requires no config change if you're already on the current stable release. Run a single product through first to validate output quality before enabling for your full queue.</p>
-            <p>Block 2 hours this week to test the integration. The time-to-value is the fastest you'll see this quarter.</p>
+            <p>Immediately update your rendering pipeline. Switch to the new batch mode — it requires no config change if you&apos;re already on the current stable release. Run a single product through first to validate output quality before enabling for your full queue.</p>
+            <p>Block 2 hours this week to test the integration. The time-to-value is the fastest you&apos;ll see this quarter.</p>
           </div>
         </div>
 

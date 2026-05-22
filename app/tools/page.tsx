@@ -36,6 +36,19 @@ const VERTICAL_ACCENT: Record<string, string> = {
   digital_humans: '#b07af0',
 }
 
+type ToolRow = {
+  id: number
+  slug: string
+  canonical_name: string
+  website_url: string | null
+  affiliate_url: string | null
+  verticals: string[] | null
+  current_score: number | null
+  signal_count: number
+  affiliate_program: string | null
+  affiliate_commission_pct: number | null
+}
+
 export default async function ToolsPage() {
   const tools = await sql`
     SELECT
@@ -43,7 +56,7 @@ export default async function ToolsPage() {
       verticals, current_score, signal_count, affiliate_program, affiliate_commission_pct
     FROM tools
     ORDER BY current_score DESC NULLS LAST, canonical_name ASC
-  `
+  ` as ToolRow[]
 
   // Group by vertical
   const grouped = new Map<string, typeof tools>()
@@ -56,8 +69,8 @@ export default async function ToolsPage() {
   }
 
   // Sort each group by score
-  for (const [, group] of grouped) {
-    group.sort((a, b) => ((b.current_score ?? 0) - (a.current_score ?? 0)))
+  for (const group of Array.from(grouped.values())) {
+    group.sort((a: ToolRow, b: ToolRow) => ((b.current_score ?? 0) - (a.current_score ?? 0)))
   }
 
   const jsonLd = breadcrumbLD([
@@ -99,7 +112,7 @@ export default async function ToolsPage() {
             <section key={vertical} style={styles.section}>
               <h2 style={{ ...styles.verticalTitle, color: accent }}>{label}</h2>
               <div style={styles.toolGrid}>
-                {toolsInVertical.map((tool: any) => (
+                {toolsInVertical.map((tool) => (
                   <a
                     key={tool.id}
                     href={`/tools/${tool.slug}`}

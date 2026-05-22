@@ -1,5 +1,4 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
 import Landing from '@/components/Landing';
 import Dashboard from './dashboard';
 

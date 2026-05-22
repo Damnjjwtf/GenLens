@@ -15,6 +15,36 @@ import { breadcrumbLD, SITE_URL } from '@/lib/schema/jsonld'
 
 interface Params { params: { date: string } }
 
+type SnapshotTool = {
+  tool_slug: string
+  score?: number
+  score_delta?: number | null
+  delta?: number
+  prev_score?: number
+}
+
+type IndexSnapshot = {
+  vertical: string
+  week_start_date: string
+  status: string
+  headline: string | null
+  lede: string | null
+  published_at: string | null
+  top_tools: SnapshotTool[] | null
+  biggest_movers_up: SnapshotTool[] | null
+  biggest_movers_down: SnapshotTool[] | null
+  new_entries: SnapshotTool[] | null
+  notable_exits: SnapshotTool[] | null
+}
+
+type ToolRow = {
+  id: number
+  slug: string
+  canonical_name: string
+  affiliate_url: string | null
+  current_score: number | null
+}
+
 // Parse date from slug: either YYYY-MM-DD or vertical-YYYY-MM-DD
 function parseIndexSlug(slug: string): { vertical?: string; date: string } {
   const parts = slug.split('-')
@@ -31,18 +61,17 @@ function parseIndexSlug(slug: string): { vertical?: string; date: string } {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { vertical, date } = parseIndexSlug(params.date)
 
-  let snapshot: any
+  let snapshot: IndexSnapshot | undefined
   if (vertical) {
-    [snapshot] = await sql`SELECT * FROM index_snapshots WHERE vertical = ${vertical} AND week_start_date = ${date} AND status = 'published' LIMIT 1`
+    ;[snapshot] = await sql`SELECT * FROM index_snapshots WHERE vertical = ${vertical} AND week_start_date = ${date} AND status = 'published' LIMIT 1` as IndexSnapshot[]
   } else {
-    [snapshot] = await sql`SELECT * FROM index_snapshots WHERE week_start_date = ${date} AND status = 'published' LIMIT 1`
+    ;[snapshot] = await sql`SELECT * FROM index_snapshots WHERE week_start_date = ${date} AND status = 'published' LIMIT 1` as IndexSnapshot[]
   }
 
   if (!snapshot) {
     return { title: 'Index not found — GenLens' }
   }
 
-  const verticalLabel = snapshot.vertical === 'all' ? 'GenLens' : snapshot.vertical.replace(/_/g, ' ')
   const title = snapshot.headline || `GenLens Index for week of ${snapshot.week_start_date}`
 
   return {
@@ -84,29 +113,29 @@ export default async function IndexPage({ params }: Params) {
   const { vertical, date } = parseIndexSlug(params.date)
 
   // Fetch the snapshot
-  let snapshot: any
+  let snapshot: IndexSnapshot | undefined
   if (vertical) {
-    [snapshot] = await sql`SELECT * FROM index_snapshots WHERE vertical = ${vertical} AND week_start_date = ${date} AND status = 'published' LIMIT 1`
+    ;[snapshot] = await sql`SELECT * FROM index_snapshots WHERE vertical = ${vertical} AND week_start_date = ${date} AND status = 'published' LIMIT 1` as IndexSnapshot[]
   } else {
-    [snapshot] = await sql`SELECT * FROM index_snapshots WHERE week_start_date = ${date} AND status = 'published' LIMIT 1`
+    ;[snapshot] = await sql`SELECT * FROM index_snapshots WHERE week_start_date = ${date} AND status = 'published' LIMIT 1` as IndexSnapshot[]
   }
 
   if (!snapshot) notFound()
 
   // Fetch tool details for all tools in the snapshot
   const allToolSlugs = [
-    ...(snapshot.top_tools || []).map((t: any) => t.tool_slug),
-    ...(snapshot.biggest_movers_up || []).map((t: any) => t.tool_slug),
-    ...(snapshot.biggest_movers_down || []).map((t: any) => t.tool_slug),
-    ...(snapshot.new_entries || []).map((t: any) => t.tool_slug),
-    ...(snapshot.notable_exits || []).map((t: any) => t.tool_slug),
+    ...(snapshot.top_tools || []).map((t) => t.tool_slug),
+    ...(snapshot.biggest_movers_up || []).map((t) => t.tool_slug),
+    ...(snapshot.biggest_movers_down || []).map((t) => t.tool_slug),
+    ...(snapshot.new_entries || []).map((t) => t.tool_slug),
+    ...(snapshot.notable_exits || []).map((t) => t.tool_slug),
   ].filter((v, i, a) => a.indexOf(v) === i)
 
   const tools = allToolSlugs.length > 0
-    ? await sql`SELECT id, slug, canonical_name, affiliate_url, current_score FROM tools WHERE slug = ANY(${allToolSlugs})`
+    ? await sql`SELECT id, slug, canonical_name, affiliate_url, current_score FROM tools WHERE slug = ANY(${allToolSlugs})` as ToolRow[]
     : []
 
-  const toolMap = new Map(tools.map((t: any) => [t.slug, t]))
+  const toolMap = new Map(tools.map((t) => [t.slug, t]))
 
   const accent = VERTICAL_ACCENT[snapshot.vertical] ?? '#c8f04a'
   const verticalLabel = VERTICAL_LABELS[snapshot.vertical] ?? snapshot.vertical
@@ -173,7 +202,7 @@ export default async function IndexPage({ params }: Params) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: accent }}>Top 10 Tools</h2>
             <div style={styles.toolGrid}>
-              {snapshot.top_tools.map((tool: any, i: number) => {
+              {snapshot.top_tools.map((tool, i) => {
                 const details = toolMap.get(tool.tool_slug)
                 return (
                   <a
@@ -205,7 +234,7 @@ export default async function IndexPage({ params }: Params) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: '#4ae60b' }}>Rising</h2>
             <div style={styles.moversGrid}>
-              {snapshot.biggest_movers_up.map((tool: any) => {
+              {snapshot.biggest_movers_up.map((tool) => {
                 const details = toolMap.get(tool.tool_slug)
                 return (
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.moverCard}>
@@ -228,7 +257,7 @@ export default async function IndexPage({ params }: Params) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: '#ff6b6b' }}>Falling</h2>
             <div style={styles.moversGrid}>
-              {snapshot.biggest_movers_down.map((tool: any) => {
+              {snapshot.biggest_movers_down.map((tool) => {
                 const details = toolMap.get(tool.tool_slug)
                 return (
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.moverCard}>
@@ -251,7 +280,7 @@ export default async function IndexPage({ params }: Params) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: accent }}>New This Week</h2>
             <div style={styles.entriesGrid}>
-              {snapshot.new_entries.map((tool: any) => {
+              {snapshot.new_entries.map((tool) => {
                 const details = toolMap.get(tool.tool_slug)
                 return (
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.entryCard}>
@@ -269,7 +298,7 @@ export default async function IndexPage({ params }: Params) {
           <section style={styles.section}>
             <h2 style={{ ...styles.sectionTitle, color: 'rgba(255,255,255,0.4)' }}>Dropped Below Threshold</h2>
             <div style={styles.entriesGrid}>
-              {snapshot.notable_exits.map((tool: any) => {
+              {snapshot.notable_exits.map((tool) => {
                 const details = toolMap.get(tool.tool_slug)
                 return (
                   <a key={tool.tool_slug} href={`/tools/${tool.tool_slug}`} style={styles.exitCard}>

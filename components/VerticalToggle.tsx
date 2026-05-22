@@ -1,6 +1,6 @@
 'use client';
 
-import { VERTICAL_LABELS, VERTICAL_ACCENT } from '@/lib/constants';
+import { VERTICAL_LABELS } from '@/lib/constants';
 
 type Vertical = 'product_photography' | 'filmmaking' | 'digital_humans';
 

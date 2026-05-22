@@ -194,7 +194,7 @@ export function sourcesByVertical(vertical: Vertical): Source[] {
   return SOURCES.filter(s => s.verticals.includes(vertical))
 }
 
-export function sourcesDueForScrape(now = new Date()): Source[] {
+export function sourcesDueForScrape(): Source[] {
   // Caller checks last_scraped_at from scrape_log. This is the registry side.
   // Return all and let the orchestrator filter against scrape_log.
   return SOURCES

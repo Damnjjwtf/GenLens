@@ -51,17 +51,6 @@ interface QueueItem {
   created_at: string
 }
 
-interface AgentRun {
-  id: number
-  run_type: string
-  status: string
-  signals_processed: number
-  outputs_generated: number
-  started_at: string
-  completed_at: string | null
-  duration_ms: number | null
-}
-
 // ─── Constants ────────────────────────────────────────────────
 
 const TYPE_LABELS: Record<OutputType, string> = {
@@ -105,7 +94,6 @@ export default function GrowthAgentAdmin() {
   const [editNotes, setEditNotes] = useState('')
   const [rejectionReason, setRejectionReason] = useState('')
   const [agentRunning, setAgentRunning] = useState(false)
-  const [lastRun, setLastRun] = useState<AgentRun | null>(null)
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null)
 

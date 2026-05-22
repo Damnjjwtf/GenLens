@@ -13,6 +13,10 @@ import { db as sql } from '@/lib/db'
 import { auth } from '@/auth'
 import { postToDiscord } from '@/lib/social/discord'
 
+type QueueCountRow = {
+  count: string | number
+}
+
 // GET — list queue items
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -26,15 +30,6 @@ export async function GET(req: NextRequest) {
   const vertical = searchParams.get('vertical')
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 100)
   const offset = parseInt(searchParams.get('offset') ?? '0')
-
-  let query = sql`
-    SELECT
-      gaq.*,
-      u.email as approved_by_email
-    FROM growth_agent_queue gaq
-    LEFT JOIN users u ON u.id = gaq.approved_by
-    WHERE gaq.status = ${status}
-  `
 
   // Note: Neon serverless doesn't support dynamic query building cleanly,
   // so we fetch and filter in JS for the optional params.
@@ -50,14 +45,14 @@ export async function GET(req: NextRequest) {
       AND (${vertical}::text IS NULL OR gaq.vertical = ${vertical})
     ORDER BY gaq.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
-  `
+  ` as unknown as Record<string, unknown>[]
 
   const [{ count }] = await sql`
     SELECT COUNT(*) FROM growth_agent_queue
     WHERE status = ${status}
       AND (${output_type}::text IS NULL OR output_type = ${output_type})
       AND (${vertical}::text IS NULL OR vertical = ${vertical})
-  `
+  ` as unknown as QueueCountRow[]
 
   return NextResponse.json({ items: rows, total: Number(count), offset, limit })
 }
@@ -87,7 +82,7 @@ export async function PATCH(req: NextRequest) {
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
-    `
+    ` as unknown as Record<string, unknown>[]
     // If no scheduled_for, publish immediately
     if (!updated.scheduled_for) {
       await publishQueueItem(updated)
@@ -104,7 +99,7 @@ export async function PATCH(req: NextRequest) {
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
-    `
+    ` as unknown as Record<string, unknown>[]
     return NextResponse.json({ success: true, item: updated })
   }
 
@@ -117,7 +112,7 @@ export async function PATCH(req: NextRequest) {
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
-    `
+    ` as unknown as Record<string, unknown>[]
     return NextResponse.json({ success: true, item: updated })
   }
 

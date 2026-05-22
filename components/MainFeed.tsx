@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DimensionFilter } from './DimensionFilter';
 import { DateRangePicker } from './DateRangePicker';
 import { SignalCard } from './SignalCard';
@@ -104,8 +104,8 @@ export function MainFeed({ defaultVertical = 'product_photography', signals: pro
     ...s,
     source: s.source_name,
     sourceUrl: s.source_url,
-    timeSaved: s.time_saved_hours,
-    costSaved: s.cost_saved_dollars,
+    timeSaved: s.time_saved_hours ?? undefined,
+    costSaved: s.cost_saved_dollars ?? undefined,
     tools: s.tool_names || [],
     createdAt: new Date(s.created_at),
   })) || DEMO_SIGNALS;

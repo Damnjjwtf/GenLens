@@ -1,7 +1,5 @@
 'use client';
 
-import { DIMENSIONS } from '@/lib/constants';
-
 interface SignalCardProps {
   id: number;
   title: string;
@@ -17,7 +15,6 @@ interface SignalCardProps {
 }
 
 export function SignalCard({
-  id,
   title,
   dimension,
   summary,
@@ -25,7 +22,6 @@ export function SignalCard({
   sourceUrl,
   timeSaved,
   costSaved,
-  vertical,
   tools = [],
   createdAt,
 }: SignalCardProps) {
@@ -39,8 +35,6 @@ export function SignalCard({
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
-  const dimLabel = DIMENSIONS.find(d => d.id === dimension)?.label || 'Signal';
-
   // Get dimension color based on number
   const getDimensionColor = (dim: number) => {
     const colors: Record<number, string> = {

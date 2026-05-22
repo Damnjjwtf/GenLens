@@ -47,7 +47,7 @@ function normalizeScore(value: number): number {
  * Calculate speed score from time savings vs baseline
  * Baseline = 2 hours average improvement
  */
-function speedScoreFromSignals(signals: ScoreSignal[], baseline: ScoreBaseline | null): number {
+function speedScoreFromSignals(signals: ScoreSignal[]): number {
   const withTime = signals.filter(s => s.time_saved_hours && s.time_saved_hours > 0)
   if (withTime.length === 0) return 50
 
@@ -60,7 +60,7 @@ function speedScoreFromSignals(signals: ScoreSignal[], baseline: ScoreBaseline |
  * Calculate cost score from cost savings vs baseline
  * Baseline = $150 average improvement
  */
-function costScoreFromSignals(signals: ScoreSignal[], baseline: ScoreBaseline | null): number {
+function costScoreFromSignals(signals: ScoreSignal[]): number {
   const withCost = signals.filter(s => s.cost_saved_dollars && s.cost_saved_dollars > 0)
   if (withCost.length === 0) return 50
 
@@ -95,8 +95,8 @@ function adoptionScoreFromSignals(signals: ScoreSignal[]): number {
  * Compute composite score from signals and baseline
  */
 export function computeScore(signals: ScoreSignal[], baseline: ScoreBaseline | null): ComputeResult {
-  const speedScore = speedScoreFromSignals(signals, baseline)
-  const costScore = costScoreFromSignals(signals, baseline)
+  const speedScore = speedScoreFromSignals(signals)
+  const costScore = costScoreFromSignals(signals)
   const qualityScore = qualityScoreFromSignals(signals)
   const adoptionScore = adoptionScoreFromSignals(signals)
 
