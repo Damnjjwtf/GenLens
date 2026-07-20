@@ -25,6 +25,30 @@ cp -R scripts ~/.hermes/profiles/genny/
 
 Add secrets only to the Hermes profile `.env`, never to this repo.
 
+## VPS Sync / Repair
+
+If Genny is alive in Discord but still using old scripts, sync the profile from GitHub on the VPS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Damnjjwtf/GenLens/main/agents/genny/scripts/sync_to_hermes_profile.sh | bash
+```
+
+What it does:
+
+- downloads the latest `Damnjjwtf/GenLens` main branch if no local checkout is provided
+- copies `agents/genny` into `/root/.hermes/profiles/genny`
+- preserves `/root/.hermes/profiles/genny/.env`
+- preserves `/root/.hermes/profiles/genny/state`
+- updates `SOUL.md`, scripts, skills, prompts, data, and docs
+- checks Python syntax before restart
+- restarts `hermes-gateway-genny.service`
+
+Dry run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Damnjjwtf/GenLens/main/agents/genny/scripts/sync_to_hermes_profile.sh | bash -s -- --dry-run
+```
+
 ## Suggested Cron
 
 8am Pacific daily:

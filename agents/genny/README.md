@@ -38,6 +38,22 @@ Run the daily digest fallback flow:
 python3 scripts/genlens_digest.py
 ```
 
+## Sync The Live Hermes Profile
+
+On the VPS, run this when the repo has updates but Genny is still using old behavior:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Damnjjwtf/GenLens/main/agents/genny/scripts/sync_to_hermes_profile.sh | bash
+```
+
+That command downloads the latest GenLens `main`, copies `agents/genny` into `/root/.hermes/profiles/genny`, preserves the live `.env` and `state/`, checks Python syntax, installs the tiny Python requirements, and restarts `hermes-gateway-genny.service`.
+
+If the repo is already cloned on the VPS:
+
+```bash
+bash agents/genny/scripts/sync_to_hermes_profile.sh --repo-dir /path/to/GenLens
+```
+
 ## Environment
 
 Copy `.env.example` to `.env` and fill in your own values.
