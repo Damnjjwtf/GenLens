@@ -1,0 +1,107 @@
+{
+  "known_tools_seen": [
+    {
+      "context": "es checked: 17. Candidate leads found: 0. - No qualified feed signals \u2014 Daily mode skipped manual/vendor pages. Feed sources checked: ComfyUI GitHub, ComfyUI Commits, ComfyUI News Search, fal News Search, fxguide, No Film School, CineD. Manual sources available for audit: Runway Blog, Seedance 2.0 Paper, fal Blog. - Source check needed \u2014 Some feeds failed",
+      "mentions": 2,
+      "name": "ComfyUI"
+    },
+    {
+      "context": "Candidate leads found: 0. - No qualified feed signals \u2014 Daily mode skipped manual/vendor pages. Feed sources checked: Motionographer, Figma Weave News Search, Framer Blog. Manual sources available for audit: Figma Blog. - Source check needed \u2014 Some feeds failed and should be retried: Motionographer: <urlopen error Errno 8 nodename nor servname provide",
+      "mentions": 2,
+      "name": "Figma"
+    },
+    {
+      "context": "watch: AI Shot Pipeline Supervisor, Generative Rights and Provenance Producer. forecast - Tool Graph \u2014 Current recurring stack terms: Nuke, ComfyUI, ShotGrid, LoRA, Python, Resolve, Maya, fal. tool cluster - Build This \u2014 Proof-build prompt: create a portfolio artifact for Generative Media Pipeline Operator using ComfyUI, fal, Stable Diffusion, Co",
+      "mentions": 2,
+      "name": "Nuke"
+    },
+    {
+      "context": "es checked: 16. Candidate leads found: 0. - No qualified feed signals \u2014 Daily mode skipped manual/vendor pages. Feed sources checked: ElevenCreative News Search, NVIDIA Blog, Reallusion Magazine. Manual sources available for audit: ElevenLabs Blog, ElevenCreative Flows, Synthesia Blog, HeyGen Blog, Unreal Engine News. - Source check needed \u2014 Some feeds failed an",
+      "mentions": 1,
+      "name": "ElevenCreative"
+    },
+    {
+      "context": "Build This \u2014 Proof-build prompt: create a portfolio artifact for Generative Media Pipeline Operator using ComfyUI, fal, Stable Diffusion, ControlNet, LoRA, Nuke; ship a live artifact, process notes, and time/cost delta. proof build - Product Lab \u2014 GenLens can package these into Emerging Creative AI Roles, Tool Stack Blueprints, Hiring Briefs, Proof",
+      "mentions": 1,
+      "name": "Fusion"
+    },
+    {
+      "context": "ights and Provenance Producer. forecast - Tool Graph \u2014 Current recurring stack terms: Nuke, ComfyUI, ShotGrid, LoRA, Python, Resolve, Maya, fal. tool cluster - Build This \u2014 Proof-build prompt: create a portfolio artifact for Generative Media Pipeline Operator using ComfyUI, fal, Stable Diffusion, ControlNet, LoRA, Nuke; ship a live artifact, proc",
+      "mentions": 1,
+      "name": "Maya"
+    },
+    {
+      "context": "Magazine: <urlopen error Errno 8 nodename nor servname provided, or not known>. ## Phase 2 - Deferred / On Deck ## Music Production / Audio Sources checked: 3. Candidate leads found: 0. - No qualified feed signals \u2014 Daily mode skipped manual/vendor pages. Feed sources checked: MusicTech, LANDR Blog. Manual sources available for audit: iZotope Learn",
+      "mentions": 1,
+      "name": "Udio"
+    },
+    {
+      "context": "Daily mode skipped manual/vendor pages. Feed sources checked: The Interline. Manual sources available for audit: CLO Virtual Fashion Blog, WGSN Insight. - Source check needed \u2014 Some feeds failed and should be retried: The Interline: <urlopen error Errno 8 nodename nor servname provided, or not known>. ## Phase 3 - Candidate Watch ## Advertising / Brand",
+      "mentions": 1,
+      "name": "WGSN"
+    }
+  ],
+  "manifest_path": "/Users/jonathanjames/Documents/Codex/2026-05-24/curl-fssl-https-hermes-agent-nousresearch/genny-genlens-agent/data/genlens_tools_manifest.md",
+  "review_queue": [
+    {
+      "context": "erative Rights and Provenance Producer. forecast - Tool Graph \u2014 Current recurring stack terms: Nuke, ComfyUI, ShotGrid, LoRA, Python, Resolve, Maya, fal. tool cluster - Build This \u2014 Proof-build prompt: create a portfolio artifact for Generative Media Pipeline Operator using ComfyUI, fal, Stable Diffusion, ControlNet, LoRA, Nuke; ship a live artifact",
+      "mentions": 1,
+      "name": "Resolve",
+      "reason": "Mentioned in source-backed brief output but not found in canonical tools manifest.",
+      "status": "review"
+    },
+    {
+      "context": "NVIDIA Blog, Reallusion Magazine. Manual sources available for audit: ElevenLabs Blog, ElevenCreative Flows, Synthesia Blog, HeyGen Blog, Unreal Engine News. - Source check needed \u2014 Some feeds failed and should be retried: ElevenCreative News Search: <urlopen error Errno 8 nodename nor servname provided, or not known>; NVIDIA Blog: <urlopen error Errno 8 nodename no",
+      "mentions": 1,
+      "name": "Unreal Engine News",
+      "reason": "Mentioned in source-backed brief output but not found in canonical tools manifest.",
+      "status": "review"
+    }
+  ],
+  "source_path": "/Users/jonathanjames/Documents/Codex/2026-05-24/curl-fssl-https-hermes-agent-nousresearch/genny-genlens-agent/state/latest_brief.md",
+  "vertical_mentions": {
+    "AI Design / Motion Graphics": [
+      "Figma",
+      "Figma Weave",
+      "Framer"
+    ],
+    "AI Filmmaking": [
+      "fal",
+      "ComfyUI"
+    ],
+    "Digital Humans": [
+      "ElevenCreative",
+      "HeyGen",
+      "Synthesia",
+      "ElevenLabs"
+    ],
+    "Education / E-Learning Content": [
+      "Synthesia"
+    ],
+    "Fashion / Apparel / Textile": [
+      "WGSN"
+    ],
+    "Game Development / Real-Time 3D": [
+      "Unity",
+      "Godot"
+    ],
+    "GenLens": [
+      "Nuke",
+      "fal",
+      "ComfyUI",
+      "Maya",
+      "Fusion",
+      "Stable Diffusion",
+      "Unity"
+    ],
+    "Music Production / Audio": [
+      "Udio",
+      "Landr"
+    ],
+    "Podcast / Long-Form Audio": [
+      "Udio",
+      "Rive",
+      "Descript"
+    ]
+  }
+}

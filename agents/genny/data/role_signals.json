@@ -1,0 +1,153 @@
+{
+  "updated": "2026-07-18",
+  "source": "User-provided transcript about generative AI creative jobs, including roles at Adobe, Sphere, Paramount, Lightricks, Amazon, Netflix, Epic Games, and Netflix Games.",
+  "schema": {
+    "status": "observed | emerging | forecast",
+    "verticals": "GenLens verticals affected",
+    "tools": "tools named or strongly implied",
+    "skills": "skills/job requirements mentioned",
+    "salary_signal": "salary/rate mentioned in transcript when available"
+  },
+  "roles": [
+    {
+      "title": "Creative Technologist",
+      "status": "observed",
+      "company_context": "Adobe Firefly / Culver City",
+      "verticals": ["Advertising / Brand Content", "AI Design / Motion Graphics", "AI Filmmaking"],
+      "tools": ["Adobe Firefly", "Firefly Boards", "Firefly Foundry", "Adobe Creative Cloud", "Adobe APIs", "external APIs", "3D tools", "web tooling"],
+      "skills": ["prototype building", "technical demos", "demo video scripting and recording", "creative coding", "API integration", "media and entertainment fluency"],
+      "salary_signal": "$177K-$257K",
+      "notes": "Hybrid creative/technical demo role; close to what the speaker does at fal."
+    },
+    {
+      "title": "Generative Artist",
+      "status": "observed",
+      "company_context": "Sphere",
+      "verticals": ["AI Filmmaking", "Digital Humans", "AI Design / Motion Graphics"],
+      "tools": ["After Effects", "Nuke", "Cinema 4D", "ComfyUI", "ShotGrid", "Stable Diffusion", "ControlNet", "LoRA"],
+      "skills": ["motion graphics", "VFX", "post-production", "3D", "AI image/video workflows", "production supervision handoff"],
+      "salary_signal": "",
+      "notes": "AI Artist language is being softened into Generative Artist."
+    },
+    {
+      "title": "AI Platforms and Orchestration Lead",
+      "status": "observed",
+      "company_context": "Paramount Tech / Los Angeles",
+      "verticals": ["Advertising / Brand Content", "AI Filmmaking", "Infrastructure"],
+      "tools": ["Azure", "Python", "APIs", "MLOps", "RPA", "web services"],
+      "skills": ["enterprise AI orchestration", "automation architecture", "AI/ML background", "platform integration", "API-based services"],
+      "salary_signal": "$124K-$186K",
+      "notes": "Closer to software/platform architecture than creative art."
+    },
+    {
+      "title": "AI Pipeline Engineer",
+      "status": "observed",
+      "company_context": "Lightricks / LTX / Los Angeles",
+      "verticals": ["AI Filmmaking", "AI Design / Motion Graphics", "Digital Humans"],
+      "tools": ["LTX", "After Effects", "Houdini", "Nuke", "Resolve", "Maya", "Blender", "Unreal Engine", "Unity"],
+      "skills": ["AI-enhanced workflows", "POC definition", "pipeline engineering", "creative technology", "technical direction", "AI/ML research fluency"],
+      "salary_signal": "$160K-$180K",
+      "notes": "Heavy mix of tech art, engineering, and production craft."
+    },
+    {
+      "title": "Senior Design Technologist, AI Content Generation",
+      "status": "observed",
+      "company_context": "Amazon Prime Video / Culver City",
+      "verticals": ["Advertising / Brand Content", "AI Design / Motion Graphics", "AI Filmmaking"],
+      "tools": ["ElasticSearch", "DynamoDB", "front-end prototypes", "ML tools"],
+      "skills": ["ML-to-creative liaison", "UX prototyping", "front-end development", "internal tools", "creative production translation"],
+      "salary_signal": "$154K-$228K inferred from transcript context",
+      "notes": "Design/web product role serving AI content-generation workflows."
+    },
+    {
+      "title": "Inference Specialist, Creative Technology",
+      "status": "observed",
+      "company_context": "Netflix / Creative Technology",
+      "verticals": ["AI Filmmaking", "Digital Humans", "Infrastructure"],
+      "tools": ["Python", "PyTorch", "CUDA", "GPU infrastructure", "model inference"],
+      "skills": ["inference workflows", "GPU monitoring", "debugging", "model compatibility", "ML production support", "production research support"],
+      "salary_signal": "$165K-$265K",
+      "notes": "Creative-facing ML/infrastructure role."
+    },
+    {
+      "title": "Senior Tools Programmer, UI and AI Workflows",
+      "status": "observed",
+      "company_context": "Epic Games / Unreal Engine / Vancouver",
+      "verticals": ["Game Development / Real-Time 3D", "AI Design / Motion Graphics"],
+      "tools": ["Unreal Engine", "C++", "Slate UI", "agentic workflows", "chat UI", "canvas UI"],
+      "skills": ["engine tool programming", "AI workflow UX", "UI architecture", "C++", "front-end/tooling concepts"],
+      "salary_signal": "",
+      "notes": "Creates UI for upcoming AI-agentic workflows in engines."
+    },
+    {
+      "title": "CG Artist, Generative AI Incubator",
+      "status": "observed",
+      "company_context": "Netflix Incubator",
+      "verticals": ["AI Filmmaking", "Digital Humans"],
+      "tools": ["Maya", "Houdini", "Blender", "Photoshop", "Nuke", "ComfyUI", "LoRA"],
+      "skills": ["traditional CG workflow", "generative AI tooling", "asset creation", "shot production", "experimental workflows"],
+      "salary_signal": "Hourly / part-time context mentioned",
+      "notes": "Traditional CG title now includes AI tool fluency."
+    },
+    {
+      "title": "Technical Director, Generative AI Incubator",
+      "status": "observed",
+      "company_context": "Netflix Incubator",
+      "verticals": ["AI Filmmaking", "Digital Humans"],
+      "tools": ["ComfyUI", "Maya", "Nuke", "CG pipeline tools"],
+      "skills": ["pipeline development", "artist support", "stakeholder communication", "AI + CG workflow integration"],
+      "salary_signal": "$62/hour and up",
+      "notes": "Classic TD role extended with AI pipelines."
+    },
+    {
+      "title": "Senior Game Engineer, Generative AI for Games",
+      "status": "observed",
+      "company_context": "Netflix Games",
+      "verticals": ["Game Development / Real-Time 3D"],
+      "tools": ["C++", "game engines", "internal tools", "generative AI hooks"],
+      "skills": ["game engineering", "rapid gameplay iteration", "level blocking", "asset variation", "playtesting loops", "core game systems"],
+      "salary_signal": "$280K-$400K",
+      "notes": "Uses generative AI to accelerate find-the-fun and prototyping loops."
+    },
+    {
+      "title": "Generative Media Pipeline Operator",
+      "status": "emerging",
+      "company_context": "Synthesized from repeated ComfyUI/AI workflow language",
+      "verticals": ["AI Filmmaking", "Product Photography", "AI Design / Motion Graphics"],
+      "tools": ["ComfyUI", "fal", "Stable Diffusion", "ControlNet", "LoRA", "Nuke", "Resolve", "ShotGrid"],
+      "skills": ["batch generation", "node graph operation", "model versioning", "prompt/seed control", "QC", "handoff to compositing/editorial"],
+      "salary_signal": "",
+      "notes": "Likely role gap between AI artist and pipeline TD."
+    },
+    {
+      "title": "Creative Inference Ops Specialist",
+      "status": "emerging",
+      "company_context": "Synthesized from Netflix inference specialist and fal-style infrastructure",
+      "verticals": ["AI Filmmaking", "Digital Humans", "Infrastructure"],
+      "tools": ["fal", "Python", "PyTorch", "CUDA", "GPU dashboards", "ComfyUI"],
+      "skills": ["latency/cost management", "model routing", "GPU operations", "creative production support", "failure-mode handling"],
+      "salary_signal": "",
+      "notes": "Production-facing inference reliability role."
+    },
+    {
+      "title": "AI Shot Pipeline Supervisor",
+      "status": "forecast",
+      "company_context": "18-month GenLens forecast",
+      "verticals": ["AI Filmmaking", "Digital Humans"],
+      "tools": ["ComfyUI", "Runway", "fal", "Nuke", "Resolve", "ShotGrid", "LoRA tooling"],
+      "skills": ["shot throughput", "continuity QC", "model selection", "pipeline supervision", "artist handoff"],
+      "salary_signal": "",
+      "notes": "Forecast: studios will need accountable AI shot leads as volume scales."
+    },
+    {
+      "title": "Generative Rights and Provenance Producer",
+      "status": "forecast",
+      "company_context": "18-month GenLens forecast",
+      "verticals": ["AI Filmmaking", "Digital Humans", "Advertising / Brand Content"],
+      "tools": ["SAG-AFTRA AI resources", "metadata tools", "asset managers", "contract systems"],
+      "skills": ["likeness consent", "training-data constraints", "source provenance", "delivery documentation", "legal-production liaison"],
+      "salary_signal": "",
+      "notes": "Forecast: rights/provenance becomes a production role, not just a legal footnote."
+    }
+  ]
+}

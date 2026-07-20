@@ -1,0 +1,40 @@
+{
+  "updated": "2026-07-18",
+  "modes": [
+    {
+      "name": "Signal Brief",
+      "trigger_phrases": ["brief", "digest", "send email", "what changed", "daily"],
+      "primary_script": "genlens_compose_brief.py",
+      "purpose": "Turn current source-backed items into a publishable GenLens briefing.",
+      "quality_bar": "Only include real releases, research, case studies, pricing/policy changes, production workflows, and high-signal hiring or funding evidence."
+    },
+    {
+      "name": "Role Radar",
+      "trigger_phrases": ["jobs", "roles", "role radar", "hiring", "future jobs", "arbitrage"],
+      "primary_script": "genlens_role_radar.py --mode roles",
+      "purpose": "Convert job and hiring signals into observed, emerging, and forecast AI creative roles.",
+      "quality_bar": "Clearly label observed versus forecast. Extract tools, skills, workflow verbs, salary/location, and role mutation."
+    },
+    {
+      "name": "Build This",
+      "trigger_phrases": ["build this", "portfolio", "proof build", "how do I become", "skill path"],
+      "primary_script": "genlens_role_radar.py --mode builds",
+      "purpose": "Generate weekend-scoped proof builds tied to emerging creative AI roles.",
+      "quality_bar": "Every build must be live/linkable, specific, and scoped to a visible artifact."
+    },
+    {
+      "name": "Market Map",
+      "trigger_phrases": ["market map", "tool graph", "source graph", "what companies", "what tools cluster"],
+      "primary_script": "genlens_role_radar.py --mode map",
+      "purpose": "Map companies, tools, verticals, and repeated workflow clusters.",
+      "quality_bar": "Prefer repeated evidence across sources. Mark single-source observations as weak."
+    },
+    {
+      "name": "Product Lab",
+      "trigger_phrases": ["new product", "flywheel", "network effect", "product idea", "what can GenLens build"],
+      "primary_script": "genlens_role_radar.py --mode products",
+      "purpose": "Turn repeated source, tool, and role patterns into GenLens product opportunities.",
+      "quality_bar": "Tie every proposed product to an observed user pain, repeated signal pattern, or role/tool graph gap."
+    }
+  ]
+}
