@@ -12,6 +12,9 @@ Her job is to monitor AI creative production signals, compose GenLens briefings,
 - `prompts/` - reusable prompt specs for signal scoring, briefing format, and delta extraction.
 - `docs/` - setup and architecture notes.
 
+For AI or human collaborators, start with
+[`docs/GENNY_COLLABORATOR_PRD.md`](docs/GENNY_COLLABORATOR_PRD.md).
+
 No API keys, bot tokens, Google credentials, or Resend secrets are stored here.
 
 ## Core Commands
