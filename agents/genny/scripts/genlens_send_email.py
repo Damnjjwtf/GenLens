@@ -29,6 +29,15 @@ KNOWN_VERTICALS = {
     "Social / Short-Form Video",
     "Game Development / Real-Time 3D",
     "Cross-Vertical Watchlist",
+    "Agentic Marketing Workflows",
+    "Paid Media / Creative Performance",
+    "Stack Consolidation / Displacement",
+    "Lifecycle / Retention",
+    "Measurement / Attribution",
+    "Commerce / Conversion",
+    "SEO / AEO / Content Systems",
+    "Sales / Marketing Convergence",
+    "Marketing Data / Identity",
     "GenLens",
 }
 
@@ -122,10 +131,34 @@ def render_test_html(preheader: str) -> str:
 
 
 def render_briefing_html(markdown: str) -> str:
-    escaped_preheader = html_lib.escape(
-        "Source-backed creative production intelligence from GenLens."
-    )
     items = public_briefing_items(markdown)
+
+    marti_verticals = {
+        "Agentic Marketing Workflows",
+        "Paid Media / Creative Performance",
+        "Stack Consolidation / Displacement",
+        "Lifecycle / Retention",
+        "Measurement / Attribution",
+        "Commerce / Conversion",
+        "SEO / AEO / Content Systems",
+        "Sales / Marketing Convergence",
+        "Marketing Data / Identity",
+    }
+    has_marti = any(str(item.get("vertical")) in marti_verticals for item in items)
+    has_genny = any(str(item.get("vertical")) not in marti_verticals | {"GenLens"} for item in items)
+    if has_marti and has_genny:
+        edition_label = "Marti-Genny Intelligence"
+        headline = "Production and distribution signals worth acting on."
+        deck = "Verified shifts across creative production, marketing systems, roles, costs, and the arbitrage between them."
+    elif has_marti:
+        edition_label = "Marti Stack Intelligence"
+        headline = "Marketing stack shifts worth acting on."
+        deck = "Source-backed changes in agents, APIs, campaign economics, measurement, commerce, and stack displacement."
+    else:
+        edition_label = "GenLens Daily Intelligence"
+        headline = "Creative AI signals worth acting on."
+        deck = "No generic product pages. No stale listicles. Every item should point to a workflow shift, role shift, cost delta, rights issue, or tool capability a working Gen AD can use."
+    escaped_preheader = html_lib.escape(f"Source-backed intelligence from {edition_label}.")
 
     vertical_meta = {
         "Product Photography": {
@@ -183,6 +216,42 @@ def render_briefing_html(markdown: str) -> str:
         "Cross-Vertical Watchlist": {
             "accent": "#d7ff66",
             "label": "Cross-Vertical Watchlist",
+        },
+        "Agentic Marketing Workflows": {
+            "accent": "#8ff0ff",
+            "label": "Agentic Marketing Workflows",
+        },
+        "Paid Media / Creative Performance": {
+            "accent": "#ffcf70",
+            "label": "Paid Media / Creative Performance",
+        },
+        "Stack Consolidation / Displacement": {
+            "accent": "#ff8f8f",
+            "label": "Stack Consolidation / Displacement",
+        },
+        "Lifecycle / Retention": {
+            "accent": "#b6ff9e",
+            "label": "Lifecycle / Retention",
+        },
+        "Measurement / Attribution": {
+            "accent": "#bda7ff",
+            "label": "Measurement / Attribution",
+        },
+        "Commerce / Conversion": {
+            "accent": "#ff9ed8",
+            "label": "Commerce / Conversion",
+        },
+        "SEO / AEO / Content Systems": {
+            "accent": "#9ec7ff",
+            "label": "SEO / AEO / Content Systems",
+        },
+        "Sales / Marketing Convergence": {
+            "accent": "#ffc39e",
+            "label": "Sales / Marketing Convergence",
+        },
+        "Marketing Data / Identity": {
+            "accent": "#9effd9",
+            "label": "Marketing Data / Identity",
         },
         "GenLens": {
             "accent": "#d7ff66",
@@ -275,9 +344,9 @@ def render_briefing_html(markdown: str) -> str:
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#0b0b0a;border:1px solid #242424;">
             <tr>
               <td style="padding:30px 30px 24px;border-bottom:1px solid #242424;background:#0b0b0a;">
-                <div style="font:900 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#d7ff66;">GenLens Daily Intelligence</div>
-                <h1 style="margin:16px 0 12px;color:#f7f7f2;font:900 42px/1.02 Arial,Helvetica,sans-serif;letter-spacing:0;">Creative AI signals worth acting on.</h1>
-                <p style="margin:0;color:#bdbdb4;font:400 15px/1.6 Arial,Helvetica,sans-serif;max-width:560px;">No generic product pages. No stale listicles. Every item should point to a workflow shift, role shift, cost delta, rights issue, or tool capability a working Gen AD can use.</p>
+                <div style="font:900 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#d7ff66;">{html_lib.escape(edition_label)}</div>
+                <h1 style="margin:16px 0 12px;color:#f7f7f2;font:900 42px/1.02 Arial,Helvetica,sans-serif;letter-spacing:0;">{html_lib.escape(headline)}</h1>
+                <p style="margin:0;color:#bdbdb4;font:400 15px/1.6 Arial,Helvetica,sans-serif;max-width:560px;">{html_lib.escape(deck)}</p>
               </td>
             </tr>
             <tr>
@@ -291,7 +360,7 @@ def render_briefing_html(markdown: str) -> str:
             {''.join(cards)}
             <tr>
               <td style="padding:22px 30px 30px;border-top:1px solid #242424;color:#8a8a82;font:400 12px/1.55 Arial,Helvetica,sans-serif;">
-                Sent by Genny for GenLens. Source-backed intelligence for AI production, synthetic talent, tools, roles, and workflow arbitrage.
+                Sent by the GenLens intelligence system. Source-backed signals, explicit confidence, and no filler.
               </td>
             </tr>
           </table>

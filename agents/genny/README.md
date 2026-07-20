@@ -14,6 +14,8 @@ Her job is to monitor AI creative production signals, compose GenLens briefings,
 
 For AI or human collaborators, start with
 [`docs/GENNY_COLLABORATOR_PRD.md`](docs/GENNY_COLLABORATOR_PRD.md).
+For Marti's current evidence and promotion gate, see
+[`docs/MARTI_MVP_EVALUATION.md`](docs/MARTI_MVP_EVALUATION.md).
 
 No API keys, bot tokens, Google credentials, or Resend secrets are stored here.
 
@@ -40,6 +42,26 @@ Run the daily digest fallback flow:
 ```bash
 python3 scripts/genlens_digest.py
 ```
+
+Run Marti without sending email:
+
+```bash
+python3 scripts/genlens_editorial_ops.py \
+  --lens marti \
+  --mode expanded \
+  --per-vertical 5 \
+  --rss-limit 12
+```
+
+Run the unified lens without sending email:
+
+```bash
+python3 scripts/genlens_editorial_ops.py --lens unified --mode expanded
+```
+
+Marti and unified runs use separate brief, audit, preflight, and tool-candidate
+artifacts. The existing Genny files are not overwritten. Add `--send` only after
+the preflight reports `ready`.
 
 ## Sync The Live Hermes Profile
 

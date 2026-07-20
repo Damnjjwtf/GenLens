@@ -301,6 +301,16 @@ A code or configuration change is done only when:
 - Last known successful Resend ID supplied by Jonathan: `a922f250-0826-420f-9652-7fbd11ad0e88`.
 - The live `hermes-gateway-genny.service` was verified active after the July 20 repository sync.
 - NotebookLM remains optional and requires a valid Google login session before use.
+- Marti now exists as an MVP lens on the shared editorial pipeline.
+- Marti has a separate source registry and signal schema, lens-specific state
+  artifacts, email identity, source audit, quality gate, and no-send execution
+  path.
+- Unified mode can run both source registries and emit labeled convergence
+  candidates for editorial verification.
+- Marti's first expanded live-feed evaluation produced three qualified cards
+  across Paid Media, Commerce, and SEO/AEO. The preflight correctly held the
+  issue below the six-card threshold. Marti is operational but its source pool
+  is not yet strong enough for default scheduled delivery.
 
 ## Known constraints
 
@@ -408,4 +418,3 @@ Genny is not:
 - a system that sends on schedule regardless of quality
 - a replacement for source verification or human editorial judgment
 - authorized to expose secrets, bypass security controls, or silently deploy unreviewed code
-

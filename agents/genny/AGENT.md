@@ -29,6 +29,31 @@ Expanded/robust coverage also includes on-deck verticals when Jonathan asks for 
 
 Do not permanently promote candidate verticals into default daily coverage unless Jonathan explicitly says to promote them. But do use expanded mode for one-off robust briefings and email requests.
 
+## Marti Lens
+
+Marti is the marketing-technology and distribution lens on the shared GenLens
+editorial spine. It is an MVP, not yet the default daily briefing. Marti tracks
+agentic marketing workflows, paid-media and creative performance, stack
+consolidation, lifecycle, measurement, commerce, AEO, sales/marketing
+convergence, and marketing data/identity.
+
+For a Marti request, run:
+
+`python3 /root/.hermes/profiles/genny/scripts/genlens_editorial_ops.py --lens marti --mode expanded --per-vertical 5 --rss-limit 12`
+
+Inspect Marti's preflight before sending. Add `--send` only when Jonathan asks
+for delivery and the gate passes. Never lower thresholds, pad layers, or use
+`--force-send` to make the MVP look mature.
+
+For a cross-lens request, use `--lens unified`. Unified mode may surface
+heuristic convergence candidates, but those candidates are editorial prompts,
+not proof of causality. Verify the shared workflow or economic consequence
+before promotion.
+
+Marti source rules live in `data/marti_signal_schema.md`. Do not claim that
+stable signal IDs, a verified signal graph, Ask Marti, forecast calibration, or
+invoice analysis exists until those capabilities are implemented and tested.
+
 ## Operating Files
 
 - API digest: `https://genlens.app/api/digest/today`

@@ -26,6 +26,9 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 SOURCE_PATH = Path(os.environ.get("GENLENS_SOURCE_PATH", "/root/.hermes/profiles/genny/data/genny_sources.json"))
 if not SOURCE_PATH.exists():
     SOURCE_PATH = BASE_DIR / "data" / "genny_sources.json"
+MARTI_SOURCE_PATH = Path(os.environ.get("MARTI_SOURCE_PATH", "/root/.hermes/profiles/genny/data/marti_sources.json"))
+if not MARTI_SOURCE_PATH.exists():
+    MARTI_SOURCE_PATH = BASE_DIR / "data" / "marti_sources.json"
 OUT_PATH = Path(os.environ.get("GENLENS_BRIEF_OUT", "/root/.hermes/profiles/genny/state/latest_brief.md"))
 ROLE_SIGNALS_PATH = Path(os.environ.get("GENLENS_ROLE_SIGNALS_PATH", "/root/.hermes/profiles/genny/data/role_signals.json"))
 if not ROLE_SIGNALS_PATH.exists():
@@ -57,11 +60,38 @@ EXPANDED_VERTICALS = PHASE_1_VERTICALS + PHASE_2_VERTICALS + PHASE_3_VERTICALS +
     "Cross-Vertical Watchlist",
 ]
 
+MARTI_PHASE_1_LAYERS = [
+    "Agentic Marketing Workflows",
+    "Paid Media / Creative Performance",
+    "Stack Consolidation / Displacement",
+]
+
+MARTI_PHASE_2_LAYERS = [
+    "Lifecycle / Retention",
+    "Measurement / Attribution",
+    "Commerce / Conversion",
+]
+
+MARTI_PHASE_3_LAYERS = [
+    "SEO / AEO / Content Systems",
+    "Sales / Marketing Convergence",
+    "Marketing Data / Identity",
+]
+
+MARTI_ACTIVE_LAYERS = MARTI_PHASE_1_LAYERS
+MARTI_EXPANDED_LAYERS = MARTI_PHASE_1_LAYERS + MARTI_PHASE_2_LAYERS + MARTI_PHASE_3_LAYERS
+
 PHASE_BY_VERTICAL = {
     **{vertical: "Phase 1 - Active Core" for vertical in PHASE_1_VERTICALS},
     **{vertical: "Phase 2 - Deferred / On Deck" for vertical in PHASE_2_VERTICALS},
     **{vertical: "Phase 3 - Candidate Watch" for vertical in PHASE_3_VERTICALS},
     "Cross-Vertical Watchlist": "Cross-Vertical Watchlist",
+}
+
+MARTI_PHASE_BY_LAYER = {
+    **{layer: "Marti Phase 1 - Active Core" for layer in MARTI_PHASE_1_LAYERS},
+    **{layer: "Marti Phase 2 - Deferred / On Deck" for layer in MARTI_PHASE_2_LAYERS},
+    **{layer: "Marti Phase 3 - Candidate Watch" for layer in MARTI_PHASE_3_LAYERS},
 }
 
 NOISE_PATTERNS = re.compile(
@@ -73,7 +103,10 @@ GLOBAL_SIGNAL_TERMS = {
     "ai", "generative", "synthetic", "automation", "workflow", "pipeline", "model",
     "render", "rendering", "vfx", "virtual production", "3d", "mocap", "avatar",
     "video", "image", "design", "production", "studio", "tool", "platform",
-    "cost", "time", "faster", "launch", "release", "beta",
+    "cost", "time", "faster", "launch", "release", "beta", "marketing",
+    "campaign", "ads", "advertising", "agent", "orchestration", "automation",
+    "attribution", "analytics", "conversion", "commerce", "crm", "lifecycle",
+    "retention", "audience", "measurement", "api", "integration", "pricing",
 }
 
 VERTICAL_SIGNAL_TERMS = {
@@ -90,6 +123,15 @@ VERTICAL_SIGNAL_TERMS = {
     "Social / Short-Form Video": {"social", "short-form", "tiktok", "reels", "clips", "creator", "template", "capcut"},
     "Game Development / Real-Time 3D": {"game", "unreal", "unity", "godot", "real-time", "npc", "procedural", "asset"},
     "Cross-Vertical Watchlist": {"video", "image", "model", "local", "workflow", "agent", "benchmark", "release", "generation"},
+    "Agentic Marketing Workflows": {"agent", "automation", "orchestration", "workflow", "n8n", "zapier", "campaign", "marketing ops"},
+    "Paid Media / Creative Performance": {"ads", "advertising", "campaign", "creative", "roas", "cac", "cpm", "bidding", "performance max", "advantage+"},
+    "Stack Consolidation / Displacement": {"pricing", "acquisition", "sunset", "migration", "consolidation", "open source", "integration", "replacement"},
+    "Lifecycle / Retention": {"email", "sms", "push", "lifecycle", "retention", "crm", "journey", "segmentation"},
+    "Measurement / Attribution": {"attribution", "analytics", "incrementality", "measurement", "conversion", "mmm", "reporting"},
+    "Commerce / Conversion": {"commerce", "shopify", "checkout", "merchandising", "conversion", "storefront", "personalization"},
+    "SEO / AEO / Content Systems": {"seo", "aeo", "answer engine", "citation", "search", "structured data", "content system"},
+    "Sales / Marketing Convergence": {"gtm", "revops", "outbound", "sales", "crm", "sequencing", "pipeline"},
+    "Marketing Data / Identity": {"cdp", "identity", "warehouse", "reverse etl", "consent", "first-party data", "clean room"},
 }
 
 SKIP_URL_PATTERNS = re.compile(
@@ -103,7 +145,7 @@ DISCOVERY_SOURCE_PATTERNS = re.compile(
 )
 
 BRIEFABLE_URL_PATTERNS = re.compile(
-    r"(/blog/|/news/|/learn/|/insights/|/resources/|/magazine/|/articles?/|/research/|/case-stud|/customer-stor|/press|/release|/announc|/update|/changelog|/paper|arxiv\.org/abs/|github\.com/.+/(releases|commits|pulls)|/20\d{2}/)",
+    r"(/blog/|/news/|/news/stories/|/learn/|/insights/|/resources/|/magazine/|/articles?/|/posts/|/products/ads-commerce/|/research/|/case-stud|/customer-stor|/press|/release|/announc|/update|/changelog|/paper|arxiv\.org/abs/|github\.com/.+/(releases|commits|pulls)|/20\d{2}/)",
     re.I,
 )
 
@@ -133,7 +175,7 @@ WEAK_SOURCE_PATTERNS = re.compile(
 )
 
 FALSE_POSITIVE_PATTERNS = re.compile(
-    r"\b(project runway|new episodes air|drops trailer|recurring judge|free minutes|percent off|% off|coupon|promo code|pricing explained|free plan features|\d+\s+tools that automate|tools that automate your creative workflow)\b",
+    r"\b(project runway|new episodes air|drops trailer|recurring judge|free minutes|percent off|% off|coupon|promo code|pricing explained|free plan features|\d+\s+tools that automate|tools that automate your creative workflow|we(?:'|’)re going to|conference schedule|register for (?:the )?event)\b",
     re.I,
 )
 
@@ -153,9 +195,36 @@ MAX_PER_SOURCE = int(os.environ.get("GENLENS_MAX_PER_SOURCE", "2"))
 MAX_PER_DOMAIN = int(os.environ.get("GENLENS_MAX_PER_DOMAIN", "2"))
 MAX_PER_TOPIC_CLUSTER = int(os.environ.get("GENLENS_MAX_PER_TOPIC_CLUSTER", "1"))
 
+MARTI_REQUIRED_PATTERNS = {
+    "Agentic Marketing Workflows": re.compile(r"(?=.*\b(agent|automation|orchestration|workflow|mcp)\b)(?=.*\b(marketing|campaign|ads?|crm|sales|content|commerce|growth)\b)", re.I),
+    "Paid Media / Creative Performance": re.compile(r"\b(ads?|advertising|campaign|creative performance|roas|cac|cpm|bidding|performance max|advantage\+|marketer)\b", re.I),
+    "Stack Consolidation / Displacement": re.compile(r"\b(pricing change|acquisition|sunset|migration|consolidation|replacement|open source|marketing automation|cdp|analytics platform|stack)\b", re.I),
+    "Lifecycle / Retention": re.compile(r"\b(lifecycle|retention|email|sms|push notification|journey|segmentation|loyalty|marketing cloud|customer engagement)\b", re.I),
+    "Measurement / Attribution": re.compile(r"\b(attribution|incrementality|measurement|marketing mix|conversion tracking|experiments?|campaign analytics|roas|cac)\b", re.I),
+    "Commerce / Conversion": re.compile(r"\b(commerce|shopify|checkout|merchant|merchandising|storefront|conversion|shopping|retail)\b", re.I),
+    "SEO / AEO / Content Systems": re.compile(r"\b(seo|aeo|answer engine|search console|google search|structured data|citation|zero-click|content system)\b", re.I),
+    "Sales / Marketing Convergence": re.compile(r"\b(gtm|revops|outbound|sales hub|marketing hub|sales and marketing|crm pipeline|lead routing|sequencing)\b", re.I),
+    "Marketing Data / Identity": re.compile(r"\b(cdp|customer data|identity resolution|reverse etl|consent|first-party data|clean room|marketing data|warehouse-native)\b", re.I),
+}
 
-def load_sources() -> dict[str, Any]:
-    return json.loads(SOURCE_PATH.read_text())
+
+def verified_ssl_context() -> ssl.SSLContext:
+    explicit_bundle = os.environ.get("GENLENS_CA_BUNDLE", "").strip()
+    if explicit_bundle:
+        return ssl.create_default_context(cafile=explicit_bundle)
+    try:
+        import certifi  # type: ignore[import-not-found]
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
+
+
+def source_path_for_lens(lens: str) -> Path:
+    return MARTI_SOURCE_PATH if lens == "marti" else SOURCE_PATH
+
+
+def load_sources(lens: str = "genny") -> dict[str, Any]:
+    return json.loads(source_path_for_lens(lens).read_text())
 
 
 def strip_text(value: str | None) -> str:
@@ -282,7 +351,7 @@ def source_domain(url: str) -> str:
 def fetch_article_excerpt(url: str) -> str:
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "GennySourceReviewer/1.0"})
-        ctx = ssl.create_default_context()
+        ctx = verified_ssl_context()
         with urllib.request.urlopen(req, timeout=4, context=ctx) as response:
             ctype = response.headers.get("content-type", "")
             if "html" not in ctype:
@@ -304,13 +373,19 @@ def fetch_article_excerpt(url: str) -> str:
 
 
 def quality_review(vertical: str, source: dict[str, Any], title: str, summary: str, url: str, date: str = "") -> tuple[bool, int, str]:
-    if not is_briefable_url(url):
+    is_news_search = source.get("source_type") == "news_search" and source_domain(url) == "news.google.com"
+    if not is_briefable_url(url) and not is_news_search:
         return False, 0, "rejected-url"
     text = f"{title} {summary}"
     if FALSE_POSITIVE_PATTERNS.search(text):
         return False, 0, "false-positive entertainment/deal/pricing item"
     if WEAK_SOURCE_PATTERNS.search(text):
         return False, 0, "weak aggregator source"
+    marti_required = MARTI_REQUIRED_PATTERNS.get(vertical)
+    if marti_required and not marti_required.search(text):
+        return False, 0, "missing layer-specific marketing mechanism"
+    if re.search(r"\b(air force|defense department|military fleet|access control|jita|database internals?|retrieval infrastructure|vectors?)\b", text, re.I) and vertical in MARTI_REQUIRED_PATTERNS:
+        return False, 0, "off-layer enterprise or platform infrastructure"
     if source.get("name") == "Motionographer" and not re.search(r"\b(ai|tool|tools|pipeline|workflow|automation|generative)\b", text, re.I):
         return False, 0, "motion/design culture item without AI workflow signal"
     if vertical == "Digital Humans" and re.search(r"\b(music v\d|music generation|music marketplace|tracks)\b", text, re.I) and not re.search(r"\b(avatar|voiceover|dubbing|synthetic presenter|dialogue|speech|voice cloning)\b", text, re.I):
@@ -319,6 +394,8 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
         return False, 0, "off-vertical broad tech item"
     if vertical == "Music Production / Audio" and re.search(r"\b(gaming headphones|record cutting|vinyl cutting|guitar|synth)\b", text, re.I) and not re.search(r"\b(ai|generative|stem|mastering|voice|model|automation|workflow|plugin)\b", text, re.I):
         return False, 0, "off-vertical gear item"
+    if vertical == "Agentic Marketing Workflows" and re.search(r"\b(retrieval infrastructure|vectors?|database internals?|storage engine)\b", text, re.I) and not re.search(r"\b(marketing|campaign|crm|operator|workflow automation|marketing ops)\b", text, re.I):
+        return False, 0, "platform infrastructure without a marketing-operator workflow"
     required_terms = [str(term).lower() for term in source.get("required_terms", [])]
     if required_terms and not any(term in text.lower() for term in required_terms):
         return False, 0, "missing required source term"
@@ -356,7 +433,7 @@ def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[st
     if not rss:
         return []
     req = urllib.request.Request(rss, headers={"User-Agent": "GennyBriefComposer/1.0"})
-    ctx = ssl.create_default_context()
+    ctx = verified_ssl_context()
     with urllib.request.urlopen(req, timeout=15, context=ctx) as response:
         body = response.read(1_500_000)
     root = ET.fromstring(body)
@@ -395,7 +472,7 @@ def fetch_manual_links(source: dict[str, Any], vertical: str, limit: int) -> lis
         return []
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "GennyBriefComposer/1.0"})
-        ctx = ssl.create_default_context()
+        ctx = verified_ssl_context()
         with urllib.request.urlopen(req, timeout=12, context=ctx) as response:
             ctype = response.headers.get("content-type", "")
             if "html" not in ctype:
@@ -464,8 +541,16 @@ def relevance_score(vertical: str, source: dict[str, Any], title: str, summary: 
     return score if score >= 2 else 0
 
 
-def verticals_for_mode(mode: str) -> list[str]:
+def verticals_for_mode(mode: str, lens: str = "genny") -> list[str]:
+    if lens == "marti":
+        return MARTI_ACTIVE_LAYERS if mode == "active" else MARTI_EXPANDED_LAYERS
     return ACTIVE_VERTICALS if mode == "active" else EXPANDED_VERTICALS
+
+
+def phase_for_vertical(vertical: str, lens: str) -> str:
+    if lens == "marti":
+        return MARTI_PHASE_BY_LAYER.get(vertical, "Marti - Other")
+    return PHASE_BY_VERTICAL.get(vertical, "Other")
 
 
 def item_key(item: dict[str, str]) -> str:
@@ -515,28 +600,77 @@ def rank_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
     )
 
 
-def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool = False) -> str:
-    data = load_sources()
+def convergence_candidates(items_by_lens: dict[str, list[dict[str, str]]]) -> list[dict[str, str]]:
+    themes = {
+        "creative-volume economics": {"creative", "variant", "campaign", "video", "image", "ads", "cpm", "roas"},
+        "agentic production and distribution": {"agent", "automation", "workflow", "orchestration", "pipeline", "api"},
+        "commerce asset conversion": {"commerce", "product", "catalog", "shopify", "conversion", "storefront"},
+        "measurement and provenance": {"measurement", "attribution", "provenance", "rights", "compliance", "consent"},
+    }
+    genny_items = items_by_lens.get("genny", [])
+    marti_items = items_by_lens.get("marti", [])
+    candidates: list[dict[str, str]] = []
+    seen_pairs: set[tuple[str, str]] = set()
+    for theme, terms in themes.items():
+        def theme_match(item: dict[str, str]) -> bool:
+            text = f"{item.get('title', '')} {item.get('summary', '')}".lower()
+            return sum(1 for term in terms if term in text) >= 2
+
+        genny = next((item for item in genny_items if theme_match(item)), None)
+        marti = next((item for item in marti_items if theme_match(item)), None)
+        if not genny or not marti:
+            continue
+        pair = (item_key(genny), item_key(marti))
+        if pair in seen_pairs:
+            continue
+        seen_pairs.add(pair)
+        candidates.append({
+            "theme": theme,
+            "genny_title": genny.get("title", "Genny signal"),
+            "genny_url": genny.get("url", ""),
+            "marti_title": marti.get("title", "Marti signal"),
+            "marti_url": marti.get("url", ""),
+        })
+    return candidates[:3]
+
+
+def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool = False, lens: str = "genny") -> str:
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
-    vertical_names = verticals_for_mode(mode)
-    total_sources = sum(len(data.get("verticals", {}).get(vertical, [])) for vertical in vertical_names)
+    lenses = ["genny", "marti"] if lens == "unified" else [lens]
+    data_by_lens = {name: load_sources(name) for name in lenses}
+    vertical_rows = [
+        (name, vertical)
+        for name in lenses
+        for vertical in verticals_for_mode(mode, name)
+    ]
+    total_sources = sum(
+        len(data_by_lens[name].get("verticals", {}).get(vertical, []))
+        for name, vertical in vertical_rows
+    )
+    product_name = {"genny": "GenLens", "marti": "Marti", "unified": "Marti-Genny"}[lens]
+    priority_rule = {
+        "genny": "Prioritize tool releases, production workflow shifts, cost/time deltas, licensing/compliance, and credible pipeline case studies.",
+        "marti": "Prioritize agent and API releases, pricing changes, stack displacement, campaign economics, measurement changes, and credible operator case studies.",
+        "unified": "Prioritize verified production or distribution shifts with a concrete workflow, economic, measurement, rights, or role consequence.",
+    }[lens]
     lines = [
-        f"# GenLens Briefing - {today}",
+        f"# {product_name} Briefing - {today}",
         "",
-        f"Expanded source-backed draft across {len(vertical_names)} verticals and {total_sources} configured sources. Daily mode uses feed/news sources; manual/vendor pages are retained for verification and source audits.",
+        f"{mode.title()} source-backed draft for the {lens} lens across {len(vertical_rows)} verticals/layers and {total_sources} configured sources. Daily mode uses feed/news sources; manual/vendor pages are retained for verification and source audits.",
         "",
         "## Briefing Standard",
         "",
-        "- Prioritize tool releases, production workflow shifts, cost/time deltas, licensing/compliance, and credible pipeline case studies.",
+        f"- {priority_rule}",
         "- Treat source links as leads, not finished facts. Do not invent numbers or claims.",
         "- If a vertical has weak live signals, show the watch queue instead of padding with generic news.",
         "",
     ]
     current_phase = ""
     coverage_gaps: list[str] = []
-    for vertical in vertical_names:
-        phase = PHASE_BY_VERTICAL.get(vertical, "Other")
-        sources = data.get("verticals", {}).get(vertical, [])
+    items_by_lens: dict[str, list[dict[str, str]]] = {name: [] for name in lenses}
+    for current_lens, vertical in vertical_rows:
+        phase = phase_for_vertical(vertical, current_lens)
+        sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
         candidates: list[dict[str, str]] = []
         errors: list[str] = []
         for source in sources:
@@ -550,6 +684,7 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
             except Exception as exc:
                 errors.append(f"{source.get('name', 'Source')}: {exc}")
         picked = rank_items(candidates)
+        items_by_lens[current_lens].extend(picked[:per_vertical])
         if not picked and not sources:
             continue
         if not picked:
@@ -592,13 +727,29 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
             overflow = ", ".join(item["title"] for item in picked[per_vertical:per_vertical + 4])
             coverage_gaps.append(f"{vertical}: more leads available for review after the published set: {overflow}.")
         lines.append("")
-    if mode == "expanded":
+    if mode == "expanded" and "genny" in lenses:
         lines.extend(render_market_intelligence_section())
+    if lens == "unified":
+        convergence = convergence_candidates(items_by_lens)
+        if convergence:
+            lines.extend([
+                "## GenLens",
+                "",
+                "_Convergence candidates connect one production signal with one distribution signal. They are prompts for editorial verification, not automatic causal claims._",
+                "",
+            ])
+            for item in convergence:
+                genny_link = f"[{item['genny_title']}]({item['genny_url']})" if item["genny_url"] else item["genny_title"]
+                marti_link = f"[{item['marti_title']}]({item['marti_url']})" if item["marti_url"] else item["marti_title"]
+                lines.append(f"- **Convergence candidate: {item['theme']}** — Genny: {genny_link}. Marti: {marti_link}. Verify the shared workflow or economic consequence before promotion. `convergence candidate`")
+            lines.append("")
+        else:
+            coverage_gaps.append("Unified: no convergence candidate met the minimum two-term overlap in both lenses. Do not manufacture a cross-lens claim.")
     if coverage_gaps:
         lines.extend([
             "## Source Coverage Notes",
             "",
-            "_Not rendered as briefing cards. These are curation tasks for Genny's source list._",
+            f"_Not rendered as briefing cards. These are curation tasks for the {product_name} source list._",
             "",
         ])
         for gap in coverage_gaps[:12]:
@@ -668,12 +819,13 @@ def render_market_intelligence_section() -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["active", "expanded"], default="expanded")
+    parser.add_argument("--lens", choices=["genny", "marti", "unified"], default="genny")
     parser.add_argument("--out", default=str(OUT_PATH))
     parser.add_argument("--per-vertical", type=int, default=5)
     parser.add_argument("--rss-limit", type=int, default=12)
     parser.add_argument("--include-manual", action="store_true", help="Also crawl manual blog/news pages. Slower; use for audits, not normal cron.")
     args = parser.parse_args()
-    text = compose(args.mode, max(1, min(args.per_vertical, 10)), max(1, min(args.rss_limit, 20)), args.include_manual)
+    text = compose(args.mode, max(1, min(args.per_vertical, 10)), max(1, min(args.rss_limit, 20)), args.include_manual, args.lens)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)
