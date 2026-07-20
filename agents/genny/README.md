@@ -12,6 +12,11 @@ Her job is to monitor AI creative production signals, compose GenLens briefings,
 - `prompts/` - reusable prompt specs for signal scoring, briefing format, and delta extraction.
 - `docs/` - setup and architecture notes.
 
+For AI or human collaborators, start with
+[`docs/GENNY_COLLABORATOR_PRD.md`](docs/GENNY_COLLABORATOR_PRD.md).
+For Marti's current evidence and promotion gate, see
+[`docs/MARTI_MVP_EVALUATION.md`](docs/MARTI_MVP_EVALUATION.md).
+
 No API keys, bot tokens, Google credentials, or Resend secrets are stored here.
 
 ## Core Commands
@@ -38,6 +43,26 @@ Run the daily digest fallback flow:
 python3 scripts/genlens_digest.py
 ```
 
+Run Marti without sending email:
+
+```bash
+python3 scripts/genlens_editorial_ops.py \
+  --lens marti \
+  --mode expanded \
+  --per-vertical 5 \
+  --rss-limit 12
+```
+
+Run the unified lens without sending email:
+
+```bash
+python3 scripts/genlens_editorial_ops.py --lens unified --mode expanded
+```
+
+Marti and unified runs use separate brief, audit, preflight, and tool-candidate
+artifacts. The existing Genny files are not overwritten. Add `--send` only after
+the preflight reports `ready`.
+
 ## Sync The Live Hermes Profile
 
 On the VPS, run this when the repo has updates but Genny is still using old behavior:
@@ -46,13 +71,31 @@ On the VPS, run this when the repo has updates but Genny is still using old beha
 curl -fsSL https://raw.githubusercontent.com/Damnjjwtf/GenLens/main/agents/genny/scripts/sync_to_hermes_profile.sh | bash
 ```
 
-That command downloads the latest GenLens `main`, copies `agents/genny` into `/root/.hermes/profiles/genny`, preserves the live `.env` and `state/`, checks Python syntax, installs the tiny Python requirements, and restarts `hermes-gateway-genny.service`.
+That command downloads the latest GenLens `main`, copies `agents/genny` into `/root/.hermes/profiles/genny`, preserves the live `.env` and `state/`, checks Python syntax, installs any declared Python requirements, and restarts `hermes-gateway-genny.service`.
 
 If the repo is already cloned on the VPS:
 
 ```bash
 bash agents/genny/scripts/sync_to_hermes_profile.sh --repo-dir /path/to/GenLens
 ```
+
+## Work Across Mobile And Desktop
+
+GitHub is Genny's source of truth. At the start of a session, update the local
+checkout:
+
+```bash
+bash agents/genny/scripts/genny_workspace_sync.sh pull
+```
+
+At the end of a session, validate, commit, and push only Genny files:
+
+```bash
+bash agents/genny/scripts/genny_workspace_sync.sh publish "Describe the Genny change"
+```
+
+Repository instructions in `AGENTS.md` tell Codex to follow this handoff workflow
+whenever it works inside `agents/genny`.
 
 ## Environment
 

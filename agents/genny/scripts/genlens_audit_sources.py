@@ -14,14 +14,21 @@ from typing import Any
 
 from genlens_compose_brief import (
     SOURCE_PATH,
+    MARTI_SOURCE_PATH,
     fetch_manual_links,
     fetch_rss,
     is_discovery_source,
 )
 
 
-def load_sources() -> dict[str, Any]:
-    return json.loads(Path(os.environ.get("GENLENS_SOURCE_PATH", str(SOURCE_PATH))).read_text())
+def load_sources(lens: str = "genny") -> dict[str, Any]:
+    if lens == "unified":
+        genny = load_sources("genny")
+        marti = load_sources("marti")
+        return {"verticals": {**genny.get("verticals", {}), **marti.get("verticals", {})}}
+    default_path = MARTI_SOURCE_PATH if lens == "marti" else SOURCE_PATH
+    env_name = "MARTI_SOURCE_PATH" if lens == "marti" else "GENLENS_SOURCE_PATH"
+    return json.loads(Path(os.environ.get(env_name, str(default_path))).read_text())
 
 
 def source_class(source: dict[str, Any]) -> str:
@@ -32,10 +39,10 @@ def source_class(source: dict[str, Any]) -> str:
     return "watch-only"
 
 
-def audit(limit: int, deep_manual: bool = False) -> str:
-    data = load_sources()
+def audit(limit: int, deep_manual: bool = False, lens: str = "genny") -> str:
+    data = load_sources(lens)
     lines = [
-        "# GenLens Source Quality Audit",
+        f"# {lens.title()} Source Quality Audit",
         "",
         "Classification:",
         "",
@@ -92,11 +99,12 @@ def audit(limit: int, deep_manual: bool = False) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--lens", choices=["genny", "marti", "unified"], default="genny")
     parser.add_argument("--limit", type=int, default=8)
     parser.add_argument("--out", default="")
     parser.add_argument("--deep-manual", action="store_true", help="Crawl manual blog/news pages. Slower; use for source tuning.")
     args = parser.parse_args()
-    text = audit(max(1, min(args.limit, 20)), args.deep_manual)
+    text = audit(max(1, min(args.limit, 20)), args.deep_manual, args.lens)
     if args.out:
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)

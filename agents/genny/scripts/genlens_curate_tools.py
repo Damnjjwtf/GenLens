@@ -24,7 +24,7 @@ if not BRIEF_PATH.exists():
 OUT_PATH = Path(os.environ.get("GENLENS_TOOL_CANDIDATES", "/root/.hermes/profiles/genny/data/tool_candidates.json"))
 
 TOOL_HINTS = re.compile(
-    r"\b(comfyui|figma|weave|weavy|fal(?:\.ai)?|runway|sora|veo|kling|luma|flux|blender|unreal|unity|godot|v-ray|vray|resolve|houdini|photoshop|firefly|synthesia|heygen|elevenlabs|elevencreative|grok imagine|geforce now|nvidia|blackmagic|davinci|corona|enscape|replicate)\b",
+    r"\b(comfyui|figma|weave|weavy|fal(?:\.ai)?|runway|sora|veo|kling|luma|flux|blender|unreal|unity|godot|v-ray|vray|resolve|houdini|photoshop|firefly|synthesia|heygen|elevenlabs|elevencreative|grok imagine|geforce now|nvidia|blackmagic|davinci|corona|enscape|replicate|n8n|hubspot|shopify|posthog|rudderstack|mautic|salesforce|agentforce|klaviyo|braze|google ads|performance max|meta ads|advantage\+)\b",
     re.I,
 )
 
@@ -72,6 +72,13 @@ TRACKED_TOOLS = {
     "Sora",
     "Kling",
     "Luma",
+    "n8n",
+    "HubSpot",
+    "Shopify",
+    "PostHog",
+    "RudderStack",
+    "Mautic",
+    "Salesforce",
 }
 ALIASES = {
     "weavy": "Figma Weave",

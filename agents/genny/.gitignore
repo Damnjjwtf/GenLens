@@ -4,4 +4,6 @@ __pycache__/
 *.pyc
 state/
 logs/
+data/tool_candidates_marti.json
+data/tool_candidates_unified.json
 .DS_Store

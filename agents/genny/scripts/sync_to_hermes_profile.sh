@@ -171,7 +171,7 @@ print("ok")
 PY
 fi
 
-if [[ "$DRY_RUN" -eq 0 && -f "$PROFILE_DIR/requirements.txt" ]]; then
+if [[ "$DRY_RUN" -eq 0 && -s "$PROFILE_DIR/requirements.txt" ]]; then
   log "Installing Python requirements"
   python3 -m pip install -r "$PROFILE_DIR/requirements.txt"
 fi
