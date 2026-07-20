@@ -46,13 +46,31 @@ On the VPS, run this when the repo has updates but Genny is still using old beha
 curl -fsSL https://raw.githubusercontent.com/Damnjjwtf/GenLens/main/agents/genny/scripts/sync_to_hermes_profile.sh | bash
 ```
 
-That command downloads the latest GenLens `main`, copies `agents/genny` into `/root/.hermes/profiles/genny`, preserves the live `.env` and `state/`, checks Python syntax, installs the tiny Python requirements, and restarts `hermes-gateway-genny.service`.
+That command downloads the latest GenLens `main`, copies `agents/genny` into `/root/.hermes/profiles/genny`, preserves the live `.env` and `state/`, checks Python syntax, installs any declared Python requirements, and restarts `hermes-gateway-genny.service`.
 
 If the repo is already cloned on the VPS:
 
 ```bash
 bash agents/genny/scripts/sync_to_hermes_profile.sh --repo-dir /path/to/GenLens
 ```
+
+## Work Across Mobile And Desktop
+
+GitHub is Genny's source of truth. At the start of a session, update the local
+checkout:
+
+```bash
+bash agents/genny/scripts/genny_workspace_sync.sh pull
+```
+
+At the end of a session, validate, commit, and push only Genny files:
+
+```bash
+bash agents/genny/scripts/genny_workspace_sync.sh publish "Describe the Genny change"
+```
+
+Repository instructions in `AGENTS.md` tell Codex to follow this handoff workflow
+whenever it works inside `agents/genny`.
 
 ## Environment
 
