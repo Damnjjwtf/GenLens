@@ -1,0 +1,1236 @@
+{
+  "source_registry": {
+    "name": "GenLens creative production intelligence sources",
+    "owner": "Genny",
+    "updated": "2026-07-16",
+    "notes": [
+      "This is Genny's source of truth for external monitoring.",
+      "The GenLens digest endpoint is optional and currently treated as an unhealthy upstream until TLS is fixed.",
+      "Manual sources require source-backed summarization; do not infer product claims from the source name alone.",
+      "Expanded-mode candidate verticals are on deck for robust briefs; daily default remains active GenLens verticals unless requested.",
+      "ComfyUI is tracked through GitHub Atom feeds; fal and Figma Weave are tracked through official/manual pages plus curated news-search feeds because no reliable official RSS feed was found."
+    ]
+  },
+  "verticals": {
+    "Product Photography": [
+      {
+        "name": "Adobe Blog",
+        "url": "https://blog.adobe.com/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "Firefly",
+          "commerce",
+          "product imagery",
+          "Photoshop",
+          "Lightroom",
+          "creative production"
+        ]
+      },
+      {
+        "name": "Photoroom Blog",
+        "url": "https://www.photoroom.com/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "product photos",
+          "backgrounds",
+          "marketplace imagery",
+          "AI editing",
+          "batch creative"
+        ]
+      },
+      {
+        "name": "Creative Force Blog",
+        "url": "https://www.creativeforce.io/blog",
+        "rss": "https://www.creativeforce.io/blog/rss.xml",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "studio workflow",
+          "ecommerce photography",
+          "production operations",
+          "shot lists"
+        ]
+      },
+      {
+        "name": "Pebblely Blog",
+        "url": "https://pebblely.com/blog",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI product photography",
+          "product scenes",
+          "lifestyle images"
+        ]
+      },
+      {
+        "name": "Booth AI",
+        "url": "https://www.booth.ai/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "virtual photoshoots",
+          "product campaigns",
+          "AI-generated product imagery"
+        ]
+      },
+      {
+        "name": "Flair AI",
+        "url": "https://flair.ai/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "branded product scenes",
+          "AI campaign imagery",
+          "ecommerce creative"
+        ]
+      },
+      {
+        "name": "Krea",
+        "url": "https://www.krea.ai/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "image generation",
+          "upscaling",
+          "real-time creative tools",
+          "brand workflows"
+        ]
+      },
+      {
+        "name": "Freepik AI",
+        "url": "https://www.freepik.com/ai",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "image generation",
+          "product mockups",
+          "commercial asset production"
+        ]
+      },
+      {
+        "name": "Topaz Labs",
+        "url": "https://www.topazlabs.com/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "upscaling",
+          "denoise",
+          "image restoration",
+          "delivery quality"
+        ]
+      },
+      {
+        "name": "AI Product Photography News Search",
+        "url": "https://news.google.com/search?q=%22AI%20product%20photography%22%20%28release%20OR%20launch%20OR%20workflow%20OR%20ecommerce%29%20when%3A45d",
+        "rss": "https://news.google.com/rss/search?q=%22AI%20product%20photography%22%20%28release%20OR%20launch%20OR%20workflow%20OR%20ecommerce%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "watch_for": [
+          "AI product photography",
+          "ecommerce",
+          "workflow",
+          "product imagery",
+          "studio automation"
+        ],
+        "required_terms": [
+          "AI"
+        ],
+        "source_type": "news_search"
+      }
+    ],
+    "AI Filmmaking": [
+      {
+        "name": "Runway Blog",
+        "url": "https://runwayml.com/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "video generation",
+          "Gen-4",
+          "filmmaking",
+          "commercial workflows",
+          "motion control"
+        ]
+      },
+      {
+        "name": "Luma AI",
+        "url": "https://lumalabs.ai/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "Dream Machine",
+          "video generation",
+          "3D capture",
+          "camera motion",
+          "scene consistency"
+        ]
+      },
+      {
+        "name": "Pika",
+        "url": "https://pika.art/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "video generation",
+          "effects",
+          "commercial spots",
+          "editing"
+        ]
+      },
+      {
+        "name": "Seedance 2.0 Official Page",
+        "url": "https://seed.bytedance.com/en/seedance2_0",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "Seedance",
+          "ByteDance Seed",
+          "multi-shot video",
+          "image-to-video",
+          "audio-video generation",
+          "commercial licensing"
+        ],
+        "notes": "Primary Seedance model page. Treat availability, territory, and licensing details as facts only when confirmed from this source or another cited source."
+      },
+      {
+        "name": "Seedance 2.0 Paper",
+        "url": "https://arxiv.org/abs/2604.14148",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "Seedance",
+          "world complexity",
+          "generation speed",
+          "quality benchmarks",
+          "model limitations"
+        ]
+      },
+      {
+        "name": "Kling AI",
+        "url": "https://kling.ai/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "Kling",
+          "AI video",
+          "image-to-video",
+          "cinematic control",
+          "commercial workflows"
+        ]
+      },
+      {
+        "name": "Google DeepMind Veo",
+        "url": "https://deepmind.google/technologies/veo/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "Veo",
+          "native audio",
+          "video generation",
+          "creative controls",
+          "production case studies"
+        ]
+      },
+      {
+        "name": "OpenAI Sora Video Generation",
+        "url": "https://platform.openai.com/docs/guides/video-generation/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "Sora",
+          "video API",
+          "pricing",
+          "rights",
+          "workflow limits"
+        ]
+      },
+      {
+        "name": "Black Forest Labs",
+        "url": "https://blackforestlabs.ai/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "FLUX",
+          "image models",
+          "video workflows",
+          "commercial image generation"
+        ]
+      },
+      {
+        "name": "ComfyUI GitHub",
+        "url": "https://github.com/comfyanonymous/ComfyUI",
+        "rss": "https://github.com/comfyanonymous/ComfyUI/releases.atom",
+        "priority": "high",
+        "source_type": "github_releases",
+        "cadence": "daily",
+        "watch_for": [
+          "releases",
+          "node workflows",
+          "video pipelines",
+          "model support",
+          "production automation"
+        ]
+      },
+      {
+        "name": "ComfyUI Commits",
+        "url": "https://github.com/comfyanonymous/ComfyUI/commits/master",
+        "rss": "https://github.com/comfyanonymous/ComfyUI/commits/master.atom",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "workflow engine changes",
+          "node support",
+          "model support",
+          "breaking changes",
+          "production automation"
+        ],
+        "notes": "Use as an early-warning feed. Promote to a briefing item only when commits indicate a production-relevant change."
+      },
+      {
+        "name": "ComfyUI News Search",
+        "url": "https://news.google.com/search?q=%22ComfyUI%22%20AI%20workflow%20release",
+        "rss": "https://news.google.com/rss/search?q=%22ComfyUI%22%20AI%20workflow%20release%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "medium",
+        "cadence": "daily",
+        "required_terms": [
+          "comfyui"
+        ],
+        "watch_for": [
+          "ComfyUI",
+          "workflow automation",
+          "node packs",
+          "video pipelines",
+          "production case studies"
+        ]
+      },
+      {
+        "name": "fal Blog",
+        "url": "https://fal.ai/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "fal",
+          "inference",
+          "image models",
+          "video models",
+          "latency",
+          "cost"
+        ]
+      },
+      {
+        "name": "fal News Search",
+        "url": "https://news.google.com/search?q=%22fal.ai%22%20AI%20video%20model%20inference",
+        "rss": "https://news.google.com/rss/search?q=%22fal.ai%22%20AI%20video%20model%20inference%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "medium",
+        "cadence": "daily",
+        "required_terms": [
+          "fal.ai",
+          "fal"
+        ],
+        "watch_for": [
+          "fal.ai",
+          "AI inference",
+          "video models",
+          "image models",
+          "latency",
+          "pricing"
+        ]
+      },
+      {
+        "name": "fxguide",
+        "url": "https://www.fxguide.com/",
+        "rss": "https://www.fxguide.com/feed/",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "VFX",
+          "virtual production",
+          "AI tools",
+          "pipeline"
+        ]
+      },
+      {
+        "name": "No Film School",
+        "url": "https://nofilmschool.com/",
+        "rss": "https://nofilmschool.com/rss.xml",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "filmmaking tools",
+          "production",
+          "post-production",
+          "AI video"
+        ]
+      },
+      {
+        "name": "CineD",
+        "url": "https://www.cined.com/",
+        "rss": "https://www.cined.com/feed/",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "camera",
+          "production gear",
+          "workflow",
+          "post-production"
+        ]
+      },
+      {
+        "name": "AI Filmmaking News Search",
+        "url": "https://news.google.com/search?q=%28%22AI%20filmmaking%22%20OR%20%22AI%20video%20generation%22%20OR%20%22Runway%20AI%22%20OR%20%22Kling%20AI%22%20OR%20%22Google%20Veo%22%20OR%20%22Luma%20AI%22%29%20%28release%20OR%20launch%20OR%20workflow%20OR%20production%29%20when%3A45d%20-%22Project%20Runway%22",
+        "rss": "https://news.google.com/rss/search?q=%28%22AI%20filmmaking%22%20OR%20%22AI%20video%20generation%22%20OR%20%22Runway%20AI%22%20OR%20%22Kling%20AI%22%20OR%20%22Google%20Veo%22%20OR%20%22Luma%20AI%22%29%20%28release%20OR%20launch%20OR%20workflow%20OR%20production%29%20when%3A45d%20-%22Project%20Runway%22&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "watch_for": [
+          "AI video",
+          "filmmaking",
+          "Runway",
+          "Kling",
+          "Veo",
+          "Luma",
+          "production workflow"
+        ],
+        "required_terms": [
+          "AI"
+        ],
+        "source_type": "news_search"
+      }
+    ],
+    "Digital Humans": [
+      {
+        "name": "ElevenLabs Blog",
+        "url": "https://elevenlabs.io/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "voice synthesis",
+          "dubbing",
+          "agents",
+          "voice design",
+          "licensing"
+        ]
+      },
+      {
+        "name": "ElevenCreative",
+        "url": "https://elevenlabs.io/creative",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "ElevenCreative",
+          "creative platform",
+          "voiceovers",
+          "localization",
+          "avatars",
+          "music",
+          "sound effects",
+          "image and video"
+        ],
+        "notes": "Watch-only product source. Use for verification of product capabilities, licensing, and platform scope."
+      },
+      {
+        "name": "ElevenCreative Docs",
+        "url": "https://elevenlabs.io/docs/eleven-creative/overview",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "ElevenCreative",
+          "Studio",
+          "templates",
+          "voice",
+          "music",
+          "dubbing",
+          "sound design",
+          "API"
+        ],
+        "notes": "Manual docs source. Use to verify workflow details and API/platform capabilities."
+      },
+      {
+        "name": "ElevenCreative Flows",
+        "url": "https://elevenlabs.io/blog/introducing-flows-in-elevencreative",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "ElevenCreative",
+          "Flows",
+          "node-based creative canvas",
+          "image generation",
+          "video",
+          "lip-sync",
+          "sound effects",
+          "music"
+        ],
+        "notes": "Product launch/article source for ElevenCreative Flows. Use for workflow and pipeline claims."
+      },
+      {
+        "name": "ElevenCreative News Search",
+        "url": "https://news.google.com/search?q=%22ElevenCreative%22%20ElevenLabs%20creative%20platform",
+        "rss": "https://news.google.com/rss/search?q=%22ElevenCreative%22%20ElevenLabs%20creative%20platform%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "required_terms": [
+          "elevencreative",
+          "elevenlabs"
+        ],
+        "watch_for": [
+          "ElevenCreative",
+          "ElevenLabs",
+          "creative platform",
+          "Flows",
+          "Studio",
+          "templates",
+          "localization",
+          "commercial licensing"
+        ]
+      },
+      {
+        "name": "Synthesia Blog",
+        "url": "https://www.synthesia.io/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI avatars",
+          "digital humans",
+          "enterprise video",
+          "synthetic presenters"
+        ]
+      },
+      {
+        "name": "HeyGen Blog",
+        "url": "https://www.heygen.com/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "avatars",
+          "video translation",
+          "digital actors",
+          "UGC-style production"
+        ]
+      },
+      {
+        "name": "Tavus",
+        "url": "https://www.tavus.io/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "conversational video",
+          "digital twins",
+          "personalized video",
+          "API workflows"
+        ]
+      },
+      {
+        "name": "D-ID",
+        "url": "https://www.d-id.com/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "talking avatars",
+          "agents",
+          "video generation",
+          "enterprise rights"
+        ]
+      },
+      {
+        "name": "Captions",
+        "url": "https://www.captions.ai/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI avatars",
+          "creator video",
+          "editing",
+          "commercial social assets"
+        ]
+      },
+      {
+        "name": "NVIDIA Blog",
+        "url": "https://blogs.nvidia.com/",
+        "rss": "https://blogs.nvidia.com/feed/",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "ACE",
+          "digital humans",
+          "Omniverse",
+          "rendering",
+          "simulation"
+        ]
+      },
+      {
+        "name": "Unreal Engine News",
+        "url": "https://www.unrealengine.com/en-US/news",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "MetaHuman",
+          "Unreal Engine",
+          "real-time humans",
+          "mocap",
+          "animation"
+        ]
+      },
+      {
+        "name": "Wonder Dynamics",
+        "url": "https://wonderdynamics.com/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "character replacement",
+          "markerless VFX",
+          "live-action to CG",
+          "production workflows"
+        ]
+      },
+      {
+        "name": "Move AI",
+        "url": "https://www.move.ai/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "markerless mocap",
+          "body capture",
+          "animation pipeline"
+        ]
+      },
+      {
+        "name": "DeepMotion",
+        "url": "https://www.deepmotion.com/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI motion capture",
+          "animation",
+          "retargeting",
+          "avatar motion"
+        ]
+      },
+      {
+        "name": "Reallusion Magazine",
+        "url": "https://magazine.reallusion.com/",
+        "rss": "https://magazine.reallusion.com/feed/",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "Character Creator",
+          "iClone",
+          "mocap",
+          "facial animation"
+        ]
+      }
+    ],
+    "Cross-Vertical Watchlist": [
+      {
+        "name": "Replicate Blog",
+        "url": "https://replicate.com/blog",
+        "rss": "https://replicate.com/blog/rss",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "models",
+          "image generation",
+          "video generation",
+          "open-source releases"
+        ]
+      },
+      {
+        "name": "Hugging Face Blog",
+        "url": "https://huggingface.co/blog",
+        "rss": "https://huggingface.co/blog/feed.xml",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "models",
+          "diffusion",
+          "video",
+          "audio",
+          "agents"
+        ]
+      },
+      {
+        "name": "OpenAI News",
+        "url": "https://openai.com/news/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "Sora",
+          "image generation",
+          "video generation",
+          "pricing",
+          "API changes"
+        ]
+      },
+      {
+        "name": "Google DeepMind Blog",
+        "url": "https://deepmind.google/discover/blog/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "Veo",
+          "Genie",
+          "world models",
+          "creative AI",
+          "licensing"
+        ]
+      },
+      {
+        "name": "Anthropic News",
+        "url": "https://www.anthropic.com/news",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "agents",
+          "tool use",
+          "computer use",
+          "creative operations"
+        ]
+      },
+      {
+        "name": "Stability AI News",
+        "url": "https://stability.ai/news",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "image models",
+          "video models",
+          "licensing",
+          "commercial rights"
+        ]
+      },
+      {
+        "name": "CG Channel",
+        "url": "https://www.cgchannel.com/",
+        "rss": "https://www.cgchannel.com/feed/",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "CGI",
+          "VFX tools",
+          "rendering",
+          "animation"
+        ]
+      },
+      {
+        "name": "SAG-AFTRA AI Resources",
+        "url": "https://www.sagaftra.org/contracts-industry-resources/ai-resources",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "likeness rights",
+          "digital replica",
+          "performer consent",
+          "commercial compliance"
+        ]
+      }
+    ],
+    "Advertising / Brand Content": [
+      {
+        "name": "Adweek AI",
+        "url": "https://www.adweek.com/category/artificial-intelligence/",
+        "rss": "https://www.adweek.com/category/artificial-intelligence/feed/",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "campaign production",
+          "brand content",
+          "agency AI workflows",
+          "asset variant production"
+        ]
+      },
+      {
+        "name": "The Drum Creative",
+        "url": "https://www.thedrum.com/creative",
+        "rss": "https://www.thedrum.com/rss.xml",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "brand campaigns",
+          "creative production",
+          "agency workflows"
+        ]
+      },
+      {
+        "name": "Canva Newsroom",
+        "url": "https://www.canva.com/newsroom/",
+        "rss": "https://www.canva.com/newsroom/feed/",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "campaign design",
+          "brand kits",
+          "AI content tools"
+        ]
+      },
+      {
+        "name": "Typeface Blog",
+        "url": "https://www.typeface.ai/blog",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "enterprise brand content",
+          "campaign generation",
+          "marketing asset pipelines"
+        ]
+      }
+    ],
+    "ArchViz": [
+      {
+        "name": "Dezeen",
+        "url": "https://www.dezeen.com/",
+        "rss": "https://www.dezeen.com/feed/",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "visualization",
+          "interiors",
+          "rendering aesthetics",
+          "AEC visualization"
+        ]
+      },
+      {
+        "name": "ArchDaily",
+        "url": "https://www.archdaily.com/",
+        "rss": "https://www.archdaily.com/feed",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "architecture visualization",
+          "renders",
+          "design tools"
+        ]
+      },
+      {
+        "name": "Chaos Blog",
+        "url": "https://blog.chaos.com/",
+        "rss": "https://blog.chaos.com/rss.xml",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "V-Ray",
+          "Corona",
+          "rendering",
+          "ArchViz workflows"
+        ]
+      },
+      {
+        "name": "Enscape Blog",
+        "url": "https://blog.enscape3d.com/",
+        "rss": "https://blog.enscape3d.com/rss.xml",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "real-time architectural visualization",
+          "design review",
+          "AEC rendering"
+        ]
+      }
+    ],
+    "AI Design / Motion Graphics": [
+      {
+        "name": "Motionographer",
+        "url": "https://motionographer.com/",
+        "rss": "https://motionographer.com/feed/",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "motion design",
+          "studio workflows",
+          "animation tools"
+        ]
+      },
+      {
+        "name": "Figma Blog",
+        "url": "https://www.figma.com/blog/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI design tools",
+          "Weave",
+          "design systems",
+          "prototyping"
+        ]
+      },
+      {
+        "name": "Figma Weave News Search",
+        "url": "https://news.google.com/search?q=%22Figma%20Weave%22%20AI%20creative%20workflow",
+        "rss": "https://news.google.com/rss/search?q=%22Figma%20Weave%22%20AI%20creative%20workflow%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "required_terms": [
+          "figma weave",
+          "weavy"
+        ],
+        "watch_for": [
+          "Figma Weave",
+          "AI media generation",
+          "product mockups",
+          "design workflow",
+          "brand content",
+          "motion"
+        ]
+      },
+      {
+        "name": "Framer Blog",
+        "url": "https://www.framer.com/blog/",
+        "rss": "https://www.framer.com/blog/rss.xml",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI site design",
+          "interactive design",
+          "motion"
+        ]
+      }
+    ],
+    "Music Production / Audio": [
+      {
+        "name": "MusicTech",
+        "url": "https://musictech.com/",
+        "rss": "https://musictech.com/feed/",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "AI music",
+          "production tools",
+          "mastering",
+          "stem separation"
+        ]
+      },
+      {
+        "name": "LANDR Blog",
+        "url": "https://blog.landr.com/",
+        "rss": "https://blog.landr.com/feed/",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "mastering",
+          "AI music production",
+          "creator workflows"
+        ]
+      },
+      {
+        "name": "iZotope Learn",
+        "url": "https://www.izotope.com/en/learn.html",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "audio repair",
+          "mixing",
+          "mastering",
+          "stem splitting"
+        ]
+      },
+      {
+        "name": "AI Audio Production News Search",
+        "url": "https://news.google.com/search?q=%28%22AI%20music%22%20OR%20%22AI%20audio%22%20OR%20Suno%20OR%20Udio%20OR%20ElevenLabs%29%20%28release%20OR%20launch%20OR%20workflow%20OR%20production%29%20when%3A45d",
+        "rss": "https://news.google.com/rss/search?q=%28%22AI%20music%22%20OR%20%22AI%20audio%22%20OR%20Suno%20OR%20Udio%20OR%20ElevenLabs%29%20%28release%20OR%20launch%20OR%20workflow%20OR%20production%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "watch_for": [
+          "AI music",
+          "AI audio",
+          "voice",
+          "stem",
+          "mastering",
+          "workflow"
+        ],
+        "required_terms": [
+          "AI"
+        ],
+        "source_type": "news_search"
+      }
+    ],
+    "Fashion / Apparel / Textile": [
+      {
+        "name": "The Interline",
+        "url": "https://www.theinterline.com/",
+        "rss": "https://www.theinterline.com/feed/",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "digital fashion",
+          "3D garment",
+          "supply chain",
+          "AI design"
+        ]
+      },
+      {
+        "name": "CLO Virtual Fashion Blog",
+        "url": "https://www.clovirtualfashion.com/blog",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "CLO 3D",
+          "garment simulation",
+          "virtual samples"
+        ]
+      },
+      {
+        "name": "WGSN Insight",
+        "url": "https://www.wgsn.com/en/blogs",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "trend forecasting",
+          "color",
+          "fashion consumer shifts"
+        ]
+      }
+    ],
+    "Podcast / Long-Form Audio": [
+      {
+        "name": "Descript Blog",
+        "url": "https://www.descript.com/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "transcript editing",
+          "AI voice pickups",
+          "podcast editing",
+          "show notes",
+          "audio cleanup"
+        ]
+      },
+      {
+        "name": "Riverside Blog",
+        "url": "https://riverside.fm/blog",
+        "rss": "https://riverside.fm/blog/rss.xml",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "remote recording",
+          "AI clips",
+          "podcast production",
+          "editing workflow"
+        ]
+      },
+      {
+        "name": "Adobe Podcast",
+        "url": "https://podcast.adobe.com/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "speech enhancement",
+          "studio audio",
+          "voice cleanup",
+          "podcast workflow"
+        ]
+      }
+    ],
+    "Education / E-Learning Content": [
+      {
+        "name": "Synthesia Blog",
+        "url": "https://www.synthesia.io/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "avatar training video",
+          "L&D",
+          "localization",
+          "enterprise learning",
+          "course production"
+        ]
+      },
+      {
+        "name": "Articulate Blog",
+        "url": "https://www.articulate.com/blog/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "course authoring",
+          "instructional design",
+          "AI training content",
+          "e-learning workflow"
+        ]
+      },
+      {
+        "name": "eLearning Industry",
+        "url": "https://elearningindustry.com/",
+        "rss": "https://elearningindustry.com/feed",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI learning",
+          "corporate training",
+          "instructional design",
+          "course production"
+        ]
+      }
+    ],
+    "Social / Short-Form Video": [
+      {
+        "name": "CapCut",
+        "url": "https://www.capcut.com/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "template workflows",
+          "short-form editing",
+          "AI clips",
+          "creator production"
+        ]
+      },
+      {
+        "name": "OpusClip Blog",
+        "url": "https://www.opus.pro/blog",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "clip generation",
+          "social video",
+          "repurposing",
+          "creator workflows"
+        ]
+      },
+      {
+        "name": "TikTok Newsroom",
+        "url": "https://newsroom.tiktok.com/",
+        "rss": "",
+        "priority": "low",
+        "cadence": "weekly",
+        "watch_for": [
+          "creator tools",
+          "AI policy",
+          "short-form production",
+          "platform changes"
+        ]
+      },
+      {
+        "name": "AI Short-Form Video News Search",
+        "url": "https://news.google.com/search?q=%28CapCut%20OR%20OpusClip%20OR%20%22short-form%20video%22%29%20AI%20%28release%20OR%20workflow%20OR%20creator%29%20when%3A45d",
+        "rss": "https://news.google.com/rss/search?q=%28CapCut%20OR%20OpusClip%20OR%20%22short-form%20video%22%29%20AI%20%28release%20OR%20workflow%20OR%20creator%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "medium",
+        "watch_for": [
+          "AI clips",
+          "short-form",
+          "creator workflow",
+          "CapCut",
+          "OpusClip"
+        ],
+        "required_terms": [
+          "AI"
+        ],
+        "source_type": "news_search"
+      }
+    ],
+    "Game Development / Real-Time 3D": [
+      {
+        "name": "Unreal Engine Blog",
+        "url": "https://www.unrealengine.com/en-US/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "Unreal Engine",
+          "MetaHuman",
+          "real-time rendering",
+          "virtual production",
+          "procedural tools"
+        ]
+      },
+      {
+        "name": "Unity Blog",
+        "url": "https://unity.com/blog",
+        "rss": "https://unity.com/blog/feed",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "Unity AI",
+          "real-time 3D",
+          "asset workflows",
+          "game production"
+        ]
+      },
+      {
+        "name": "Godot News",
+        "url": "https://godotengine.org/news/",
+        "rss": "https://godotengine.org/rss.xml",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "open-source game engine",
+          "real-time tools",
+          "workflow changes",
+          "asset pipeline"
+        ]
+      },
+      {
+        "name": "80 Level",
+        "url": "https://80.lv/",
+        "rss": "https://80.lv/rss",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "game art",
+          "real-time 3D",
+          "procedural assets",
+          "AI tools",
+          "Unreal workflows"
+        ]
+      },
+      {
+        "name": "Game Developer",
+        "url": "https://www.gamedeveloper.com/",
+        "rss": "https://www.gamedeveloper.com/rss.xml",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "game production",
+          "AI tooling",
+          "NPC AI",
+          "engine workflow",
+          "real-time pipelines"
+        ]
+      }
+    ]
+  },
+  "briefing_rules": [
+    "Only use facts present in source output or user-provided material.",
+    "Label unverified items as unverified instead of presenting them as signals.",
+    "Prefer tool releases, workflow evidence, pricing/licensing changes, production case studies, and measurable time/cost deltas.",
+    "Separate product capability claims from availability, pricing, territory, and rights claims.",
+    "For actor likeness, brand/IP, synthetic performer, or training-data issues, include compliance context when source-backed.",
+    "Ignore generic AI hype unless it has a concrete production implication for working Gen ADs."
+  ]
+}

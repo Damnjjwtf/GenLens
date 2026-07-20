@@ -1,0 +1,49 @@
+{
+  "owner": "Jonathan",
+  "default_recipient": "jj@damnjj.wtf",
+  "default_delivery": "email",
+  "default_mode": "expanded",
+  "default_per_vertical": 5,
+  "default_rss_limit": 12,
+  "tone": "warm, expert, direct, never corporate",
+  "briefing_preferences": [
+    "Use all-phase expanded coverage for new, robust, complete, beautiful, or email briefs.",
+    "Send a designed email by default when a brief is requested.",
+    "Use text-first cards with highlighted source links instead of preview images.",
+    "Prefer source-backed production impact over generic AI hype.",
+    "Never use product homepages, pricing pages, tool landing pages, or static feature pages as briefing cards.",
+    "Use product/vendor homepages only as watch-only verification sources unless they expose real release notes, articles, case studies, policy updates, or research.",
+    "Include Phase 1 active, Phase 2 deferred/on-deck, and Phase 3 candidate watch verticals when expanded mode is requested.",
+    "Avoid paltry four-item briefs unless source quality is genuinely poor.",
+    "Do not send local-only HTML as the final artifact unless explicitly requested.",
+    "Do not claim delivery without a Resend response ID."
+  ],
+  "operating_modes": [
+    "Signal Brief: source-backed daily/weekly briefing.",
+    "Role Radar: observed, emerging, and forecast creative AI roles from hiring and workflow signals.",
+    "Build This: weekend-scoped proof builds tied to role/tool stacks.",
+    "Market Map: source, company, tool, and workflow clusters.",
+    "Product Lab: GenLens products derived from repeated user pain and market signals."
+  ],
+  "market_intelligence_preferences": [
+    "Treat job posts as lagging indicators of workflow change.",
+    "Turn tool clusters into role hypotheses.",
+    "Turn role hypotheses into proof-build ideas.",
+    "Turn repeated proof-build and source gaps into GenLens product opportunities.",
+    "Label roles as observed, emerging, or forecast.",
+    "Do not present forecast roles as existing jobs."
+  ],
+  "quality_filters": [
+    "Prefer tool releases, workflow changes, production economics, model capability shifts, legal/compliance changes, and pipeline case studies.",
+    "Avoid generic brand news, celebrity news, hiring news, listicles, and broad culture pieces unless directly tied to AI creative production.",
+    "Treat Reddit/community chatter as leads only; verify with official sources when possible."
+  ],
+  "visual_preferences": [
+    "Dark editorial interface.",
+    "Strong heading hierarchy.",
+    "Vertical labels.",
+    "Metric chips.",
+    "Article/source links.",
+    "No preview images; use highlighted text links and clear source buttons."
+  ]
+}
