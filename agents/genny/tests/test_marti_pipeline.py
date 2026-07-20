@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
@@ -58,6 +60,67 @@ class MartiPipelineTests(unittest.TestCase):
         rendered = email.render_briefing_html(markdown)
         self.assertIn("Marti Stack Intelligence", rendered)
         self.assertNotIn("Creative AI signals worth acting on.", rendered)
+
+    def test_google_news_item_removes_publisher_suffix_and_repeated_description(self) -> None:
+        title = "Drive international conversion with automated duties-inclusive pricing from Shopify Managed Markets - Shopify"
+        cleaned_title = composer.clean_google_news_title(title, "Shopify")
+        description = (
+            '<a href="https://news.google.com/rss/articles/example">'
+            "Drive international conversion with automated duties-inclusive pricing from Shopify Managed Markets"
+            '</a>&nbsp;&nbsp;<font color="#6f6f6f">Shopify</font>'
+        )
+
+        self.assertEqual(
+            cleaned_title,
+            "Drive international conversion with automated duties-inclusive pricing from Shopify Managed Markets",
+        )
+        self.assertEqual(
+            composer.clean_google_news_summary(description, cleaned_title, "Shopify"),
+            "",
+        )
+        self.assertEqual(
+            composer.strip_text("creators&amp;mdash;even those without websites"),
+            "creators—even those without websites",
+        )
+        self.assertEqual(
+            composer.clean_excerpt(
+                "Merchants can use managed pricing across international markets. "
+                "Pricing will account for cross-bor..."
+            ),
+            "Merchants can use managed pricing across international markets.",
+        )
+
+    def test_google_news_resolver_returns_original_source_url(self) -> None:
+        wrapper = b'<c-wiz><div data-n-a-sg="signature" data-n-a-ts="1784585625"></div></c-wiz>'
+        original_url = "https://changelog.shopify.com/posts/duties-inclusive-pricing"
+        rpc_result = json.dumps(["garturlres", original_url, 1])
+        batch = (")]}'\n\n" + json.dumps([["wrb.fr", "Fbv4je", rpc_result]])).encode()
+
+        class FakeResponse:
+            def __init__(self, body: bytes):
+                self.body = body
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self, *_args):
+                return self.body
+
+        google_url = "https://news.google.com/rss/articles/encoded-id?oc=5"
+        with mock.patch.object(
+            composer.urllib.request,
+            "urlopen",
+            side_effect=[FakeResponse(wrapper), FakeResponse(batch)],
+        ):
+            resolved = composer.resolve_google_news_url(
+                google_url,
+                expected_source_url="https://changelog.shopify.com",
+            )
+
+        self.assertEqual(resolved, original_url)
 
 
 if __name__ == "__main__":

@@ -194,6 +194,7 @@ MAX_ITEM_AGE_DAYS = int(os.environ.get("GENLENS_MAX_ITEM_AGE_DAYS", "45"))
 MAX_PER_SOURCE = int(os.environ.get("GENLENS_MAX_PER_SOURCE", "2"))
 MAX_PER_DOMAIN = int(os.environ.get("GENLENS_MAX_PER_DOMAIN", "2"))
 MAX_PER_TOPIC_CLUSTER = int(os.environ.get("GENLENS_MAX_PER_TOPIC_CLUSTER", "1"))
+GOOGLE_NEWS_BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute"
 
 MARTI_REQUIRED_PATTERNS = {
     "Agentic Marketing Workflows": re.compile(r"(?=.*\b(agent|automation|orchestration|workflow|mcp)\b)(?=.*\b(marketing|campaign|ads?|crm|sales|content|commerce|growth)\b)", re.I),
@@ -231,8 +232,31 @@ def strip_text(value: str | None) -> str:
     if not value:
         return ""
     value = re.sub(r"<[^>]+>", " ", value)
-    value = html.unescape(value)
+    for _ in range(3):
+        decoded = html.unescape(value)
+        if decoded == value:
+            break
+        value = decoded
     return re.sub(r"\s+", " ", value).strip()
+
+
+def clean_excerpt(value: str) -> str:
+    text = strip_text(value)
+    if re.search(r"\b[\w-]+\.\.\.$", text):
+        prefix = text[:-3].rstrip()
+        sentence_end = max(prefix.rfind(". "), prefix.rfind("! "), prefix.rfind("? "))
+        if sentence_end >= 40:
+            return prefix[:sentence_end + 1]
+        return re.sub(r"\s+\S+$", "", prefix).rstrip(" ,;:-") + "…"
+    return text
+
+
+def truncate_text(value: str, limit: int) -> str:
+    text = clean_excerpt(value)
+    if len(text) <= limit:
+        return text
+    clipped = text[:limit + 1].rsplit(" ", 1)[0].rstrip(" ,;:-")
+    return clipped + "…"
 
 
 def parse_date(value: str) -> str:
@@ -274,6 +298,126 @@ def child_link(node: ET.Element) -> str:
             if child.text:
                 return child.text.strip()
     return ""
+
+
+def child_source(node: ET.Element) -> tuple[str, str]:
+    for child in list(node):
+        if child.tag.split("}", 1)[-1].lower() == "source":
+            return strip_text(child.text), child.attrib.get("url", "").strip()
+    return "", ""
+
+
+def is_google_news_url(url: str) -> bool:
+    parsed = urllib.parse.urlparse(url)
+    return source_domain(url) == "news.google.com" and "/rss/articles/" in parsed.path
+
+
+def clean_google_news_title(title: str, publisher: str = "") -> str:
+    cleaned = strip_text(title)
+    if publisher:
+        cleaned = re.sub(rf"\s+-\s+{re.escape(publisher)}\s*$", "", cleaned, flags=re.I)
+    return cleaned.strip()
+
+
+def clean_google_news_summary(summary: str, title: str, publisher: str = "") -> str:
+    cleaned = strip_text(summary)
+    if publisher:
+        cleaned = re.sub(rf"\s+{re.escape(publisher)}\s*$", "", cleaned, flags=re.I)
+    cleaned = cleaned.strip()
+    title_key = canonical_title(title)
+    summary_key = canonical_title(cleaned)
+    if title_key and (summary_key == title_key or cleaned.lower().startswith(title.lower())):
+        return ""
+    return cleaned
+
+
+def parse_google_news_batch_response(body: str) -> str:
+    def find_url(value: Any) -> str:
+        if isinstance(value, list):
+            if len(value) >= 3 and value[0] == "wrb.fr" and value[1] == "Fbv4je":
+                try:
+                    result = json.loads(value[2])
+                except (TypeError, json.JSONDecodeError):
+                    result = None
+                if isinstance(result, list) and len(result) > 1:
+                    candidate = str(result[1])
+                    if urllib.parse.urlparse(candidate).scheme in {"http", "https"}:
+                        return candidate
+            for child in value:
+                found = find_url(child)
+                if found:
+                    return found
+        return ""
+
+    for line in body.splitlines():
+        line = line.strip()
+        if not line.startswith("["):
+            continue
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        found = find_url(payload)
+        if found:
+            return found
+    return ""
+
+
+def resolve_google_news_url(url: str, expected_source_url: str = "") -> str:
+    """Resolve a Google News RSS wrapper to its original publisher URL.
+
+    Google does not expose the canonical article URL in the RSS item. Its article
+    wrapper provides a short-lived signature used by the same batch endpoint as
+    the Google News web client. Any failure returns the original wrapper URL so a
+    feed outage cannot stop the briefing.
+    """
+    if not is_google_news_url(url):
+        return url
+    article_id = urllib.parse.urlparse(url).path.rstrip("/").split("/")[-1]
+    if not article_id:
+        return url
+    locale_url = url + ("&" if "?" in url else "?") + "hl=en-US&gl=US&ceid=US:en"
+    ctx = verified_ssl_context()
+    try:
+        req = urllib.request.Request(locale_url, headers={"User-Agent": "GennySourceReviewer/1.0"})
+        with urllib.request.urlopen(req, timeout=6, context=ctx) as response:
+            wrapper = response.read(1_500_000).decode("utf-8", "replace")
+        signature_match = re.search(r'data-n-a-sg=["\']([^"\']+)', wrapper)
+        timestamp_match = re.search(r'data-n-a-ts=["\'](\d+)', wrapper)
+        if not signature_match or not timestamp_match:
+            return url
+        request_value = [
+            "garturlreq",
+            [["X", "X", ["X", "X"], None, None, 1, 1, "US:en", None, 1, None, None, None, None, None, 0, 1], "X", "X", 1, [1, 1, 1], 1, 1, None, 0, 0, None, 0],
+            article_id,
+            int(timestamp_match.group(1)),
+            signature_match.group(1),
+        ]
+        rpc = ["Fbv4je", json.dumps(request_value, separators=(",", ":"))]
+        form = urllib.parse.urlencode({"f.req": json.dumps([[rpc]], separators=(",", ":"))}).encode()
+        batch_req = urllib.request.Request(
+            GOOGLE_NEWS_BATCH_URL,
+            data=form,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "User-Agent": "GennySourceReviewer/1.0",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(batch_req, timeout=6, context=ctx) as response:
+            resolved = parse_google_news_batch_response(response.read(1_000_000).decode("utf-8", "replace"))
+    except Exception:
+        return url
+    if not resolved or is_google_news_url(resolved):
+        return url
+    if expected_source_url:
+        expected_domain = source_domain(expected_source_url)
+        resolved_domain = source_domain(resolved)
+        if expected_domain and not (
+            resolved_domain == expected_domain or resolved_domain.endswith("." + expected_domain)
+        ):
+            return url
+    return resolved
 
 
 def normalized_path(url: str) -> str:
@@ -366,14 +510,14 @@ def fetch_article_excerpt(url: str) -> str:
         re.I | re.S,
     )
     if meta:
-        return strip_text(meta.group(1))[:320]
+        return truncate_text(meta.group(1), 320)
     paragraphs = [strip_text(match.group(1)) for match in re.finditer(r"<p[^>]*>(.*?)</p>", body, re.I | re.S)]
     paragraphs = [p for p in paragraphs if len(p) >= 60]
-    return " ".join(paragraphs[:2])[:320]
+    return truncate_text(" ".join(paragraphs[:2]), 320)
 
 
 def quality_review(vertical: str, source: dict[str, Any], title: str, summary: str, url: str, date: str = "") -> tuple[bool, int, str]:
-    is_news_search = source.get("source_type") == "news_search" and source_domain(url) == "news.google.com"
+    is_news_search = source.get("source_type") == "news_search"
     if not is_briefable_url(url) and not is_news_search:
         return False, 0, "rejected-url"
     text = f"{title} {summary}"
@@ -446,6 +590,16 @@ def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[st
         summary = child_text(node, ("description", "summary", "content", "encoded"))
         url = child_link(node)
         date = parse_date(child_text(node, ("pubdate", "published", "updated", "date")))
+        publisher, publisher_url = child_source(node)
+        if is_google_news_url(url):
+            title = clean_google_news_title(title, publisher)
+            summary = clean_google_news_summary(summary, title, publisher)
+            if not likely_recent(title, date):
+                continue
+            resolved_url = resolve_google_news_url(url, publisher_url)
+            if resolved_url != url:
+                url = resolved_url
+                summary = fetch_article_excerpt(url) or summary
         passed, score, reason = quality_review(vertical, source, title, summary, url, date)
         if not passed:
             continue
@@ -455,12 +609,14 @@ def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[st
             "title": title,
             "url": url,
             "date": date,
-            "summary": summary[:260],
-            "source": source.get("name", "Source"),
+            "summary": truncate_text(summary, 260),
+            "source": publisher or source.get("name", "Source"),
             "priority": source.get("priority", "medium"),
             "score": str(score),
             "review": reason,
         })
+        if len(out) >= min(limit, MAX_PER_SOURCE):
+            break
     return out
 
 
