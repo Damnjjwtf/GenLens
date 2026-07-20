@@ -1,7 +1,7 @@
 # Marti MVP Evaluation
 
 Date: July 20, 2026
-Status: Running research MVP; not approved for scheduled sends
+Status: Research MVP passes one evaluation run; not approved for scheduled sends
 
 ## What is live
 
@@ -36,6 +36,26 @@ The first unified pass produced seven cards across both lenses. Its initial
 convergence suggestion relied on broad creative language, so the detector was
 tightened. Convergence remains a research prompt until a human verifies the
 shared workflow or economic consequence.
+
+## Source-expansion evaluation
+
+The July 20 source-expansion run produced seven linked cards across five Marti
+layers, with no duplicate titles:
+
+- Paid Media / Creative Performance: 3
+- Stack Consolidation / Displacement: 1
+- Commerce / Conversion: 1
+- SEO / AEO / Content Systems: 1
+- Marketing Data / Identity: 1
+
+All seven cards resolved to authoritative first-party sources. Zapier's Relay
+shutdown notice added a concrete displacement signal, RudderStack added a
+customer-data signal, and the Google Ads feed added two official updates. A
+RudderStack free-trial promotion was rejected by an explicit regression guard.
+
+This counts as evaluation run 1 of the three consecutive passing runs required
+for promotion. It does not authorize scheduled sends. Agentic Marketing
+Workflows remains the highest-priority source gap.
 
 ## Reassessment of the Marti-Genny thesis
 
@@ -73,9 +93,10 @@ gate and at least three convergence candidates have survived human verification.
 
 ## Recommended next build order
 
-1. Improve the active Marti source pool, especially stack displacement and
-   agentic marketing workflows.
-2. Add canonical URL resolution for Google News discovery links.
+1. Repeat the live evaluation twice more and manually review the accepted-card
+   set before considering scheduled delivery.
+2. Improve the Agentic Marketing Workflows source pool without lowering the
+   editorial gate.
 3. Introduce structured signal records with stable IDs, source type, confidence,
    lens, layer, mechanism, use case, and impact fields.
 4. Record rejected candidates with machine-readable rejection reasons.

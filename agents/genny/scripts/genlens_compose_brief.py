@@ -155,12 +155,12 @@ LANDING_PAGE_PATTERNS = re.compile(
 )
 
 NEWS_TITLE_PATTERNS = re.compile(
-    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|workflow|benchmarks?|pricing|license|policy|rights|compliance|production|pipeline|integrat|ships?|available|beta|sdk|api|v\d+(?:\.\d+)*)\b",
+    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|workflow|benchmarks?|pricing|license|policy|rights|compliance|production|pipeline|integrat|ships?|available|deprecat|sunset|shut(?:ting)? down|beta|sdk|api|v\d+(?:\.\d+)*)\b",
     re.I,
 )
 
 HIGH_VALUE_SIGNAL_PATTERNS = re.compile(
-    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|customer story|benchmark|pricing|license|policy|rights|compliance|sdk|api|integration|open source|generally available|beta|v\d+(?:\.\d+)*)\b",
+    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|customer story|benchmark|pricing|license|policy|rights|compliance|deprecat|sunset|shut(?:ting)? down|sdk|api|integration|open source|generally available|beta|v\d+(?:\.\d+)*)\b",
     re.I,
 )
 
@@ -175,7 +175,7 @@ WEAK_SOURCE_PATTERNS = re.compile(
 )
 
 FALSE_POSITIVE_PATTERNS = re.compile(
-    r"\b(project runway|new episodes air|drops trailer|recurring judge|free minutes|percent off|% off|coupon|promo code|pricing explained|free plan features|\d+\s+tools that automate|tools that automate your creative workflow|we(?:'|’)re going to|conference schedule|register for (?:the )?event)\b",
+    r"\b(project runway|new episodes air|drops trailer|recurring judge|free minutes|free trial|free for \d+ days?|percent off|% off|coupon|promo code|pricing explained|free plan features|\d+\s+tools that automate|tools that automate your creative workflow|we(?:'|’)re going to|conference schedule|register for (?:the )?event)\b",
     re.I,
 )
 
@@ -199,7 +199,7 @@ GOOGLE_NEWS_BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecut
 MARTI_REQUIRED_PATTERNS = {
     "Agentic Marketing Workflows": re.compile(r"(?=.*\b(agent|automation|orchestration|workflow|mcp)\b)(?=.*\b(marketing|campaign|ads?|crm|sales|content|commerce|growth)\b)", re.I),
     "Paid Media / Creative Performance": re.compile(r"\b(ads?|advertising|campaign|creative performance|roas|cac|cpm|bidding|performance max|advantage\+|marketer)\b", re.I),
-    "Stack Consolidation / Displacement": re.compile(r"\b(pricing change|acquisition|sunset|migration|consolidation|replacement|open source|marketing automation|cdp|analytics platform|stack)\b", re.I),
+    "Stack Consolidation / Displacement": re.compile(r"\b(pricing change|acquisition|sunset|shut(?:ting)? down|migration|consolidation|replacement|open source|marketing automation|cdp|analytics platform|stack)\b", re.I),
     "Lifecycle / Retention": re.compile(r"\b(lifecycle|retention|email|sms|push notification|journey|segmentation|loyalty|marketing cloud|customer engagement)\b", re.I),
     "Measurement / Attribution": re.compile(r"\b(attribution|incrementality|measurement|marketing mix|conversion tracking|experiments?|campaign analytics|roas|cac)\b", re.I),
     "Commerce / Conversion": re.compile(r"\b(commerce|shopify|checkout|merchant|merchandising|storefront|conversion|shopping|retail)\b", re.I),
@@ -551,7 +551,7 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
     score = 0
     if HIGH_VALUE_SIGNAL_PATTERNS.search(text):
         score += 3
-    if source.get("source_type") in {"release_notes", "github_releases"}:
+    if source.get("source_type") in {"official_updates", "release_notes", "github_releases"}:
         score += 3
     if NEWS_TITLE_PATTERNS.search(text):
         score += 1

@@ -122,6 +122,65 @@ class MartiPipelineTests(unittest.TestCase):
 
         self.assertEqual(resolved, original_url)
 
+    def test_official_updates_score_like_release_notes(self) -> None:
+        item = {
+            "title": "Optimize campaign reach with new video campaign groups",
+            "summary": "Google Ads adds a campaign control for advertisers and measurement teams.",
+            "url": "https://blog.google/products/ads-commerce/video-campaign-groups/",
+            "date": dt.datetime.now(dt.timezone.utc).date().isoformat(),
+        }
+        common = {
+            "name": "Google Ads and Commerce",
+            "priority": "high",
+            "watch_for": ["Google Ads", "campaign", "measurement"],
+        }
+        official = composer.quality_review(
+            "Paid Media / Creative Performance",
+            {**common, "source_type": "official_updates"},
+            item["title"], item["summary"], item["url"], item["date"],
+        )
+        releases = composer.quality_review(
+            "Paid Media / Creative Performance",
+            {**common, "source_type": "release_notes"},
+            item["title"], item["summary"], item["url"], item["date"],
+        )
+        self.assertTrue(official[0])
+        self.assertEqual(official[1], releases[1])
+
+    def test_shutdown_is_a_displacement_signal_but_free_trial_is_not(self) -> None:
+        today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+        shutdown_source = {
+            "name": "Zapier Blog",
+            "source_type": "blog",
+            "priority": "high",
+            "watch_for": ["shutdown", "migration", "replacement", "workflow"],
+        }
+        accepted = composer.quality_review(
+            "Stack Consolidation / Displacement",
+            shutdown_source,
+            "Relay.app is shutting down: export your workflows and move to Zapier",
+            "Relay customers can migrate their automation workflows before the service closes.",
+            "https://zapier.com/blog/relay-alternatives",
+            today,
+        )
+        self.assertTrue(accepted[0])
+
+        rejected = composer.quality_review(
+            "Marketing Data / Identity",
+            {
+                "name": "RudderStack Blog",
+                "source_type": "blog",
+                "priority": "high",
+                "watch_for": ["customer data", "CDP", "warehouse"],
+            },
+            "Get the full power of RudderStack free for 30 days",
+            "Start a free trial of the customer data platform.",
+            "https://www.rudderstack.com/blog/rudderstack-30-day-free-trial",
+            today,
+        )
+        self.assertFalse(rejected[0])
+        self.assertIn("false-positive", rejected[2])
+
 
 if __name__ == "__main__":
     unittest.main()
