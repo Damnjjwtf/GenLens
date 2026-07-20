@@ -123,20 +123,9 @@ def render_test_html(preheader: str) -> str:
 
 def render_briefing_html(markdown: str) -> str:
     escaped_preheader = html_lib.escape(
-        "A source-backed GenLens briefing for product photography, ai filmmaking, and digital humans."
+        "Source-backed creative production intelligence from GenLens."
     )
     items = public_briefing_items(markdown)
-    if not items:
-        items = [
-            {
-                "vertical": "GenLens",
-                "title": "No verified signals ready",
-                "summary": "The source queue is available, but no briefing items were parsed for this email.",
-                "url": "",
-                "source": "Genny",
-                "chips": [],
-            }
-        ]
 
     vertical_meta = {
         "Product Photography": {
@@ -201,8 +190,35 @@ def render_briefing_html(markdown: str) -> str:
         },
     }
 
-    cards = []
+    counts: dict[str, int] = {}
     for item in items:
+        vertical_name = str(item.get("vertical") or "GenLens")
+        counts[vertical_name] = counts.get(vertical_name, 0) + 1
+
+    if counts:
+        map_html = "".join(
+            f"""
+            <tr>
+              <td style="padding:8px 0;border-bottom:1px solid #242424;">
+                <span style="display:inline-block;width:10px;height:10px;background:{vertical_meta.get(vertical, vertical_meta["GenLens"])["accent"]};margin-right:9px;"></span>
+                <span style="font:700 12px/1.3 Arial,Helvetica,sans-serif;color:#f3f3ef;text-transform:uppercase;letter-spacing:.08em;">{html_lib.escape(vertical_meta.get(vertical, vertical_meta["GenLens"])["label"])}</span>
+                <span style="float:right;font:700 12px/1.3 Arial,Helvetica,sans-serif;color:#8f8f88;">{count}</span>
+              </td>
+            </tr>
+            """
+            for vertical, count in counts.items()
+        )
+    else:
+        map_html = """
+            <tr>
+              <td style="padding:10px 0;color:#b7b7ae;font:400 14px/1.5 Arial,Helvetica,sans-serif;">
+                No publishable signals passed the source-quality gate. Genny should keep researching instead of padding the brief.
+              </td>
+            </tr>
+        """
+
+    cards = []
+    for index, item in enumerate(items, start=1):
         meta = vertical_meta.get(item["vertical"], vertical_meta["GenLens"])
         title = html_lib.escape(item["title"])
         summary = html_lib.escape(item["summary"])
@@ -210,32 +226,31 @@ def render_briefing_html(markdown: str) -> str:
         raw_url = str(item.get("url") or "").strip()
         url = html_lib.escape(raw_url)
         chip_html = "".join(
-            f'<span style="display:inline-block;margin:0 6px 6px 0;padding:5px 8px;border:1px solid #d6d1c7;color:#343126;background:#fbfaf7;font:700 11px/1 Inter,Arial,sans-serif;">{html_lib.escape(chip)}</span>'
+            f'<span style="display:inline-block;margin:0 6px 6px 0;padding:5px 8px;border:1px solid #313131;color:#d9d9d2;background:#101010;font:700 11px/1 Arial,Helvetica,sans-serif;text-transform:uppercase;letter-spacing:.04em;">{html_lib.escape(chip)}</span>'
             for chip in item["chips"][:4]
         )
         title_html = (
-            f'<a href="{url}" target="_blank" rel="noopener noreferrer" style="color:#141414;text-decoration:underline;text-decoration-color:{meta["accent"]};text-decoration-thickness:3px;text-underline-offset:4px;">{title}</a>'
+            f'<a href="{url}" target="_blank" rel="noopener noreferrer" style="color:#f7f7f2;text-decoration:none;border-bottom:3px solid {meta["accent"]};">{title}</a>'
             if url
             else title
         )
         source_html = (
-            f'<a href="{url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;color:#141414;background:{meta["accent"]};border:1px solid #141414;text-decoration:none;font:800 12px/1 Inter,Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em;padding:9px 12px;">Read source: {source}</a>'
+            f'<a href="{url}" target="_blank" rel="noopener noreferrer" style="color:{meta["accent"]};text-decoration:none;font:800 12px/1 Arial,Helvetica,sans-serif;text-transform:uppercase;letter-spacing:.08em;">Source: {source} →</a>'
             if url
-            else f'<span style="display:inline-block;color:#141414;background:{meta["accent"]};font:800 12px/1 Inter,Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em;padding:9px 12px;">{source}</span>'
+            else ""
         )
         cards.append(
             f"""
             <tr>
-              <td style="padding:0 28px 16px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fbfaf7;border:1px solid #d8d2c7;border-left:6px solid {meta["accent"]};">
+              <td style="padding:0 30px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #292929;">
                   <tr>
-                    <td style="padding:18px 20px 19px;">
-                      <div style="margin:0 0 12px;color:#141414;font:900 11px/1 Inter,Arial,sans-serif;text-transform:uppercase;letter-spacing:.12em;">
-                        <span style="display:inline-block;background:{meta["accent"]};padding:6px 8px;border:1px solid #141414;">{html_lib.escape(meta["label"])}</span>
-                      </div>
-                      <h2 style="margin:0 0 10px;color:#141414;font:800 25px/1.12 Georgia,serif;letter-spacing:0;">{title_html}</h2>
-                      <p style="margin:0 0 14px;color:#4b463f;font:400 15px/1.6 Inter,Arial,sans-serif;">{summary}</p>
-                      <div style="margin:0 0 13px;">{chip_html}</div>
+                    <td style="width:42px;padding:22px 14px 22px 0;vertical-align:top;color:{meta["accent"]};font:800 13px/1 Arial,Helvetica,sans-serif;">{index:02d}</td>
+                    <td style="padding:20px 0 22px;vertical-align:top;">
+                      <div style="margin:0 0 10px;color:{meta["accent"]};font:900 11px/1 Arial,Helvetica,sans-serif;text-transform:uppercase;letter-spacing:.13em;">{html_lib.escape(meta["label"])}</div>
+                      <h2 style="margin:0 0 10px;color:#f7f7f2;font:800 24px/1.13 Arial,Helvetica,sans-serif;letter-spacing:0;">{title_html}</h2>
+                      <p style="margin:0 0 14px;color:#c8c8c0;font:400 15px/1.62 Arial,Helvetica,sans-serif;">{summary}</p>
+                      <div style="margin:0 0 12px;">{chip_html}</div>
                       <div>{source_html}</div>
                     </td>
                   </tr>
@@ -252,23 +267,31 @@ def render_briefing_html(markdown: str) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>GenLens Daily Intelligence</title>
   </head>
-  <body style="margin:0;background:#070707;color:#f4f0e8;font-family:Inter,Arial,sans-serif;">
+  <body style="margin:0;background:#050505;color:#f4f0e8;font-family:Arial,Helvetica,sans-serif;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{escaped_preheader}</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#070707;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#050505;">
       <tr>
         <td align="center" style="padding:30px 12px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#0e0e0c;border:1px solid #292823;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#0b0b0a;border:1px solid #242424;">
             <tr>
-              <td style="padding:28px 28px 20px;border-bottom:1px solid #292823;background:#10100e;">
-                <div style="font:900 12px/1 Inter,Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#d7ff66;">GenLens Daily Intelligence</div>
-                <h1 style="margin:12px 0 10px;color:#fffaf0;font:800 38px/1.02 Georgia,serif;letter-spacing:0;">Signal for working Gen ADs</h1>
-                <p style="margin:0;color:#b9b2a5;font:400 15px/1.6 Inter,Arial,sans-serif;">Source-backed creative production intelligence. Numbers over vibes. No invented signals.</p>
+              <td style="padding:30px 30px 24px;border-bottom:1px solid #242424;background:#0b0b0a;">
+                <div style="font:900 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#d7ff66;">GenLens Daily Intelligence</div>
+                <h1 style="margin:16px 0 12px;color:#f7f7f2;font:900 42px/1.02 Arial,Helvetica,sans-serif;letter-spacing:0;">Creative AI signals worth acting on.</h1>
+                <p style="margin:0;color:#bdbdb4;font:400 15px/1.6 Arial,Helvetica,sans-serif;max-width:560px;">No generic product pages. No stale listicles. Every item should point to a workflow shift, role shift, cost delta, rights issue, or tool capability a working Gen AD can use.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 30px 20px;border-bottom:1px solid #242424;background:#10100f;">
+                <div style="margin:0 0 10px;font:900 11px/1 Arial,Helvetica,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8f8f88;">Today's Map</div>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                  {map_html}
+                </table>
               </td>
             </tr>
             {''.join(cards)}
             <tr>
-              <td style="padding:20px 28px 28px;border-top:1px solid #292823;color:#837d73;font:400 12px/1.55 Inter,Arial,sans-serif;">
-                Sent by Genny for GenLens. Visual production, synthetic talent, and AI pipeline shifts worth checking today.
+              <td style="padding:22px 30px 30px;border-top:1px solid #242424;color:#8a8a82;font:400 12px/1.55 Arial,Helvetica,sans-serif;">
+                Sent by Genny for GenLens. Source-backed intelligence for AI production, synthetic talent, tools, roles, and workflow arbitrage.
               </td>
             </tr>
           </table>
