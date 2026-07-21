@@ -138,6 +138,10 @@ GENERIC_LINK_TEXT = re.compile(
     r"\b(home|about|privacy|terms|cookie|login|sign in|subscribe|blog|press|contact|support|help|legal)\b",
     re.I,
 )
+CAREER_GATEWAY_TEXT = re.compile(
+    r"\b(apply|careers?|jobs?|open roles?|view jobs?|search jobs?|opportunities|roles?)\b",
+    re.I,
+)
 
 
 def now_iso() -> str:
@@ -277,6 +281,38 @@ def text_matches_any(text: str, terms: list[str]) -> bool:
     return any(str(term).lower() in lowered for term in terms)
 
 
+def is_career_gateway(link: dict[str, str]) -> bool:
+    text = link.get("title", "")
+    url = link.get("url", "")
+    path = urllib.parse.urlparse(url).path.lower()
+    return bool(CAREER_GATEWAY_TEXT.fullmatch(text) or re.search(r"/(career|careers|job|jobs|openings|boards?)\b", path))
+
+
+def candidate_link_matches(company: str, link: dict[str, str], watch_for: list[str]) -> bool:
+    haystack = f"{company} {link.get('title', '')} {link.get('url', '')} {link.get('summary', '')}"
+    return bool(text_matches_any(haystack, watch_for) or POSITIVE_PATTERNS.search(haystack) or matches(ROLE_PATTERNS, haystack))
+
+
+def nested_career_links(link: dict[str, str], company: str, watch_for: list[str], limit: int) -> list[dict[str, str]]:
+    try:
+        body = fetch_html(link["url"])
+    except Exception:
+        return []
+    found: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for nested in html_links(body, link["url"]):
+        url = nested.get("url", "")
+        if url in seen or is_career_gateway(nested):
+            continue
+        if not candidate_link_matches(company, nested, watch_for):
+            continue
+        seen.add(url)
+        found.append(nested)
+        if len(found) >= limit:
+            break
+    return found
+
+
 def career_page_items(target: dict[str, Any], limit: int) -> list[dict[str, str]]:
     company = str(target.get("company") or "Unknown company")
     career_url = str(target.get("career_url") or "")
@@ -286,15 +322,21 @@ def career_page_items(target: dict[str, Any], limit: int) -> list[dict[str, str]
     body = fetch_html(career_url)
     links = html_links(body, career_url)
     items: list[dict[str, str]] = []
+    seen: set[str] = set()
     for link in links:
-        haystack = f"{company} {link.get('title', '')} {link.get('url', '')} {link.get('summary', '')}"
-        if not (text_matches_any(haystack, watch_for) or POSITIVE_PATTERNS.search(haystack) or matches(ROLE_PATTERNS, haystack)):
+        candidates = nested_career_links(link, company, watch_for, limit) if is_career_gateway(link) else [link]
+        for candidate in candidates:
+            url = candidate.get("url", "")
+            if url in seen or not candidate_link_matches(company, candidate, watch_for):
+                continue
+            seen.add(url)
+            candidate["title"] = f"{company}: {candidate['title']}"
+            candidate["summary"] = f"Public company career page match for {company}: {candidate.get('summary', '')}"
+            items.append(candidate)
+            if len(items) >= limit:
+                return items
+        if is_career_gateway(link):
             continue
-        link["title"] = f"{company}: {link['title']}"
-        link["summary"] = f"Public company career page match for {company}: {link.get('summary', '')}"
-        items.append(link)
-        if len(items) >= limit:
-            break
     return items
 
 
