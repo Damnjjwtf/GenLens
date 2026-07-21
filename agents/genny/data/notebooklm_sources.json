@@ -1,0 +1,20 @@
+{
+  "notebooks": [
+    {
+      "name": "Creative Autonomy",
+      "id": "7509454e-8872-477f-b67e-0e001ae91280",
+      "url": "https://notebooklm.google.com/notebook/7509454e-8872-477f-b67e-0e001ae91280",
+      "status": "registered",
+      "purpose": "GenLens creative autonomy research and source-grounded synthesis.",
+      "notes": "Requires NotebookLM Google auth or storage state before Genny can query it."
+    },
+    {
+      "name": "Shared NotebookLM Source",
+      "id": "ea254699-b839-4a10-81a7-abe127ab63b3",
+      "url": "https://notebooklm.google.com/notebook/ea254699-b839-4a10-81a7-abe127ab63b3?utm_source=nlmm_share",
+      "status": "registered",
+      "purpose": "Jonathan-provided NotebookLM source for GenLens/Genny research.",
+      "notes": "Shared link registered on July 20, 2026. Actual contents are available only after NotebookLM auth or exported source text is provided."
+    }
+  ]
+}

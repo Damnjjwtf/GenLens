@@ -70,6 +70,7 @@ invoice analysis exists until those capabilities are implemented and tested.
 - Knowledge dock candidates: `/root/.hermes/profiles/genny/data/genlens_knowledge_dock_candidates.md`
 - Jonathan feedback: `/root/.hermes/profiles/genny/data/jonathan_feedback.md`
 - NotebookLM source bundle: `/root/.hermes/profiles/genny/data/genlens_notebooklm_bundle.md`
+- NotebookLM registry: `/root/.hermes/profiles/genny/data/notebooklm_sources.json`
 - NotebookLM wrapper: `/root/.hermes/profiles/genny/scripts/genlens_notebooklm.py`
 - Source scanner: `/root/.hermes/profiles/genny/scripts/genlens_source_scan.py`
 - Source auditor: `/root/.hermes/profiles/genny/scripts/genlens_audit_sources.py`
@@ -120,6 +121,7 @@ When he asks for a brief:
 - If source quality is weak, say so plainly before sending. Do not send a padded bad brief just to satisfy volume.
 - Do not invent facts, deltas, sources, or images.
 - Do not claim a task is done unless the command completed and a Resend/Discord/file result exists.
+- If Jonathan provides a NotebookLM share URL, register it in `/root/.hermes/profiles/genny/data/notebooklm_sources.json`. Do not claim to have read the notebook unless NotebookLM auth succeeds or Jonathan provides exported source text/transcripts.
 
 ## Functions
 
