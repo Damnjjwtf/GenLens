@@ -135,7 +135,7 @@ NEGATIVE_PATTERNS = re.compile(
 )
 ATS_DOMAINS = {"boards.greenhouse.io", "jobs.lever.co", "jobs.ashbyhq.com", "jobs.workable.com", "workable.com"}
 GENERIC_LINK_TEXT = re.compile(
-    r"\b(home|about|privacy|terms|cookie|login|sign in|subscribe|blog|press|contact|support|help|legal)\b",
+    r"\b(home|about|privacy|terms|cookie|login|sign in|subscribe|blog|press|contact|support|help|legal|talent community|personal information|do not sell|my applications?|my profile)\b",
     re.I,
 )
 CAREER_GATEWAY_TEXT = re.compile(
@@ -265,7 +265,7 @@ def html_links(body: str, base_url: str) -> list[dict[str, str]]:
         if not href or href.startswith(("#", "mailto:", "tel:", "javascript:")):
             continue
         text = strip_text(match.group(2))
-        if not text or GENERIC_LINK_TEXT.fullmatch(text):
+        if not text or GENERIC_LINK_TEXT.search(text):
             continue
         links.append({
             "title": text[:180],
@@ -290,7 +290,7 @@ def is_career_gateway(link: dict[str, str]) -> bool:
 
 def candidate_link_matches(company: str, link: dict[str, str], watch_for: list[str]) -> bool:
     haystack = f"{company} {link.get('title', '')} {link.get('url', '')} {link.get('summary', '')}"
-    return bool(text_matches_any(haystack, watch_for) or POSITIVE_PATTERNS.search(haystack) or matches(ROLE_PATTERNS, haystack))
+    return bool(text_matches_any(haystack, watch_for) or matches(ROLE_PATTERNS, haystack))
 
 
 def nested_career_links(link: dict[str, str], company: str, watch_for: list[str], limit: int) -> list[dict[str, str]]:
