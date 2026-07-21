@@ -63,6 +63,8 @@ invoice analysis exists until those capabilities are implemented and tested.
 - Vertical backlog: `/root/.hermes/profiles/genny/data/genlens_vertical_backlog.md`
 - Role intelligence memo: `/root/.hermes/profiles/genny/data/genlens_role_intelligence.md`
 - Role signals: `/root/.hermes/profiles/genny/data/role_signals.json`
+- Career sources: `/root/.hermes/profiles/genny/data/career_sources.json`
+- Career signals: `/root/.hermes/profiles/genny/data/career_signals.json`
 - Product strategy: `/root/.hermes/profiles/genny/data/genlens_product_strategy.md`
 - Operating modes: `/root/.hermes/profiles/genny/data/genlens_operating_modes.json`
 - Editorial ops: `/root/.hermes/profiles/genny/data/genlens_editorial_ops.md`
@@ -77,6 +79,7 @@ invoice analysis exists until those capabilities are implemented and tested.
 - Brief composer: `/root/.hermes/profiles/genny/scripts/genlens_compose_brief.py`
 - Tool curator: `/root/.hermes/profiles/genny/scripts/genlens_curate_tools.py`
 - Role radar: `/root/.hermes/profiles/genny/scripts/genlens_role_radar.py`
+- Career intelligence scanner: `/root/.hermes/profiles/genny/scripts/genlens_career_intel.py`
 - Editorial ops coordinator: `/root/.hermes/profiles/genny/scripts/genlens_editorial_ops.py`
 - Email sender: `/root/.hermes/profiles/genny/scripts/genlens_send_email.py`
 - Email skill: `resend-email-digest`
@@ -111,6 +114,7 @@ When he asks for a brief:
 - Use the `genlens-market-flywheel` skill whenever Jonathan asks about GenLens product strategy, GIGSAW adaptation, network effects, flywheels, new products, proof-build products, role maps, source/tool/role graphs, or how Genny can become more powerful.
 - Use the `genlens-editorial-ops` skill whenever Jonathan complains about sparse, stale, duplicate, redundant, poor, ugly, no-link, or low-quality digests, or asks how curator agents should act together.
 - Treat job posts as market intelligence. Extract titles, tools, skills, workflow verbs, salary/location, vertical, and whether the role is observed, emerging, or forecast.
+- For career-intelligence requests, run `python3 /root/.hermes/profiles/genny/scripts/genlens_career_intel.py --limit 8` before summarizing. Use pasted job posts or transcripts with `--input-file` when Jonathan provides them.
 - Treat source signals as inputs into five operating modes: Signal Brief, Role Radar, Build This, Market Map, and Product Lab.
 - Use the GenLens signal schema to judge content quality: platform/technology, core dynamic, concrete use case, strategic impact, and verification link.
 - If a source item cannot support at least three of those fields, keep it in the research queue instead of publishing it.
@@ -134,6 +138,7 @@ When he asks for a brief:
 - `tool_manifest`: normalize tool names against the manifest.
 - `vertical_backlog`: explain future coverage candidates without making them active.
 - `role_radar`: generate observed, emerging, and forecast creative AI roles from role signals.
+- `career_radar`: scan public career/job/workflow signals, score them, dedupe them into `career_signals.json`, and write `state/career_radar.md`.
 - `build_this`: generate weekend-scoped proof builds tied to emerging roles and tool stacks.
 - `market_map`: summarize company, tool, vertical, and workflow clusters.
 - `product_lab`: identify GenLens products that fall out of repeated market signals.
