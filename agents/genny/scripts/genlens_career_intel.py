@@ -42,7 +42,7 @@ ROLE_PATTERNS = {
     "Generative Artist": r"\bgenerative artist\b|\bAI artist\b",
     "AI Pipeline Engineer": r"\bAI pipeline engineer\b|\bpipeline engineer\b",
     "Synthetic Production TD": r"\btechnical director\b|\bTD\b|\bsynthetic production\b",
-    "Inference Ops Specialist": r"\binference specialist\b|\binference ops\b|\bGPU\b|\blatency\b",
+    "Inference Ops Specialist": r"\binference specialist\b|\binference ops\b|\bGPU (?:engineer|operator|operations?|infrastructure)\b|\binference (?:engineer|operator|operations?|infrastructure)\b",
     "AI Workflow Producer": r"\bworkflow producer\b|\bAI producer\b|\bproduction workflow\b",
     "AI Game Tools Engineer": r"\bgame tools\b|\btools programmer\b|\bAI workflows\b",
     "Digital Human Producer": r"\bdigital human\b|\bsynthetic actor\b|\bavatar\b",
@@ -97,7 +97,7 @@ POSITIVE_PATTERNS = re.compile(
     re.I,
 )
 NEGATIVE_PATTERNS = re.compile(
-    r"\b(best tools?|top \d+|coupon|pricing|login|signup|subscribe|privacy|terms|course discount|affiliate|stock picks?|crypto)\b",
+    r"\b(best \d+|best tools?|top \d+|serverless GPU clouds?|cost-effective GPUs?|jobgether|coupon|pricing|login|signup|subscribe|privacy|terms|course discount|affiliate|stock picks?|crypto)\b",
     re.I,
 )
 
