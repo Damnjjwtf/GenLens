@@ -44,6 +44,7 @@ For real job posts, extract:
 - Role title
 - Location / remote / hybrid
 - Salary or rate
+- Direct job URL, publisher URL, and source domain
 - Vertical
 - Required tools
 - Required skills
@@ -83,6 +84,8 @@ Allowed:
 - Studio/company job pages.
 - Public search feeds for tightly scoped role queries.
 - Pasted job posts/transcripts from Jonathan.
+
+Prefer direct ATS/company URLs. If a result only has a Google News/search wrapper URL, label it as a lead and verify the original posting before making salary, location, or tool-stack claims.
 
 Avoid:
 

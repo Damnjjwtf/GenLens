@@ -50,6 +50,15 @@ Every job source must carry an evidence tier:
 
 Genny should prefer sources that repeatedly produce accepted signals and demote sources that repeatedly produce generic or rejected items.
 
+For every accepted job signal, preserve:
+
+- direct URL when available;
+- raw search/RSS URL when the item came through Google News;
+- publisher/source URL when present;
+- source domain.
+
+Prefer direct ATS/company URLs in summaries. If only a wrapped search URL is available, treat it as a lead that needs verification before salary/location/tool facts become claims.
+
 ## Refinement Loop
 
 Each Career Radar scan now outputs `Job Source Quality`.
