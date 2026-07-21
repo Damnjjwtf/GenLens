@@ -289,8 +289,8 @@ def is_career_gateway(link: dict[str, str]) -> bool:
 
 
 def candidate_link_matches(company: str, link: dict[str, str], watch_for: list[str]) -> bool:
-    haystack = f"{company} {link.get('title', '')} {link.get('url', '')} {link.get('summary', '')}"
-    return bool(text_matches_any(haystack, watch_for) or matches(ROLE_PATTERNS, haystack))
+    haystack = f"{link.get('title', '')} {link.get('url', '')} {link.get('summary', '')}"
+    return bool(matches(ROLE_PATTERNS, haystack) or (text_matches_any(haystack, watch_for) and POSITIVE_PATTERNS.search(haystack)))
 
 
 def nested_career_links(link: dict[str, str], company: str, watch_for: list[str], limit: int) -> list[dict[str, str]]:
