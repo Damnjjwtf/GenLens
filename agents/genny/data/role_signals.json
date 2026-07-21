@@ -1,6 +1,13 @@
 {
-  "updated": "2026-07-18",
-  "source": "User-provided transcript about generative AI creative jobs, including roles at Adobe, Sphere, Paramount, Lightricks, Amazon, Netflix, Epic Games, and Netflix Games.",
+  "updated": "2026-07-21",
+  "source": "User-provided transcript about generative AI creative jobs, including roles at Adobe, Sphere, Paramount, Lightricks, Amazon, Netflix, Epic Games, and Netflix Games. Source-channel refinements added from the user's NotebookLM Source 5 summary.",
+  "source_channels": [
+    "X/social screenshots as discovery hints",
+    "public company career pages as primary observed-job evidence",
+    "Discord/private communities as manual-only market-demand signals",
+    "Upwork/freelance marketplaces as workflow-demand signals",
+    "industry publications such as Ad Age as secondary verification"
+  ],
   "schema": {
     "status": "observed | emerging | forecast",
     "verticals": "GenLens verticals affected",
@@ -56,7 +63,7 @@
       "verticals": ["Advertising / Brand Content", "AI Design / Motion Graphics", "AI Filmmaking"],
       "tools": ["ElasticSearch", "DynamoDB", "front-end prototypes", "ML tools"],
       "skills": ["ML-to-creative liaison", "UX prototyping", "front-end development", "internal tools", "creative production translation"],
-      "salary_signal": "$154K-$228K inferred from transcript context",
+      "salary_signal": "$154K-$238K",
       "notes": "Design/web product role serving AI content-generation workflows."
     },
     {
