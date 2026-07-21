@@ -26,6 +26,8 @@ For career intelligence, run the scanner before summarizing:
 python3 /root/.hermes/profiles/genny/scripts/genlens_career_intel.py --limit 8
 ```
 
+Always read the `Job Source Quality` section in the generated Career Radar before answering. If sources are weak, say which source types need replacement or promotion instead of pretending the job market is fully covered.
+
 If Jonathan provides job posts, transcripts, or snippets, save them to a temporary text file and ingest them:
 
 ```bash
@@ -93,6 +95,14 @@ Avoid:
 ## Genny Rule
 
 Job posts are market intelligence. They reveal future creative-production workflows before the industry has stable job titles.
+
+Evidence tiers:
+
+- `primary`: public company careers, public ATS postings, pasted source text. Can support observed roles.
+- `secondary`: articles/trade publications/search feeds. Use for emerging signals unless role facts are specific.
+- `discovery`: social/community screenshots. Verify before publishing.
+- `demand`: freelance/community requests. Use for market demand and proof-builds, not stable role titles.
+- `manual`: watchlist sources requiring review.
 
 Use role intelligence to make GenLens stronger:
 

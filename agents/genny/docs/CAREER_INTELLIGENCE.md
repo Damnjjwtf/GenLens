@@ -38,6 +38,30 @@ Secondary watchlist from the job-site notebook:
 
 - Twilio Segment, Jasper, Vantage Point, BBD Boom, Ad Age, public clipping-shop discussions, and freelance automation demand.
 
+## Evidence Tiers
+
+Every job source must carry an evidence tier:
+
+- `primary`: public company career pages, public ATS postings, or pasted source text. These can support `observed` roles.
+- `secondary`: public articles, trade publications, and search feeds. These support `emerging` signals; only use them for `observed` roles when the role facts are specific and source-backed.
+- `discovery`: social/community mentions and screenshots. Use as leads only.
+- `demand`: freelance marketplace and community work requests. Use for market-demand and proof-build ideas, not stable full-time role titles.
+- `manual`: watchlist sources requiring human/agent review.
+
+Genny should prefer sources that repeatedly produce accepted signals and demote sources that repeatedly produce generic or rejected items.
+
+## Refinement Loop
+
+Each Career Radar scan now outputs `Job Source Quality`.
+
+Use that section to:
+
+- keep sources with multiple accepted signals or strong average scores;
+- tune or replace sources with repeated checked items and zero accepted signals;
+- leave manual/watchlist sources out of automatic claims;
+- add new primary sources when a company repeatedly appears in accepted signals;
+- turn noisy channels into discovery-only inputs instead of briefing evidence.
+
 ## Scripts
 
 Scan public career sources:

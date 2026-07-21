@@ -247,6 +247,28 @@ def status_for(score: int, roles: list[str], title: str) -> str:
     return "market-demand"
 
 
+def status_for_tier(base_status: str, score: int, roles: list[str], source: dict[str, Any]) -> str:
+    tier = str(source.get("evidence_tier") or "").lower()
+    if tier in {"demand", "discovery"}:
+        return "market-demand"
+    if tier == "secondary" and base_status == "observed" and score < 60:
+        return "emerging" if roles else "market-demand"
+    return base_status
+
+
+def accepted_for_tier(score: int, roles: list[str], tools: list[str], skills: list[str], source: dict[str, Any], noisy: bool) -> bool:
+    if noisy:
+        return False
+    tier = str(source.get("evidence_tier") or "secondary").lower()
+    if tier == "primary":
+        return score >= 55 or (roles and score >= 45) or (tools and skills and score >= 40)
+    if tier == "secondary":
+        return score >= 60 or (roles and score >= 50) or (tools and skills and score >= 45)
+    if tier in {"demand", "discovery"}:
+        return score >= 60 or (tools and skills and score >= 50)
+    return score >= 55 or (roles and score >= 45) or (tools and skills and score >= 40)
+
+
 def candidate_from_item(item: dict[str, str], source: dict[str, Any]) -> dict[str, Any]:
     title = strip_text(item.get("title", ""))
     summary = strip_text(item.get("summary", ""))
@@ -257,24 +279,20 @@ def candidate_from_item(item: dict[str, str], source: dict[str, Any]) -> dict[st
     verticals = matches(VERTICAL_PATTERNS, text) or list(source.get("verticals", [])) or ["Cross-Vertical Watchlist"]
     score, reasons = score_candidate(title, summary, source)
     noisy = bool(NEGATIVE_PATTERNS.search(text))
-    accepted = (
-        not noisy
-        and (
-            score >= 55
-            or (roles and score >= 45)
-            or (tools and skills and score >= 40)
-        )
-    )
+    base_status = status_for(score, roles, title)
+    status = status_for_tier(base_status, score, roles, source)
+    accepted = accepted_for_tier(score, roles, tools, skills, source, noisy)
     return {
         "id": fingerprint(title, item.get("url", "")),
         "title": title,
         "url": item.get("url", ""),
         "source": source.get("name", "Unknown source"),
         "source_type": source.get("type", "unknown"),
+        "evidence_tier": source.get("evidence_tier", "secondary"),
         "date": item.get("date", ""),
         "summary": summary,
         "score": score,
-        "status": status_for(score, roles, title),
+        "status": status,
         "roles": roles,
         "tools": tools,
         "skills": skills,
@@ -314,25 +332,80 @@ def pasted_items(text: str) -> list[dict[str, str]]:
     return items
 
 
-def collect(limit: int, input_file: str = "") -> tuple[list[dict[str, Any]], list[str]]:
+def empty_source_stat(source: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "name": source.get("name", "Unknown source"),
+        "type": source.get("type", "unknown"),
+        "evidence_tier": source.get("evidence_tier", "secondary"),
+        "trust": source.get("trust", "unknown"),
+        "checked": 0,
+        "accepted": 0,
+        "rejected": 0,
+        "avg_score": 0,
+        "error": "",
+    }
+
+
+def summarize_source_stat(stat: dict[str, Any]) -> dict[str, Any]:
+    checked = int_value(stat.get("checked"))
+    accepted = int_value(stat.get("accepted"))
+    rejected = int_value(stat.get("rejected"))
+    avg_score = int_value(stat.get("avg_score"))
+    error = str(stat.get("error") or "")
+    source_type = str(stat.get("type") or "")
+    network_error = bool(re.search(r"\b(nodename|name or service|temporary failure|timed out|network|dns)\b", error, re.I))
+    if source_type == "manual":
+        action = "manual-review"
+    elif network_error and checked == 0:
+        action = "check-runtime-network"
+    elif error and checked == 0:
+        action = "needs-replacement"
+    elif checked == 0:
+        action = "quiet"
+    elif accepted >= 2 or avg_score >= 60:
+        action = "keep"
+    elif accepted == 0 and rejected >= 3:
+        action = "tune-or-replace"
+    else:
+        action = "watch"
+    stat["action"] = action
+    return stat
+
+
+def collect(limit: int, input_file: str = "") -> tuple[list[dict[str, Any]], list[str], list[dict[str, Any]]]:
     data = load_sources()
     signals: list[dict[str, Any]] = []
     notes: list[str] = []
+    source_stats: list[dict[str, Any]] = []
     for source in data.get("sources", []):
         source_type = source.get("type")
+        stat = empty_source_stat(source)
         if source_type == "rss":
             try:
                 items = fetch_rss(str(source.get("url")), limit)
             except urllib.error.URLError as exc:
-                notes.append(f"{source.get('name')}: fetch failed - {exc.reason}")
+                reason = f"fetch failed - {exc.reason}"
+                notes.append(f"{source.get('name')}: {reason}")
+                stat["error"] = reason
+                source_stats.append(summarize_source_stat(stat))
                 continue
             except Exception as exc:
-                notes.append(f"{source.get('name')}: parse failed - {exc}")
+                reason = f"parse failed - {exc}"
+                notes.append(f"{source.get('name')}: {reason}")
+                stat["error"] = reason
+                source_stats.append(summarize_source_stat(stat))
                 continue
-            for item in items:
-                signals.append(candidate_from_item(item, source))
+            source_candidates = [candidate_from_item(item, source) for item in items]
+            stat["checked"] = len(source_candidates)
+            stat["accepted"] = sum(1 for candidate in source_candidates if candidate.get("accepted"))
+            stat["rejected"] = stat["checked"] - stat["accepted"]
+            if source_candidates:
+                stat["avg_score"] = round(sum(int_value(candidate.get("score")) for candidate in source_candidates) / len(source_candidates))
+            signals.extend(source_candidates)
+            source_stats.append(summarize_source_stat(stat))
         elif source_type == "manual":
             notes.append(f"{source.get('name')}: manual watchlist only")
+            source_stats.append(summarize_source_stat(stat))
 
     if input_file:
         path = Path(input_file)
@@ -344,7 +417,7 @@ def collect(limit: int, input_file: str = "") -> tuple[list[dict[str, Any]], lis
         }
         for item in pasted_items(path.read_text()):
             signals.append(candidate_from_item(item, source))
-    return signals, notes
+    return signals, notes, source_stats
 
 
 def merge_signals(existing: list[dict[str, Any]], fresh: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -358,7 +431,7 @@ def merge_signals(existing: list[dict[str, Any]], fresh: list[dict[str, Any]]) -
     return sorted(by_id.values(), key=lambda row: (int(bool(row.get("accepted", False))), int_value(row.get("score", 0))), reverse=True)
 
 
-def render_markdown(signals: list[dict[str, Any]], notes: list[str], limit: int) -> str:
+def render_markdown(signals: list[dict[str, Any]], notes: list[str], source_stats: list[dict[str, Any]], limit: int) -> str:
     accepted = [row for row in signals if row.get("accepted")]
     rejected = [row for row in signals if not row.get("accepted")]
     role_counts = Counter(role for row in accepted for role in row.get("roles", []))
@@ -395,6 +468,7 @@ def render_markdown(signals: list[dict[str, Any]], notes: list[str], limit: int)
             f"- Score: {row.get('score')} / 100",
             f"- Status: {row.get('status')}",
             f"- Source: {row.get('source')}",
+            f"- Evidence tier: {row.get('evidence_tier')}",
             f"- Verticals: {', '.join(row.get('verticals', [])) or 'Unassigned'}",
             f"- Roles: {', '.join(row.get('roles', [])) or 'Unclassified'}",
             f"- Tools: {', '.join(row.get('tools', [])) or 'None detected'}",
@@ -404,6 +478,20 @@ def render_markdown(signals: list[dict[str, Any]], notes: list[str], limit: int)
         if row.get("summary"):
             lines.append(f"- Summary: {row.get('summary')}")
         lines.append("")
+
+    lines.extend(["## Job Source Quality", ""])
+    if source_stats:
+        for stat in sorted(source_stats, key=lambda row: (str(row.get("action")) != "keep", str(row.get("action")), str(row.get("name")))):
+            lines.append(
+                f"- **{stat.get('name')}** — `{stat.get('action')}` / `{stat.get('evidence_tier')}`: "
+                f"{stat.get('accepted')}/{stat.get('checked')} accepted, avg score {stat.get('avg_score')}. "
+                f"Trust: {stat.get('trust')}."
+            )
+            if stat.get("error"):
+                lines.append(f"  Error: {stat.get('error')}")
+    else:
+        lines.append("- No source statistics produced.")
+    lines.append("")
 
     lines.extend(["## Source Notes", ""])
     if notes:
@@ -423,7 +511,7 @@ def main() -> int:
     parser.add_argument("--max-report", type=int, default=20)
     args = parser.parse_args()
 
-    fresh, notes = collect(max(1, min(args.limit, 20)), args.input_file)
+    fresh, notes, source_stats = collect(max(1, min(args.limit, 20)), args.input_file)
     existing = load_existing(Path(args.out_json)).get("signals", [])
     merged = merge_signals(existing, fresh)
     payload = {
@@ -433,6 +521,7 @@ def main() -> int:
             "accepted": "true when score >= 55, or explicit role signals score >= 45, or tool+skill signals score >= 40, with no noise pattern detected",
             "score": "0-100 career-intelligence quality score",
         },
+        "source_quality": source_stats,
         "signals": merged[:250],
     }
 
@@ -441,7 +530,7 @@ def main() -> int:
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_md.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps(payload, indent=2) + "\n")
-    out_md.write_text(render_markdown(merged, notes, max(1, args.max_report)))
+    out_md.write_text(render_markdown(merged, notes, source_stats, max(1, args.max_report)))
     print(out_json)
     print(out_md)
     return 0
