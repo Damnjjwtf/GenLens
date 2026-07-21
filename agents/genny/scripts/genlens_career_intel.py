@@ -138,6 +138,9 @@ NEGATIVE_PATTERNS = re.compile(
     re.I,
 )
 ATS_DOMAINS = {"boards.greenhouse.io", "jobs.lever.co", "jobs.ashbyhq.com", "jobs.workable.com", "workable.com"}
+HTML_FETCH_TIMEOUT_SECONDS = int(os.environ.get("GENLENS_CAREER_HTML_TIMEOUT", "8"))
+MAX_GATEWAY_FETCHES_PER_COMPANY = int(os.environ.get("GENLENS_CAREER_GATEWAY_FETCHES", "2"))
+MAX_CAREER_LINKS_PER_COMPANY = int(os.environ.get("GENLENS_CAREER_LINKS", "24"))
 GENERIC_LINK_TEXT = re.compile(
     r"\b(home|about|privacy|terms|cookie|login|sign in|subscribe|blog|press|contact|support|help|legal|talent community|personal information|do not sell|my applications?|my profile)\b",
     re.I,
@@ -258,7 +261,7 @@ def fetch_rss(url: str, limit: int) -> list[dict[str, str]]:
 def fetch_html(url: str) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": "GenLensCareerIntel/1.0"})
     ctx = ssl.create_default_context()
-    with urllib.request.urlopen(req, timeout=18, context=ctx) as response:
+    with urllib.request.urlopen(req, timeout=HTML_FETCH_TIMEOUT_SECONDS, context=ctx) as response:
         return response.read(1_500_000).decode("utf-8", errors="replace")
 
 
@@ -327,7 +330,12 @@ def career_page_items(target: dict[str, Any], limit: int) -> list[dict[str, str]
     links = html_links(body, career_url)
     items: list[dict[str, str]] = []
     seen: set[str] = set()
-    for link in links:
+    gateway_fetches = 0
+    for link in links[:MAX_CAREER_LINKS_PER_COMPANY]:
+        if is_career_gateway(link) and gateway_fetches >= MAX_GATEWAY_FETCHES_PER_COMPANY:
+            continue
+        if is_career_gateway(link):
+            gateway_fetches += 1
         candidates = nested_career_links(link, company, watch_for, limit) if is_career_gateway(link) else [link]
         for candidate in candidates:
             url = candidate.get("url", "")
