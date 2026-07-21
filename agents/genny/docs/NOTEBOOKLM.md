@@ -4,11 +4,6 @@ Genny can use NotebookLM as an optional source-grounded research layer.
 
 Current registered notebook:
 
-- `Creative Autonomy`
-- `https://notebooklm.google.com/notebook/7509454e-8872-477f-b67e-0e001ae91280`
-
-Additional registered notebook:
-
 - `Shared NotebookLM Source`
 - `https://notebooklm.google.com/notebook/ea254699-b839-4a10-81a7-abe127ab63b3?utm_source=nlmm_share`
 

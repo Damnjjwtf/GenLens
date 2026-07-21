@@ -1,20 +1,20 @@
 ---
 name: notebooklm-py
-description: Use the installed notebooklm-py CLI wrapper to query Google NotebookLM notebooks when authenticated, especially the Creative Autonomy notebook.
+description: Use the installed notebooklm-py CLI wrapper to query registered Google NotebookLM notebooks when authenticated.
 required_tools:
   - terminal
 ---
 
 # NotebookLM via notebooklm-py
 
-Use this skill when Jonathan asks Genny to use NotebookLM, Creative Autonomy, notebook memory, notebook-grounded synthesis, or source-grounded research from NotebookLM.
+Use this skill when Jonathan asks Genny to use NotebookLM, notebook memory, notebook-grounded synthesis, or source-grounded research from NotebookLM.
 
 ## Installed Runtime
 
 - Python venv: `/root/.hermes/profiles/genny/.venv-notebooklm`
 - CLI: `/root/.hermes/profiles/genny/.venv-notebooklm/bin/notebooklm`
 - Genny wrapper: `/root/.hermes/profiles/genny/scripts/genlens_notebooklm.py`
-- Default notebook hint: `creative autonomy`
+- Notebook registry: `/root/.hermes/profiles/genny/data/notebooklm_sources.json`
 
 ## Health First
 
@@ -38,18 +38,18 @@ List notebooks:
 /root/.hermes/profiles/genny/scripts/genlens_notebooklm.py list
 ```
 
-Select Creative Autonomy:
+Select the registered GenLens notebook:
 
 ```bash
-/root/.hermes/profiles/genny/scripts/genlens_notebooklm.py select --hint "creative autonomy"
+/root/.hermes/profiles/genny/scripts/genlens_notebooklm.py select --hint "genlens"
 ```
 
 Ask a source-grounded question:
 
 ```bash
 /root/.hermes/profiles/genny/scripts/genlens_notebooklm.py ask \
-  --hint "creative autonomy" \
-  "What should GenLens remember about creative autonomy and AI production workflows?"
+  --hint "genlens" \
+  "What should GenLens remember from the registered NotebookLM sources?"
 ```
 
 ## Safety

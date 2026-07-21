@@ -65,14 +65,7 @@ Hourly retry:
 
 ## NotebookLM
 
-Register the notebook:
-
-```text
-Name: Creative Autonomy
-URL: https://notebooklm.google.com/notebook/7509454e-8872-477f-b67e-0e001ae91280
-```
-
-Registered shared notebooks are tracked in:
+Registered NotebookLM sources are tracked in:
 
 ```text
 data/notebooklm_sources.json
