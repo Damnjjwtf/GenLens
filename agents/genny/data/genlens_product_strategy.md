@@ -1,10 +1,20 @@
-# GenLens Product Strategy: Genny Market Intelligence
+# GenLens Product Strategy: Intelligence for the Generative AI Economy
 
-Last updated: July 18, 2026
+Last updated: July 20, 2026
 
 ## Core Thesis
 
-GenLens should not be a generic AI creative news digest. Genny should turn source signals into market intelligence for AI-native creative production.
+GenLens should become the intelligence system for the generative AI economy.
+It uses two distinct specialist lenses on one verified intelligence spine:
+
+- Genny turns production signals into decisions for creative technologists.
+- Marti turns AI-native marketing and MarTech signals into decisions for
+  marketing operators.
+
+This document develops Genny's production-intelligence strategy. Marti remains
+separately gated, and cross-lens conclusions require a verified shared
+mechanism, workflow, or economic consequence. The canonical hierarchy and
+metrics live in `../docs/GENLENS_NORTH_STAR.md`.
 
 The key product move is:
 
@@ -14,7 +24,8 @@ Genny reads releases, job posts, tutorials, case studies, funding news, research
 
 ## Adapted From GIGSAW
 
-GIGSAW is career operations for one person. GenLens is market intelligence for a creative-technologist audience.
+GIGSAW is career operations for one person. Genny is GenLens market
+intelligence for a creative-technologist audience.
 
 | GIGSAW Mode | GenLens / Genny Equivalent | Output |
 |---|---|---|

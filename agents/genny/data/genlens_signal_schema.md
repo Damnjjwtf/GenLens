@@ -1,6 +1,6 @@
 # GenLens Signal Schema
 
-Last updated: July 18, 2026
+Last updated: July 20, 2026
 
 Adapted from a MarTech monitoring PRD. The subject matter is different, but the operating model is useful for Genny.
 
@@ -73,6 +73,26 @@ Prefer source hierarchy:
 2. Verified case studies and production breakdowns.
 3. Trade publications with concrete workflow details.
 4. Curated news/search feeds only as discovery, not final authority.
+
+## Decision-ready archive fields
+
+The five fields above remain the minimum editorial admission test. A persisted
+GenLens signal should eventually add the fields below so the intelligence can
+support decisions rather than only briefings:
+
+- **Stable ID:** durable identity across updates, briefs, and lenses.
+- **Lens:** `genny`, `marti`, or human-verified `convergence`.
+- **Decision:** `test`, `adopt`, `avoid`, `migrate`, `brief`, `budget`, or
+  `watch`.
+- **Confidence:** strength and completeness of the supporting evidence.
+- **Source type:** primary, corroborated reporting, trade reporting, or
+  discovery lead.
+- **Published and observed dates:** when the change happened and when GenLens
+  recorded it.
+
+These fields describe the target structured record. Do not claim that the
+stable signal archive or decision tracking exists until it is implemented and
+verified.
 
 ## GenLens Pillars
 

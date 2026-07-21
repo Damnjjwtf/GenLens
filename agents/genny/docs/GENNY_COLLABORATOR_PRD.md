@@ -6,7 +6,29 @@ Use this document to onboard an AI collaborator, engineer, researcher, designer,
 
 ## One-sentence definition
 
-Genny is the Hermes-powered intelligence agent behind GenLens: she turns verified changes in AI-assisted creative production into useful briefings, role intelligence, proof-build ideas, and product opportunities for working creative technologists.
+Genny is the Hermes-powered production-intelligence lens inside GenLens: she
+turns verified changes in AI-assisted creative production into useful
+briefings, role intelligence, proof-build ideas, and product opportunities for
+working creative technologists.
+
+## Parent product north star
+
+> GenLens is the intelligence system for the generative AI economy: Genny tracks
+> generative AI production, Marti tracks AI-native marketing and MarTech, and
+> together they turn verified ecosystem signals into trusted, actionable
+> decisions.
+
+The product hierarchy is deliberate:
+
+- **GenLens** owns the shared intelligence spine and decision product.
+- **Genny** owns production workflows, economics, rights, tools, and roles.
+- **Marti** owns AI-native marketing, distribution, measurement, and stack
+  economics.
+- **Unified output** is reserved for verified cross-lens convergence; it is not
+  a generic blend of both feeds.
+
+The canonical positioning, product metrics, milestones, and non-goals live in
+`docs/GENLENS_NORTH_STAR.md`.
 
 ## Product thesis
 
@@ -184,6 +206,7 @@ Genny runs as the Hermes profile at `/root/.hermes/profiles/genny`. The systemd 
 | File | Responsibility |
 |---|---|
 | `AGENT.md` | Full persona, routing rules, editorial behavior, and safety constraints |
+| `docs/GENLENS_NORTH_STAR.md` | Canonical product hierarchy, positioning, north-star metric, and milestones |
 | `docs/SOUL-compact.md` | Compact Hermes prompt |
 | `data/genny_sources.json` | Source registry grouped by vertical |
 | `data/genlens_preferences.json` | Jonathan's persistent output and product preferences |

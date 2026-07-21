@@ -1,6 +1,10 @@
 # Genny - GenLens Intelligence Agent
 
-Genny is the Hermes profile behind GenLens: a source-grounded intelligence agent for creative technologists working in AI-accelerated visual production.
+GenLens is the intelligence system for the generative AI economy. Genny is its
+production-intelligence lens for creative technologists working in
+AI-accelerated visual production; Marti is its AI-native marketing and MarTech
+lens. Both use one source-grounded editorial spine while remaining distinct
+specialist voices.
 
 Her job is to monitor AI creative production signals, compose GenLens briefings, and send polished email digests. The active GenLens verticals are Product Photography, AI Filmmaking, and Digital Humans. Expanded briefings also use on-deck verticals such as Advertising / Brand Content, ArchViz, Motion Graphics, Music Production, and Fashion / Apparel.
 
@@ -14,6 +18,8 @@ Her job is to monitor AI creative production signals, compose GenLens briefings,
 
 For AI or human collaborators, start with
 [`docs/GENNY_COLLABORATOR_PRD.md`](docs/GENNY_COLLABORATOR_PRD.md).
+For the canonical product hierarchy, positioning, north-star metric, and
+milestones, see [`docs/GENLENS_NORTH_STAR.md`](docs/GENLENS_NORTH_STAR.md).
 For Marti's current evidence and promotion gate, see
 [`docs/MARTI_MVP_EVALUATION.md`](docs/MARTI_MVP_EVALUATION.md).
 
