@@ -32,7 +32,7 @@
     },
     "decision": {
       "type": ["string", "null"],
-      "enum": ["test", "adopt", "avoid", "migrate", "brief", "budget", "watch", null]
+      "enum": ["test", "adopt", "avoid", "migrate", "brief", "budget", "plan", "watch", null]
     },
     "run": {
       "type": "object",

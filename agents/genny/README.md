@@ -11,8 +11,8 @@ Her job is to monitor AI creative production signals, compose GenLens briefings,
 ## What Is In This Project
 
 - `AGENT.md` - Genny's operating persona and rules.
-- `data/` - source registry, signal-record schema, tools manifest, preferences, backlog, NotebookLM seed bundle, and Jonathan feedback.
-- `scripts/` - source scan, career intelligence, briefing composition, structured signal ledger, daily digest, retry digest, and Resend email delivery.
+- `data/` - source registries, versioned signal and decision contracts, tools manifest, preferences, backlog, NotebookLM seed bundle, and Jonathan feedback.
+- `scripts/` - source scan, career intelligence, briefing composition, structured signal ledger, decision queue, WVDA reporting, daily digest, retry digest, and Resend email delivery.
 - `prompts/` - reusable prompt specs for signal scoring, briefing format, and delta extraction.
 - `docs/` - setup and architecture notes.
 
@@ -24,6 +24,8 @@ For Marti's current evidence and promotion gate, see
 [`docs/MARTI_MVP_EVALUATION.md`](docs/MARTI_MVP_EVALUATION.md).
 For stable signal IDs, accepted/rejected review history, and runtime artifacts,
 see [`docs/SIGNAL_LEDGER.md`](docs/SIGNAL_LEDGER.md).
+For explicit user actions, queue state, and Weekly Verified Decision Actions,
+see [`docs/DECISION_QUEUE.md`](docs/DECISION_QUEUE.md).
 
 No API keys, bot tokens, Google credentials, or Resend secrets are stored here.
 
@@ -37,6 +39,24 @@ python3 scripts/genlens_compose_brief.py --mode expanded --per-vertical 5 --rss-
 
 The composer also writes `state/signal_ledger.json`. Marti and unified runs use
 their own suffixed ledger files.
+
+Record an explicit decision against a verified signal and report WVDA:
+
+```bash
+python3 scripts/genlens_decision_queue.py \
+  --ledger state/signal_ledger.json \
+  record-action \
+  --signal-id sig_0123456789abcdefabcd \
+  --action watch \
+  --actor-id jonathan \
+  --note "Watch this verified signal." \
+  --idempotency-key decision-message-123
+
+python3 scripts/genlens_decision_queue.py report --week-start 2026-07-20
+```
+
+Only explicit user actions qualify. Agent suggestions, system activity, opens,
+clicks, delivery, inferred intent, and queue transitions never count as WVDA.
 
 Send a visual email:
 
