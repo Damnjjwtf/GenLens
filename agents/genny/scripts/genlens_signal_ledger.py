@@ -120,6 +120,8 @@ def make_candidate_review(
     authoritative = bool(
         source_type in PRIMARY_SOURCE_TYPES
         or (
+            source_type == "news_search"
+            and
             candidate_host
             and source_host
             and (

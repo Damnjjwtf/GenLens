@@ -1,7 +1,8 @@
 # Marti MVP Evaluation
 
 Date: July 21, 2026
-Status: Research MVP passes one evaluation run; not approved for scheduled sends
+Status: Current release candidate passes one corrected evaluation run; not
+approved for scheduled sends
 
 ## What is live
 
@@ -17,6 +18,10 @@ Status: Research MVP passes one evaluation run; not approved for scheduled sends
   from each lens, a shared workflow, a shared mechanism or entity, and overlap
   across at least two dimensions
 - deterministic regression tests for taxonomy, recency, housekeeping suppression, email identity, and convergence
+- versioned signal records with stable IDs, confidence, source evidence,
+  machine-readable rejection reasons, and conservative action labels
+- an evidence-bound decision brief with layer-specific next steps, stop/go
+  conditions, and explicit local-impact boundaries
 
 ## First live-feed results
 
@@ -72,10 +77,43 @@ and reads evidence-bearing article paragraphs when official feeds provide weak
 summaries. Regression tests cover the RudderStack false positive and the late
 Search Console article body.
 
-This clean July 21 result counts as evaluation run 1 of the three consecutive
-passing runs required for promotion. It does not authorize scheduled sends, and
-no email was sent. Agentic Marketing Workflows remains the highest-priority
-source gap.
+That earlier result remains useful historical evidence, but it does not count
+in the corrected release-candidate streak. The current audit found that a
+static Zapier web-scraping guide could survive on the phrase `open source`, and
+that same-domain editorial blogs could be mislabeled `primary-source`. Both
+issues are now regression-tested and repaired.
+
+## Corrected release-candidate evaluation
+
+The corrected July 21 isolated no-send run produced eight linked cards across
+six Marti layers, with no duplicate titles:
+
+- Agentic Marketing Workflows: 1
+- Paid Media / Creative Performance: 3
+- Stack Consolidation / Displacement: 1
+- Lifecycle / Retention: 1
+- Commerce / Conversion: 1
+- SEO / AEO / Content Systems: 1
+
+Seven of eight cards resolve to primary first-party evidence. The Relay
+shutdown/migration article is credible but secondary Zapier reporting and is
+now labeled `single-source`, with a mandatory corroboration boundary before an
+irreversible migration. The accepted set also includes TikTok Symphony Agent,
+Google Ads campaign and disclosure controls, Meta creator/AI tooling,
+Salesforce/Slackbot segmentation and identity actions, Shopify Managed Markets
+pricing, and Search Console platform properties.
+
+The six-card/three-layer quantitative issue gate passes, but promotion remains
+held. This is clean run 1 of 3 under the corrected gate, the last-20-card human
+false-positive review is incomplete, and no email was sent.
+
+The decision layer now turns each verified signal into a bounded operator move:
+an action-specific next step, a stop/go condition, and an evidence boundary.
+Agentic tests require least privilege and human approval for external actions;
+paid-media tests require capped spend and a frozen baseline; lifecycle tests
+require non-production data and reversibility. Primary evidence verifies the
+change, not local ROI; single-source evidence explicitly requires
+corroboration.
 
 ## Reassessment of the Marti-Genny thesis
 
@@ -113,15 +151,14 @@ gate and at least three convergence candidates have survived human verification.
 
 ## Recommended next build order
 
-1. Repeat the live evaluation twice more and manually review the accepted-card
-   set before considering scheduled delivery.
-2. Improve the Agentic Marketing Workflows source pool without lowering the
-   editorial gate.
-3. Introduce structured signal records with stable IDs, source type, confidence,
-   lens, layer, mechanism, use case, and impact fields.
-4. Record rejected candidates with machine-readable rejection reasons.
-5. Build the Kill List only after structured cost and migration assumptions exist.
-6. Add Ask Marti only after the structured archive is large enough to answer
+1. Repeat the corrected live evaluation twice more and manually review the
+   latest 20 accepted cards before considering scheduled delivery.
+2. Corroborate the Relay shutdown from a primary Relay source before treating
+   the migration recommendation as decision-ready.
+3. Expand Measurement / Attribution and Marketing Data / Identity with bounded
+   first-party release sources; do not lower the gate to fill them.
+4. Build the Kill List only after structured cost and migration assumptions exist.
+5. Add Ask Marti only after the structured archive is large enough to answer
    useful questions without general model knowledge.
 
 ## Product recommendation

@@ -162,7 +162,7 @@ NEWS_TITLE_PATTERNS = re.compile(
 )
 
 HIGH_VALUE_SIGNAL_PATTERNS = re.compile(
-    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|customer story|benchmark|pricing|license|policy|rights|compliance|deprecat|sunset|shut(?:ting)? down|sdk|api|integration|open source|generally available|beta|v\d+(?:\.\d+)*)\b",
+    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|customer story|benchmark|pricing|license|policy|rights|compliance|deprecat|sunset|shut(?:ting)? down|sdk|api|integration|open source|generally available|now (?:available|supports?|lets?|allows?|requires?|uses?|includes?)|can now|must now|will now|beta|v\d+(?:\.\d+)*)\b",
     re.I,
 )
 
@@ -183,7 +183,7 @@ NUMERIC_EVIDENCE_PATTERNS = re.compile(
 
 LOW_VALUE_TITLE_PATTERNS = re.compile(
     r"\b(best|top|what is|how to|how i (?:built|made|created)|guide to|ultimate guide|walkthrough|tutorial|step-by-step|"
-    r"building (?:a|an|the)|tips|examples|template|category|all articles|learn more|resources|use cases|customer stories|"
+    r"building (?:a|an|the)|tips|examples|template|guide|category|all articles|learn more|resources|use cases|customer stories|"
     r"case studies|compare|vs\.?|which .* fits|make money|start a podcast|embed a video|gaming headphones|signed synths?|"
     r"supersaw sound|record cutting)\b",
     re.I,

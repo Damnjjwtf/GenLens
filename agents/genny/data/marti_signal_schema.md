@@ -1,8 +1,8 @@
 # Marti Signal Schema
 
-Status: MVP operating schema
+Status: Implemented operating schema
 
-Last updated: July 20, 2026
+Last updated: July 21, 2026
 
 Marti tracks changes in marketing technology, distribution, measurement, and stack economics. A publishable item must support at least three of the fields below and must include a verifiable link.
 
@@ -43,7 +43,7 @@ Confidence and completeness are separate. A primary release note can be authorit
 
 ## Decision-ready archive fields
 
-When Marti signals become persisted structured records, each record should add:
+Marti signals are persisted in the versioned signal ledger. Each record adds:
 
 - a stable ID;
 - lens value `marti`;
@@ -53,6 +53,10 @@ When Marti signals become persisted structured records, each record should add:
 - source type plus published and observed dates;
 - a mechanism, operator use case, impact, and exact evidence URL.
 
+Rejected candidates are retained with machine-readable reason codes. Published
+records may render an evidence-bound recommendation, but recommendations are
+not user decisions and do not enter the decision queue without an attributed
+human confirmation.
+
 For cross-lens output, `convergence` may replace `marti` only after a human
-verifies the shared mechanism, workflow, or economic consequence. This is the
-target archive schema, not a claim that stable signal storage already exists.
+verifies the shared mechanism, workflow, or economic consequence.

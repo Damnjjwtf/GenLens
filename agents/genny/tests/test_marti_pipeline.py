@@ -27,6 +27,34 @@ class MartiPipelineTests(unittest.TestCase):
         data = composer.load_sources("marti")
         self.assertEqual(set(composer.MARTI_ACTIVE_LAYERS), set(data["verticals"]) & set(composer.MARTI_ACTIVE_LAYERS))
 
+    def test_every_marti_news_search_has_an_explicit_trust_boundary(self) -> None:
+        data = composer.load_sources("marti")
+        sources = [
+            source
+            for layer_sources in data["verticals"].values()
+            for source in layer_sources
+            if source.get("source_type") == "news_search"
+        ]
+
+        self.assertGreater(len(sources), 0)
+        for source in sources:
+            with self.subTest(source=source["name"]):
+                self.assertGreater(len(source.get("trusted_domains", [])), 0)
+                self.assertGreater(len(source.get("primary_domains", [])), 0)
+                self.assertTrue(set(source["primary_domains"]) <= set(source["trusted_domains"]))
+
+    def test_agentic_marketing_has_a_bounded_first_party_discovery_source(self) -> None:
+        data = composer.load_sources("marti")
+        sources = data["verticals"]["Agentic Marketing Workflows"]
+        tiktok = next(source for source in sources if source["name"] == "TikTok Agentic Marketing News Search")
+
+        self.assertEqual(tiktok["required_terms"], ["agent"])
+        self.assertEqual(tiktok["primary_domains"], ["tiktok.com"])
+        self.assertNotIn(
+            "TikTok Ads News Search",
+            {source["name"] for source in data["verticals"]["Paid Media / Creative Performance"]},
+        )
+
     def test_recent_window_rejects_old_items(self) -> None:
         today = dt.datetime.now(dt.timezone.utc).date()
         self.assertTrue(composer.likely_recent("Current release", today.isoformat()))
@@ -213,6 +241,42 @@ class MartiPipelineTests(unittest.TestCase):
         )
         self.assertFalse(rejected[0])
         self.assertIn("false-positive", rejected[2])
+
+    def test_static_guide_is_not_a_stack_displacement_change(self) -> None:
+        rejected = composer.quality_review(
+            "Stack Consolidation / Displacement",
+            {
+                "name": "Zapier Blog",
+                "source_type": "blog",
+                "priority": "high",
+                "watch_for": ["open source", "replacement", "stack"],
+            },
+            "Web scraping: A comprehensive guide",
+            "This overview introduces open source scraping libraries and common workflow patterns.",
+            "https://zapier.com/blog/web-scraping",
+            dt.datetime.now(dt.timezone.utc).date().isoformat(),
+        )
+
+        self.assertFalse(rejected[0])
+        self.assertEqual(rejected[2], "generic/how-to/category title")
+
+    def test_official_can_now_change_is_not_underweighted(self) -> None:
+        accepted = composer.quality_review(
+            "Lifecycle / Retention",
+            {
+                "name": "Salesforce News",
+                "url": "https://www.salesforce.com/news/",
+                "source_type": "official_updates",
+                "priority": "medium",
+                "watch_for": ["segmentation", "identity", "CRM"],
+            },
+            "Slackbot Can Now Do Anything Salesforce Can. Just Ask.",
+            "Slackbot can now update segmentation logic and verify identity data directly in a CRM conversation.",
+            "https://www.salesforce.com/news/linked-content/slackbot-can-now-do-anything-salesforce-can-just-ask/",
+            dt.datetime.now(dt.timezone.utc).date().isoformat(),
+        )
+
+        self.assertTrue(accepted[0], accepted[2])
 
     def test_static_identity_explainer_is_not_a_marti_change_signal(self) -> None:
         accepted, _score, reason = composer.quality_review(

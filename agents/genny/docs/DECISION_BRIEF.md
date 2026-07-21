@@ -32,6 +32,20 @@ controlled mechanism, bounded operator use case, and potential impact area.
 The generator does not invent quantitative outcomes or promote rejected
 candidates.
 
+Every rendered recommendation also includes:
+
+- an action-specific operator next step;
+- an explicit decision condition or stop/go boundary;
+- an evidence boundary distinguishing a verified ecosystem change from an
+  unproven local ROI, cost, or performance outcome;
+- a stricter corroboration warning for single-source reporting.
+
+`test` recommendations are layer-aware. Agentic marketing tests require a
+least-privilege sandbox and human approval for external actions; paid-media
+tests require capped spend and a frozen baseline; lifecycle tests require
+non-production data, permissions, auditability, and reversibility; SEO/AEO
+tests compare reporting coverage and latency on one bounded property.
+
 ## WVDA Boundary
 
 A recommendation is not a user decision and never counts toward Weekly

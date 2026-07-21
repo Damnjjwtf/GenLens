@@ -62,6 +62,11 @@ class DecisionBriefTests(unittest.TestCase):
         self.assertIn("not recorded user decisions", markdown)
         self.assertIn("do not count toward Weekly Verified Decision Actions", markdown)
         self.assertIn("Confirmation needed", markdown)
+        self.assertIn("Operator next step:", markdown)
+        self.assertIn("feature-parity check", markdown)
+        self.assertIn("Decision condition:", markdown)
+        self.assertIn("Evidence boundary:", markdown)
+        self.assertIn("not local ROI", markdown)
 
     def test_empty_published_set_does_not_manufacture_decision(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -76,6 +81,32 @@ class DecisionBriefTests(unittest.TestCase):
             markdown = decision_brief.render_decision_brief(decision_brief.load_ledger(path))
 
         self.assertIn("do not manufacture a decision", markdown)
+
+    def test_test_recommendation_has_layer_specific_bounded_experiment(self) -> None:
+        record = {
+            "recommended_action": "test",
+            "verticals": ["Agentic Marketing Workflows"],
+            "title": "TikTok introduces an agent workflow",
+            "summary": "The new MCP integration lets an AI agent manage advertising campaigns.",
+            "confidence": "primary-source",
+        }
+
+        self.assertIn("least-privilege sandbox", decision_brief.operator_next_step(record))
+        self.assertIn("human approval", decision_brief.operator_next_step(record))
+        self.assertIn("predefined metric", decision_brief.decision_condition(record))
+        self.assertIn("not local ROI", decision_brief.evidence_boundary(record))
+
+    def test_single_source_recommendation_requires_corroboration(self) -> None:
+        record = {
+            "recommended_action": "migrate",
+            "verticals": ["Stack Consolidation / Displacement"],
+            "title": "A competitor says Relay is shutting down",
+            "summary": "Customers must export workflows before the deadline.",
+            "confidence": "single-source",
+        }
+
+        self.assertIn("corroborate", decision_brief.evidence_boundary(record))
+        self.assertIn("rollback plan", decision_brief.decision_condition(record))
 
 
 if __name__ == "__main__":

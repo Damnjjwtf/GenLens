@@ -137,6 +137,17 @@ class SignalLedgerTests(unittest.TestCase):
         self.assertTrue(review["authoritative"])
         self.assertEqual(review["confidence"], "primary-source")
 
+    def test_same_domain_editorial_blog_is_not_automatically_primary(self) -> None:
+        review = self.candidate(
+            source_name="Zapier Blog",
+            source_url="https://zapier.com/blog/",
+            source_type="blog",
+            url="https://zapier.com/blog/relay-alternatives",
+        )
+
+        self.assertFalse(review["authoritative"])
+        self.assertEqual(review["confidence"], "single-source")
+
     def test_rejection_reason_is_machine_readable(self) -> None:
         review = self.candidate(
             status="rejected",
