@@ -134,6 +134,10 @@ NEGATIVE_PATTERNS = re.compile(
     re.I,
 )
 ATS_DOMAINS = {"boards.greenhouse.io", "jobs.lever.co", "jobs.ashbyhq.com", "jobs.workable.com", "workable.com"}
+GENERIC_LINK_TEXT = re.compile(
+    r"\b(home|about|privacy|terms|cookie|login|sign in|subscribe|blog|press|contact|support|help|legal)\b",
+    re.I,
+)
 
 
 def now_iso() -> str:
@@ -240,6 +244,57 @@ def fetch_rss(url: str, limit: int) -> list[dict[str, str]]:
                 "date": parse_date(published),
                 "summary": summary[:500],
             })
+    return items
+
+
+def fetch_html(url: str) -> str:
+    req = urllib.request.Request(url, headers={"User-Agent": "GenLensCareerIntel/1.0"})
+    ctx = ssl.create_default_context()
+    with urllib.request.urlopen(req, timeout=18, context=ctx) as response:
+        return response.read(1_500_000).decode("utf-8", errors="replace")
+
+
+def html_links(body: str, base_url: str) -> list[dict[str, str]]:
+    links: list[dict[str, str]] = []
+    for match in re.finditer(r"<a\b[^>]*href=[\"']([^\"']+)[\"'][^>]*>(.*?)</a>", body, re.I | re.S):
+        href = html.unescape(match.group(1)).strip()
+        if not href or href.startswith(("#", "mailto:", "tel:", "javascript:")):
+            continue
+        text = strip_text(match.group(2))
+        if not text or GENERIC_LINK_TEXT.fullmatch(text):
+            continue
+        links.append({
+            "title": text[:180],
+            "url": urllib.parse.urljoin(base_url, href),
+            "summary": text[:500],
+            "date": dt.date.today().isoformat(),
+        })
+    return links
+
+
+def text_matches_any(text: str, terms: list[str]) -> bool:
+    lowered = text.lower()
+    return any(str(term).lower() in lowered for term in terms)
+
+
+def career_page_items(target: dict[str, Any], limit: int) -> list[dict[str, str]]:
+    company = str(target.get("company") or "Unknown company")
+    career_url = str(target.get("career_url") or "")
+    watch_for = [str(term) for term in target.get("watch_for", [])]
+    if not career_url:
+        return []
+    body = fetch_html(career_url)
+    links = html_links(body, career_url)
+    items: list[dict[str, str]] = []
+    for link in links:
+        haystack = f"{company} {link.get('title', '')} {link.get('url', '')} {link.get('summary', '')}"
+        if not (text_matches_any(haystack, watch_for) or POSITIVE_PATTERNS.search(haystack) or matches(ROLE_PATTERNS, haystack)):
+            continue
+        link["title"] = f"{company}: {link['title']}"
+        link["summary"] = f"Public company career page match for {company}: {link.get('summary', '')}"
+        items.append(link)
+        if len(items) >= limit:
+            break
     return items
 
 
@@ -503,6 +558,40 @@ def collect(limit: int, input_file: str = "") -> tuple[list[dict[str, Any]], lis
         elif source_type == "manual":
             notes.append(f"{source.get('name')}: manual watchlist only")
             source_stats.append(summarize_source_stat(stat))
+
+    watchlist = data.get("direct_source_targets", {}).get("company_watchlist", [])
+    for target in watchlist:
+        company = str(target.get("company") or "Unknown company")
+        source = {
+            "name": f"{company} Career Page",
+            "type": "company_watchlist",
+            "evidence_tier": "primary",
+            "verticals": ["Cross-Vertical Watchlist"],
+            "trust": "high",
+        }
+        stat = empty_source_stat(source)
+        try:
+            items = career_page_items(target, max(1, min(limit, 8)))
+        except urllib.error.URLError as exc:
+            reason = f"fetch failed - {exc.reason}"
+            notes.append(f"{source.get('name')}: {reason}")
+            stat["error"] = reason
+            source_stats.append(summarize_source_stat(stat))
+            continue
+        except Exception as exc:
+            reason = f"parse failed - {exc}"
+            notes.append(f"{source.get('name')}: {reason}")
+            stat["error"] = reason
+            source_stats.append(summarize_source_stat(stat))
+            continue
+        source_candidates = [candidate_from_item(item, source) for item in items]
+        stat["checked"] = len(source_candidates)
+        stat["accepted"] = sum(1 for candidate in source_candidates if candidate.get("accepted"))
+        stat["rejected"] = stat["checked"] - stat["accepted"]
+        if source_candidates:
+            stat["avg_score"] = round(sum(int_value(candidate.get("score")) for candidate in source_candidates) / len(source_candidates))
+        signals.extend(source_candidates)
+        source_stats.append(summarize_source_stat(stat))
 
     if input_file:
         path = Path(input_file)

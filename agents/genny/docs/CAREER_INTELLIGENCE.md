@@ -81,6 +81,7 @@ Use it this way:
 - If the lead is promising, verify it against `direct_source_targets.company_watchlist` or a known public ATS domain.
 - If only the ATS homepage/domain is available, label the signal `lead-needs-direct-url`.
 - Only mark salary, location, and tool-stack claims as verified after the direct posting or pasted job text is available.
+- The scanner checks public company career pages from the watchlist and promotes matching public links through the normal scoring pipeline.
 
 ## Scripts
 
