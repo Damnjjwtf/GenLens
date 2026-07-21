@@ -125,6 +125,10 @@ POSITIVE_PATTERNS = re.compile(
     r"\b(job|jobs|career|careers|hiring|role|roles|salary|skills?|workflow|pipeline|production|studio|artist|engineer|technologist|director|producer|VFX|ComfyUI|inference|GPU|generative AI|AI video|creative AI)\b",
     re.I,
 )
+DIRECT_JOB_CONTEXT = re.compile(
+    r"\b(job|jobs|career|careers|hiring|role|roles|salary|compensation|remote|hybrid|artist|engineer|technologist|director|producer)\b",
+    re.I,
+)
 SALARY_PATTERN = re.compile(
     r"(\$\s?\d{2,3}(?:,\d{3})?(?:k|K)?(?:\s?[-–]\s?\$?\s?\d{2,3}(?:,\d{3})?(?:k|K)?)?|\$\s?\d+\s?(?:per hour|/hour|\/hr|hr))",
     re.I,
@@ -290,7 +294,7 @@ def is_career_gateway(link: dict[str, str]) -> bool:
 
 def candidate_link_matches(company: str, link: dict[str, str], watch_for: list[str]) -> bool:
     haystack = f"{link.get('title', '')} {link.get('url', '')} {link.get('summary', '')}"
-    return bool(matches(ROLE_PATTERNS, haystack) or (text_matches_any(haystack, watch_for) and POSITIVE_PATTERNS.search(haystack)))
+    return bool(matches(ROLE_PATTERNS, haystack) or (text_matches_any(haystack, watch_for) and DIRECT_JOB_CONTEXT.search(haystack)))
 
 
 def nested_career_links(link: dict[str, str], company: str, watch_for: list[str], limit: int) -> list[dict[str, str]]:
