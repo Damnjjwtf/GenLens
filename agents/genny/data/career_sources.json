@@ -10,6 +10,13 @@
     "Label every role signal as observed, emerging, forecast, or market-demand.",
     "A candidate must mention a role, tool, workflow, company, skill, or market pain to enter Career Radar."
   ],
+  "evidence_tiers": {
+    "primary": "Public company career pages, public ATS postings, or pasted source text. Can support observed roles.",
+    "secondary": "Public articles, trade publications, and search feeds that cite or discuss hiring. Can support emerging signals, and observed roles only when role facts are specific.",
+    "discovery": "Social/community mentions and screenshots. Use as leads only until verified.",
+    "demand": "Freelance marketplace and community work requests. Use for market-demand and proof-build ideas, not stable role titles.",
+    "manual": "Watchlist sources that require human/agent review before publication."
+  },
   "source_channels": [
     {
       "name": "X / social screenshots",
@@ -46,6 +53,7 @@
     {
       "name": "Creative AI Jobs News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%22creative%20technologist%22%20%22generative%20AI%22%20OR%20%22AI%20creative%22%20jobs&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["Cross-Vertical Watchlist"],
       "watch_for": ["creative technologist", "generative AI", "AI creative jobs", "skills gap"],
@@ -55,6 +63,7 @@
     {
       "name": "Generative Artist News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%22generative%20artist%22%20OR%20%22AI%20artist%22%20%22job%22&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["AI Filmmaking", "AI Design / Motion Graphics"],
       "watch_for": ["generative artist", "AI artist", "motion graphics", "VFX"],
@@ -64,6 +73,7 @@
     {
       "name": "AI Pipeline Engineer News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%22AI%20pipeline%20engineer%22%20OR%20%22AI%20pipeline%22%20VFX%20OR%20ComfyUI&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["AI Filmmaking", "Infrastructure", "Digital Humans"],
       "watch_for": ["AI pipeline engineer", "ComfyUI", "VFX pipeline", "model routing"],
@@ -73,6 +83,7 @@
     {
       "name": "Creative Inference Ops News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%22model%20inference%22%20%22creative%20technology%22%20OR%20%22GPU%22%20%22AI%20video%22%20pipeline&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["Infrastructure", "AI Filmmaking"],
       "watch_for": ["inference", "GPU", "latency", "AI video pipeline", "fal", "Replicate"],
@@ -82,6 +93,7 @@
     {
       "name": "AI Filmmaking Hiring News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%22AI%20filmmaking%22%20jobs%20OR%20%22generative%20AI%22%20%22film%22%20%22hiring%22&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["AI Filmmaking"],
       "watch_for": ["AI filmmaking", "film hiring", "synthetic production", "VFX"],
@@ -91,6 +103,7 @@
     {
       "name": "Game AI Roles News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%22generative%20AI%22%20%22games%22%20%22engineer%22%20OR%20%22AI%20game%20tools%22&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["Game Development / Real-Time 3D"],
       "watch_for": ["game tools", "level blocking", "asset variation", "NPC", "Unreal", "Unity"],
@@ -100,6 +113,7 @@
     {
       "name": "Digital Humans Hiring News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%22digital%20human%22%20%22generative%20AI%22%20jobs%20OR%20%22synthetic%20actor%22&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["Digital Humans"],
       "watch_for": ["digital human", "synthetic actor", "voice", "avatar", "lip sync"],
@@ -109,6 +123,7 @@
     {
       "name": "Public Company Career Watchlist",
       "type": "manual",
+      "evidence_tier": "manual",
       "url": "",
       "verticals": ["Cross-Vertical Watchlist"],
       "watch_for": ["Adobe", "Netflix", "Amazon Prime Video", "Amazon MGM", "Epic Games", "Sphere", "Lightricks", "Paramount Tech", "Runway", "fal", "ElevenLabs", "Synthesia", "HeyGen", "Twilio Segment", "Jasper", "Vantage Point", "BBD Boom"],
@@ -119,6 +134,7 @@
     {
       "name": "Studio AI Career Page News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%28Adobe%20OR%20Netflix%20OR%20Amazon%20OR%20Epic%20Games%20OR%20Sphere%20OR%20Lightricks%20OR%20Paramount%29%20%28%22generative%20AI%22%20OR%20%22creative%20technologist%22%20OR%20%22AI%20pipeline%22%20OR%20%22AI%20artist%22%29%20%28hiring%20OR%20job%20OR%20career%29&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["AI Filmmaking", "AI Design / Motion Graphics", "Game Development / Real-Time 3D", "Infrastructure"],
       "watch_for": ["Adobe", "Netflix", "Amazon", "Epic Games", "Sphere", "Lightricks", "Paramount", "salary", "location", "tool stack"],
@@ -129,6 +145,7 @@
     {
       "name": "Freelance Automation Demand News",
       "type": "rss",
+      "evidence_tier": "demand",
       "url": "https://news.google.com/rss/search?q=%28Upwork%20OR%20freelance%20OR%20Discord%29%20%28%22web%20scraping%22%20OR%20%22data%20extraction%22%20OR%20%22AI%20agent%22%20OR%20%22generative%20AI%22%29%20%28creative%20OR%20video%20OR%20design%20OR%20marketing%29&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["Cross-Vertical Watchlist", "Advertising / Brand Content", "AI Design / Motion Graphics"],
       "watch_for": ["Upwork", "Discord", "freelance", "data extraction", "web scraping", "AI agents", "clipping shops"],
@@ -139,12 +156,35 @@
     {
       "name": "Agency Staffing and Account Review News",
       "type": "rss",
+      "evidence_tier": "secondary",
       "url": "https://news.google.com/rss/search?q=%28%22Ad%20Age%22%20OR%20agency%20OR%20%22account%20review%22%29%20%28AI%20OR%20%22generative%20AI%22%20OR%20automation%29%20%28staffing%20OR%20hiring%20OR%20talent%20OR%20creative%29&hl=en-US&gl=US&ceid=US:en",
       "verticals": ["Advertising / Brand Content", "AI Filmmaking", "AI Design / Motion Graphics"],
       "watch_for": ["agency staffing", "account reviews", "AI creative operations", "brand content", "talent demand"],
       "trust": "medium",
       "cadence": "weekly",
       "notes": "Secondary source for demand context; use company/job sources for role facts."
+    },
+    {
+      "name": "Public ATS Creative AI Roles",
+      "type": "rss",
+      "evidence_tier": "primary",
+      "url": "https://news.google.com/rss/search?q=%28site%3Aboards.greenhouse.io%20OR%20site%3Ajobs.lever.co%20OR%20site%3Ajobs.ashbyhq.com%20OR%20site%3Aworkable.com%29%20%28%22creative%20technologist%22%20OR%20%22generative%20artist%22%20OR%20%22AI%20artist%22%20OR%20%22AI%20pipeline%22%20OR%20%22AI%20content%20generation%22%29&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["Cross-Vertical Watchlist", "AI Filmmaking", "AI Design / Motion Graphics", "Infrastructure"],
+      "watch_for": ["Greenhouse", "Lever", "Ashby", "Workable", "creative technologist", "generative artist", "AI pipeline", "salary", "remote", "hybrid"],
+      "trust": "high",
+      "cadence": "daily",
+      "notes": "Primary observed-job discovery across public ATS pages surfaced by search. Verify final URL and posting text before publishing salary/location facts."
+    },
+    {
+      "name": "Creative AI Salary and Location News",
+      "type": "rss",
+      "evidence_tier": "secondary",
+      "url": "https://news.google.com/rss/search?q=%28%22creative%20technologist%22%20OR%20%22generative%20artist%22%20OR%20%22AI%20pipeline%20engineer%22%20OR%20%22inference%20specialist%22%29%20%28salary%20OR%20compensation%20OR%20%22Los%20Angeles%22%20OR%20%22Culver%20City%22%20OR%20%22New%20York%22%20OR%20Vancouver%20OR%20Toronto%20OR%20Montreal%29&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["Cross-Vertical Watchlist"],
+      "watch_for": ["salary", "compensation", "Los Angeles", "Culver City", "New York", "Vancouver", "Toronto", "Montreal", "remote", "hybrid"],
+      "trust": "medium",
+      "cadence": "weekly",
+      "notes": "Use to track geographic and compensation patterns. Do not treat salary aggregators as definitive without company/posting evidence."
     }
   ]
 }
