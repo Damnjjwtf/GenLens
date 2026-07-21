@@ -19,7 +19,7 @@ NOTEBOOKLM_BIN = Path(os.environ.get(
     str(BASE_DIR / ".venv-notebooklm" / "bin" / "notebooklm"),
 ))
 STATE_PATH = Path(os.environ.get("GENLENS_NOTEBOOKLM_STATE", str(BASE_DIR / "state" / "notebooklm_state.json")))
-DEFAULT_NOTEBOOK_HINT = os.environ.get("GENLENS_NOTEBOOKLM_HINT", "creative autonomy")
+DEFAULT_NOTEBOOK_HINT = os.environ.get("GENLENS_NOTEBOOKLM_HINT", "genlens")
 
 
 def run(args: list[str], check: bool = False) -> subprocess.CompletedProcess[str]:
