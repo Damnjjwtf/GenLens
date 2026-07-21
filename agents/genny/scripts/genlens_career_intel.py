@@ -531,6 +531,10 @@ def merge_signals(existing: list[dict[str, Any]], fresh: list[dict[str, Any]]) -
 def render_markdown(signals: list[dict[str, Any]], notes: list[str], source_stats: list[dict[str, Any]], limit: int) -> str:
     accepted = [row for row in signals if row.get("accepted")]
     rejected = [row for row in signals if not row.get("accepted")]
+    verification_leads = [
+        row for row in accepted
+        if row.get("verification_status") in {"lead-needs-direct-url", "publisher-domain-lead", "needs-verification"}
+    ]
     role_counts = Counter(role for row in accepted for role in row.get("roles", []))
     tool_counts = Counter(tool for row in accepted for tool in row.get("tools", []))
     vertical_counts = Counter(vertical for row in accepted for vertical in row.get("verticals", []))
@@ -584,6 +588,24 @@ def render_markdown(signals: list[dict[str, Any]], notes: list[str], source_stat
         if row.get("raw_url") and is_google_news_url(str(row.get("raw_url"))) and row.get("raw_url") != row.get("url"):
             lines.append("- URL note: resolved from Google News wrapper.")
         lines.append("")
+
+    lines.extend(["## Direct Verification Queue", ""])
+    if verification_leads:
+        lines.append("These leads are not final role evidence yet. Verify the full company or ATS posting before quoting salary, location, or tool-stack requirements.")
+        lines.append("")
+        for row in verification_leads[:10]:
+            companies = ", ".join(row.get("companies", [])) or "unknown company"
+            roles = ", ".join(row.get("roles", [])) or "unclassified role"
+            query_parts = [companies, row.get("title", ""), row.get("domain", ""), roles]
+            query = " ".join(part for part in query_parts if part and part != "unknown company")
+            lines.extend([
+                f"- {row.get('title')}",
+                f"  Verification: {row.get('verification_status')}; current domain: {row.get('domain') or 'unknown'}; company: {companies}.",
+                f"  Next check: find the direct public posting for `{query}`.",
+            ])
+    else:
+        lines.append("- No accepted signals require direct-posting follow-up.")
+    lines.append("")
 
     lines.extend(["## Job Source Quality", ""])
     if source_stats:
