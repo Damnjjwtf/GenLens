@@ -1,12 +1,46 @@
 {
-  "updated": "2026-07-20",
+  "updated": "2026-07-21",
   "purpose": "Career intelligence sources for Genny: public feeds and search queries that reveal demand for AI creative production roles, tools, and proof-build skills.",
   "rules": [
     "Treat job posts as market intelligence, not recruiting targets.",
     "Do not scrape login-only job boards or automate applications.",
     "Prefer public company career pages, public RSS feeds, public news/search RSS, and pasted job posts from Jonathan.",
+    "Use X/Discord/community chatter as discovery hints only; verify against public company pages, articles, or pasted evidence before publishing.",
+    "Use Upwork/freelance markets as demand signals for workflow pain, not as authoritative role definitions.",
     "Label every role signal as observed, emerging, forecast, or market-demand.",
     "A candidate must mention a role, tool, workflow, company, skill, or market pain to enter Career Radar."
+  ],
+  "source_channels": [
+    {
+      "name": "X / social screenshots",
+      "status": "discovery-hint",
+      "use_for": ["early role-title mutations", "screenshots of unusual postings", "community reaction to AI creative roles"],
+      "publish_rule": "Do not publish from social chatter alone. Confirm with a public job page, company announcement, archived text, or Jonathan-provided transcript."
+    },
+    {
+      "name": "Company career pages",
+      "status": "preferred-primary",
+      "use_for": ["observed roles", "salary bands", "locations", "required tool stacks"],
+      "publish_rule": "Best source for observed jobs when publicly accessible. Capture title, company, location, compensation, tools, skills, and URL."
+    },
+    {
+      "name": "Discord / private communities",
+      "status": "manual-only",
+      "use_for": ["freelance demand", "clipping-shop workflows", "unofficial hiring patterns"],
+      "publish_rule": "Do not scrape private servers. Use only pasted or explicitly shared snippets and label as market-demand unless independently verified."
+    },
+    {
+      "name": "Upwork / freelance marketplaces",
+      "status": "market-demand",
+      "use_for": ["data extraction demand", "web scraping demand", "automation task demand", "budget ranges"],
+      "publish_rule": "Use for demand patterns and proof-build ideas. Do not automate bids, applications, or logged-in scraping."
+    },
+    {
+      "name": "Industry publications",
+      "status": "secondary-verification",
+      "use_for": ["agency networks", "account reviews", "staffing changes", "budget movement"],
+      "publish_rule": "Use to explain why a role cluster matters, but verify individual job facts elsewhere when possible."
+    }
   ],
   "sources": [
     {
@@ -77,10 +111,40 @@
       "type": "manual",
       "url": "",
       "verticals": ["Cross-Vertical Watchlist"],
-      "watch_for": ["Adobe", "Netflix", "Amazon", "Epic Games", "Sphere", "Lightricks", "Runway", "fal", "ElevenLabs", "Synthesia", "HeyGen"],
+      "watch_for": ["Adobe", "Netflix", "Amazon Prime Video", "Amazon MGM", "Epic Games", "Sphere", "Lightricks", "Paramount Tech", "Runway", "fal", "ElevenLabs", "Synthesia", "HeyGen", "Twilio Segment", "Jasper", "Vantage Point", "BBD Boom"],
       "trust": "high",
       "cadence": "weekly",
       "notes": "Manual/company pages require explicit review; do not scrape login-only sites."
+    },
+    {
+      "name": "Studio AI Career Page News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%28Adobe%20OR%20Netflix%20OR%20Amazon%20OR%20Epic%20Games%20OR%20Sphere%20OR%20Lightricks%20OR%20Paramount%29%20%28%22generative%20AI%22%20OR%20%22creative%20technologist%22%20OR%20%22AI%20pipeline%22%20OR%20%22AI%20artist%22%29%20%28hiring%20OR%20job%20OR%20career%29&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["AI Filmmaking", "AI Design / Motion Graphics", "Game Development / Real-Time 3D", "Infrastructure"],
+      "watch_for": ["Adobe", "Netflix", "Amazon", "Epic Games", "Sphere", "Lightricks", "Paramount", "salary", "location", "tool stack"],
+      "trust": "medium",
+      "cadence": "daily",
+      "notes": "Search layer for public writeups about company career pages. Verify against original posting before calling a job observed."
+    },
+    {
+      "name": "Freelance Automation Demand News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%28Upwork%20OR%20freelance%20OR%20Discord%29%20%28%22web%20scraping%22%20OR%20%22data%20extraction%22%20OR%20%22AI%20agent%22%20OR%20%22generative%20AI%22%29%20%28creative%20OR%20video%20OR%20design%20OR%20marketing%29&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["Cross-Vertical Watchlist", "Advertising / Brand Content", "AI Design / Motion Graphics"],
+      "watch_for": ["Upwork", "Discord", "freelance", "data extraction", "web scraping", "AI agents", "clipping shops"],
+      "trust": "low-medium",
+      "cadence": "weekly",
+      "notes": "Market-demand source, not observed-job authority. Use to shape proof-builds and emerging role forecasts."
+    },
+    {
+      "name": "Agency Staffing and Account Review News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%28%22Ad%20Age%22%20OR%20agency%20OR%20%22account%20review%22%29%20%28AI%20OR%20%22generative%20AI%22%20OR%20automation%29%20%28staffing%20OR%20hiring%20OR%20talent%20OR%20creative%29&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["Advertising / Brand Content", "AI Filmmaking", "AI Design / Motion Graphics"],
+      "watch_for": ["agency staffing", "account reviews", "AI creative operations", "brand content", "talent demand"],
+      "trust": "medium",
+      "cadence": "weekly",
+      "notes": "Secondary source for demand context; use company/job sources for role facts."
     }
   ]
 }

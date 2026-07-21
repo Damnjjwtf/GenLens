@@ -20,6 +20,24 @@ Genny should help working creative technologists understand:
 - `data/notebooklm_sources.json`: registered NotebookLM research sources, including `Job Site Info` for job-site strategy and role-signal extraction when authenticated or exported.
 - pasted job posts, transcripts, or hiring snippets from Jonathan.
 
+## Source Channel Strategy
+
+Use the `Job Site Info` NotebookLM transcript as source strategy, not as direct evidence unless exported text is available. It identifies the places where AI creative roles surface first:
+
+- Company career pages: preferred primary evidence for observed roles, salary bands, locations, and tool stacks.
+- X/social screenshots: discovery hints for role-title mutations and community reaction. Verify elsewhere before publishing.
+- Discord/private communities: manual-only. Never scrape private servers; use pasted snippets as market-demand signals unless independently verified.
+- Upwork/freelance marketplaces: demand signals for workflow pain, web scraping, data extraction, automation, and proof-build opportunities. Do not automate applications or logged-in scraping.
+- Industry publications: secondary verification for agency staffing shifts, account reviews, and budget movement.
+
+Priority companies from the Source 5 transcript:
+
+- Adobe, Sphere, Paramount Tech, Lightricks, Amazon Prime Video / Amazon MGM, Netflix, Epic Games.
+
+Secondary watchlist from the job-site notebook:
+
+- Twilio Segment, Jasper, Vantage Point, BBD Boom, Ad Age, public clipping-shop discussions, and freelance automation demand.
+
 ## Scripts
 
 Scan public career sources:
@@ -57,6 +75,8 @@ Reject:
 - login-only/private job sources;
 - automated applications or outreach;
 - forecasts presented as existing jobs.
+- unverified social screenshots presented as fact;
+- freelance marketplace tasks presented as full-time roles.
 
 NotebookLM links are memory/research sources, not direct scrape feeds. If a NotebookLM source is not authenticated, Genny must ask for exported source text/transcripts or continue from local GenLens files.
 
