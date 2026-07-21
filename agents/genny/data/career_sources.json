@@ -49,6 +49,62 @@
       "publish_rule": "Use to explain why a role cluster matters, but verify individual job facts elsewhere when possible."
     }
   ],
+  "direct_source_targets": {
+    "ats_domains": [
+      "boards.greenhouse.io",
+      "jobs.lever.co",
+      "jobs.ashbyhq.com",
+      "jobs.workable.com",
+      "workable.com"
+    ],
+    "company_watchlist": [
+      {
+        "company": "Adobe",
+        "career_url": "https://careers.adobe.com/",
+        "watch_for": ["Creative Technologist", "Firefly", "AI content generation", "prototyping"]
+      },
+      {
+        "company": "Netflix",
+        "career_url": "https://jobs.netflix.com/",
+        "watch_for": ["CG Artist", "Technical Director", "Inference Specialist", "Generative AI", "Games"]
+      },
+      {
+        "company": "Amazon Prime Video / Amazon MGM",
+        "career_url": "https://www.amazon.jobs/",
+        "watch_for": ["Design Technologist", "AI Content Generation", "Prime Video", "Amazon MGM"]
+      },
+      {
+        "company": "Epic Games",
+        "career_url": "https://www.epicgames.com/site/en-US/careers/jobs",
+        "watch_for": ["Tools Programmer", "AI workflows", "Unreal Engine", "Slate UI"]
+      },
+      {
+        "company": "Sphere",
+        "career_url": "https://www.thesphere.com/careers",
+        "watch_for": ["Generative Artist", "VFX", "Motion Graphics", "ComfyUI"]
+      },
+      {
+        "company": "Lightricks",
+        "career_url": "https://www.lightricks.com/careers",
+        "watch_for": ["AI Pipeline Engineer", "LTX", "creative technology", "workflow"]
+      },
+      {
+        "company": "Paramount",
+        "career_url": "https://www.paramount.com/careers",
+        "watch_for": ["AI orchestration", "AI platforms", "MLOps", "RPA"]
+      },
+      {
+        "company": "fal",
+        "career_url": "https://fal.ai/careers",
+        "watch_for": ["creative technologist", "inference", "media generation", "developer relations"]
+      },
+      {
+        "company": "OpusClip",
+        "career_url": "https://www.opus.pro/careers",
+        "watch_for": ["AI Artist", "video", "creative AI", "content generation"]
+      }
+    ]
+  },
   "sources": [
     {
       "name": "Creative AI Jobs News",

@@ -87,6 +87,8 @@ Allowed:
 
 Prefer direct ATS/company URLs. If a result only has a Google News/search wrapper URL, label it as a lead and verify the original posting before making salary, location, or tool-stack claims.
 
+Use `data/career_sources.json` -> `direct_source_targets` as the verification queue. Search feeds discover leads; company career pages and public ATS postings verify them.
+
 Avoid:
 
 - No login bypass.
