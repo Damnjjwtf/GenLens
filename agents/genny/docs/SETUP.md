@@ -65,11 +65,10 @@ Hourly retry:
 
 ## NotebookLM
 
-Register the notebook:
+Registered NotebookLM sources are tracked in:
 
 ```text
-Name: Creative Autonomy
-URL: https://notebooklm.google.com/notebook/7509454e-8872-477f-b67e-0e001ae91280
+data/notebooklm_sources.json
 ```
 
 Then add `data/genlens_notebooklm_bundle.md` as a source after Google auth is complete.

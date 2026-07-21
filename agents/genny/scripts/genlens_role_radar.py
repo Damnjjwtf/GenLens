@@ -23,6 +23,7 @@ if not DATA_DIR.exists():
 OUT_PATH = Path(os.environ.get("GENLENS_ROLE_RADAR_OUT", "/root/.hermes/profiles/genny/state/genlens_role_radar.md"))
 
 ROLE_SIGNALS_PATH = DATA_DIR / "role_signals.json"
+CAREER_SIGNALS_PATH = DATA_DIR / "career_signals.json"
 STRATEGY_PATH = DATA_DIR / "genlens_product_strategy.md"
 MODES_PATH = DATA_DIR / "genlens_operating_modes.json"
 
@@ -34,6 +35,17 @@ def load_json(path: Path) -> dict[str, Any]:
 def role_rows(data: dict[str, Any]) -> list[dict[str, Any]]:
     rows = data.get("roles", [])
     return [row for row in rows if isinstance(row, dict)]
+
+
+def career_signal_rows() -> list[dict[str, Any]]:
+    if not CAREER_SIGNALS_PATH.exists():
+        return []
+    try:
+        data = load_json(CAREER_SIGNALS_PATH)
+    except Exception:
+        return []
+    rows = data.get("signals", [])
+    return [row for row in rows if isinstance(row, dict) and row.get("accepted")]
 
 
 def list_value(row: dict[str, Any], key: str) -> list[str]:
@@ -53,6 +65,18 @@ def role_status(row: dict[str, Any]) -> str:
     return str(row.get("status") or row.get("evidence_level") or "observed")
 
 
+def company_signal(row: dict[str, Any]) -> str:
+    return str(row.get("company") or row.get("company_context") or "").strip()
+
+
+def role_verticals(row: dict[str, Any]) -> list[str]:
+    values = list_value(row, "verticals")
+    if values:
+        return values
+    value = row.get("vertical")
+    return [str(value)] if value else ["Cross-Vertical"]
+
+
 def line_join(items: list[str], fallback: str = "Not specified") -> str:
     return ", ".join(items) if items else fallback
 
@@ -63,13 +87,13 @@ def render_roles(rows: list[dict[str, Any]]) -> list[str]:
     rows = sorted(rows, key=lambda row: (status_order.get(role_status(row).lower(), 9), role_name(row).lower()))
     for row in rows:
         status = role_status(row)
-        vertical = row.get("vertical", "Cross-Vertical")
         lines.append(f"### {role_name(row)}")
         lines.append("")
         lines.append(f"- Status: {status}")
-        lines.append(f"- Vertical: {vertical}")
-        if row.get("company"):
-            lines.append(f"- Company signal: {row['company']}")
+        lines.append(f"- Verticals: {line_join(role_verticals(row))}")
+        company = company_signal(row)
+        if company:
+            lines.append(f"- Company signal: {company}")
         if row.get("salary"):
             lines.append(f"- Salary/rate signal: {row['salary']}")
         if row.get("location"):
@@ -81,6 +105,32 @@ def render_roles(rows: list[dict[str, Any]]) -> list[str]:
             lines.append(f"- Why it matters: {row['why_it_matters']}")
         elif row.get("notes"):
             lines.append(f"- Why it matters: {row['notes']}")
+        lines.append("")
+    return lines
+
+
+def render_career_signals(rows: list[dict[str, Any]]) -> list[str]:
+    lines = ["## Career Signal Ledger", ""]
+    if not rows:
+        lines.append("No accepted live career signals have been captured yet. Run `genlens_career_intel.py` to populate the ledger.")
+        lines.append("")
+        return lines
+
+    for row in sorted(rows, key=lambda signal: int(signal.get("score", 0)), reverse=True)[:20]:
+        title = str(row.get("title") or "Untitled career signal")
+        url = str(row.get("url") or "")
+        title_text = f"[{title}]({url})" if url else title
+        lines.append(f"### {title_text}")
+        lines.append("")
+        lines.append(f"- Score: {row.get('score', 0)} / 100")
+        lines.append(f"- Status: {row.get('status', 'market-demand')}")
+        lines.append(f"- Source: {row.get('source', 'Unknown source')}")
+        lines.append(f"- Roles: {line_join(list_value(row, 'roles'), 'Unclassified')}")
+        lines.append(f"- Tools: {line_join(list_value(row, 'tools'), 'None detected')}")
+        lines.append(f"- Skills: {line_join(list_value(row, 'skills'), 'None detected')}")
+        lines.append(f"- Verticals: {line_join(list_value(row, 'verticals'), 'Unassigned')}")
+        if row.get("summary"):
+            lines.append(f"- Summary: {row['summary']}")
         lines.append("")
     return lines
 
@@ -156,13 +206,16 @@ def render_map(rows: list[dict[str, Any]]) -> list[str]:
     clusters: dict[str, set[str]] = defaultdict(set)
 
     for row in rows:
-        vertical = str(row.get("vertical", "Cross-Vertical"))
-        vertical_counts[vertical] += 1
-        if row.get("company"):
-            company_counts[str(row["company"])] += 1
+        row_verticals = role_verticals(row)
+        for vertical in row_verticals:
+            vertical_counts[vertical] += 1
+        company = company_signal(row)
+        if company:
+            company_counts[company] += 1
         for tool in list_value(row, "tools"):
             tool_counts[tool] += 1
-            clusters[vertical].add(tool)
+            for vertical in row_verticals:
+                clusters[vertical].add(tool)
 
     lines = ["## Market Map", ""]
     lines.append("### Role Signals By Vertical")
@@ -223,10 +276,12 @@ def main() -> int:
 
     data = load_json(ROLE_SIGNALS_PATH)
     rows = role_rows(data)
+    career_rows = career_signal_rows()
 
     lines = render_header(args.mode)
     if args.mode in {"all", "roles"}:
         lines.extend(render_roles(rows))
+        lines.extend(render_career_signals(career_rows))
     if args.mode in {"all", "builds"}:
         lines.extend(render_builds(rows))
     if args.mode in {"all", "map"}:

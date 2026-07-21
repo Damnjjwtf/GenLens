@@ -1,0 +1,20 @@
+{
+  "notebooks": [
+    {
+      "name": "Shared NotebookLM Source",
+      "id": "ea254699-b839-4a10-81a7-abe127ab63b3",
+      "url": "https://notebooklm.google.com/notebook/ea254699-b839-4a10-81a7-abe127ab63b3?utm_source=nlmm_share",
+      "status": "registered",
+      "purpose": "Jonathan-provided NotebookLM source for GenLens/Genny research.",
+      "notes": "Shared link registered on July 20, 2026. Actual contents are available only after NotebookLM auth or exported source text is provided."
+    },
+    {
+      "name": "Job Site Info",
+      "id": "cb5ac5ec-ecef-49ab-9dbf-f7225946b459",
+      "url": "https://notebooklm.google.com/notebook/cb5ac5ec-ecef-49ab-9dbf-f7225946b459?utm_source=nlmm_share",
+      "status": "registered",
+      "purpose": "Jonathan-provided NotebookLM source for Genny Career Radar, job-site source strategy, role-signal extraction, and public hiring/source triage.",
+      "notes": "Shared link registered on July 21, 2026. Actual contents are available only after NotebookLM auth or exported source text is provided. Treat as research memory, not as a live public job feed."
+    }
+  ]
+}

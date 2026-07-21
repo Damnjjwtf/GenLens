@@ -16,6 +16,13 @@
       "quality_bar": "Clearly label observed versus forecast. Extract tools, skills, workflow verbs, salary/location, and role mutation."
     },
     {
+      "name": "Career Radar",
+      "trigger_phrases": ["career radar", "career intelligence", "job signals", "who needs genny", "skills demand", "hiring demand"],
+      "primary_script": "genlens_career_intel.py",
+      "purpose": "Scan public job, hiring, workflow, and tool-stack signals to detect market demand for AI creative production roles.",
+      "quality_bar": "Score every signal, reject generic job-market fluff, preserve source links, and never scrape login-only/private job sources."
+    },
+    {
       "name": "Build This",
       "trigger_phrases": ["build this", "portfolio", "proof build", "how do I become", "skill path"],
       "primary_script": "genlens_role_radar.py --mode builds",
