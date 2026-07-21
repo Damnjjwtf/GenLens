@@ -19,7 +19,10 @@ runtime artifacts.
 
 ## Data Layer
 
-`data/genny_sources.json` is the source registry. Sources are grouped by vertical and should be treated as leads until verified.
+`data/genny_sources.json` is the source registry. Sources are grouped by
+vertical and should be treated as leads until verified. Search-discovery
+sources declare `trusted_domains`, while first-party domains are separately
+declared in `primary_domains`; see `docs/GENNY_QUALITY_GATE.md`.
 
 `data/marti_sources.json` is Marti's separate source registry, grouped by stack
 layer. `data/marti_signal_schema.md` defines its admission and confidence rules.
@@ -44,7 +47,8 @@ signal IDs; see `docs/DECISION_QUEUE.md`.
 
 `scripts/genlens_compose_brief.py` builds source-backed Markdown briefings from
 the local registry and records candidate reviews in the lens-specific signal
-ledger.
+ledger. Genny applies a mandatory production-vertical, AI-mechanism,
+concrete-event, confirmation, and publisher-trust gate before scoring.
 
 `scripts/genlens_signal_ledger.py` canonicalizes evidence URLs, assigns stable
 signal IDs, merges repeated observations, and writes the versioned ledger

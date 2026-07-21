@@ -21,8 +21,8 @@ GenLens may recommend one controlled action for a published signal:
 - `migrate` for an explicit shutdown, deprecation, or migration;
 - `budget` for an explicit pricing, fee, duties, billing, or commercial-model
   change;
-- `brief` for an explicit policy, disclosure, rights, consent, compliance, or
-  governance change;
+- `brief` for an explicit policy, disclosure, rights, consent, compliance,
+  labeling, copyright, lawsuit, or governance change;
 - `test` for an explicit measurement, reporting, API, integration, workflow,
   agent, or newly available product capability;
 - `watch` when the source proves a change but not a stronger operator action.

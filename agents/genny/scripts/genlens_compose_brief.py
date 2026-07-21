@@ -182,12 +182,15 @@ NUMERIC_EVIDENCE_PATTERNS = re.compile(
 )
 
 LOW_VALUE_TITLE_PATTERNS = re.compile(
-    r"\b(best|top|what is|how to|guide to|ultimate guide|tips|examples|template|category|all articles|learn more|resources|use cases|customer stories|case studies|compare|vs\.?|which .* fits|make money|start a podcast|embed a video|gaming headphones|signed synths?|supersaw sound|record cutting)\b",
+    r"\b(best|top|what is|how to|how i (?:built|made|created)|guide to|ultimate guide|walkthrough|tutorial|step-by-step|"
+    r"building (?:a|an|the)|tips|examples|template|category|all articles|learn more|resources|use cases|customer stories|"
+    r"case studies|compare|vs\.?|which .* fits|make money|start a podcast|embed a video|gaming headphones|signed synths?|"
+    r"supersaw sound|record cutting)\b",
     re.I,
 )
 
 WEAK_SOURCE_PATTERNS = re.compile(
-    r"\b(quasa|bitcoin world|startup story|startup fortune|digital terminal|gigazine|futurum group)\b",
+    r"\b(quasa|bitcoin world|startup story|startup fortune|digital terminal|gigazine|futurum\s*group|ein\s*news|einpresswire|mezha)\b",
     re.I,
 )
 
@@ -226,11 +229,85 @@ MARTI_REQUIRED_PATTERNS = {
     "Marketing Data / Identity": re.compile(r"\b(cdp|customer data|identity resolution|reverse etl|consent|first-party data|clean room|marketing data|warehouse-native)\b", re.I),
 }
 
+# Genny is a production-intelligence lens, not a broad creative-technology news
+# feed. A publishable item must name the affected production workflow, an AI
+# mechanism (or a known AI-production product), and a concrete ecosystem event.
+# Keeping these contracts separate from VERTICAL_SIGNAL_TERMS prevents a high
+# keyword score from promoting generic renderer, engine, or infrastructure news.
+GENNY_REQUIRED_PATTERNS = {
+    "Product Photography": re.compile(r"\b(product (?:photo(?:graphy|s?)|imag(?:e|es|ery))|e-?commerce imag(?:e|es|ery)|catalog|packshot|retouch(?:ing)?|background remov(?:al|er)|virtual try-on|merchandising)\b", re.I),
+    "AI Filmmaking": re.compile(r"\b(film(?:making)?|video|vfx|roto(?:scop(?:e|ing))?|composit(?:e|ing)|footage|shot|storyboard|cinematic|post-production|virtual production|lionsgate|netflix|runway)\b", re.I),
+    "Digital Humans": re.compile(r"\b(digital humans?|avatars?|headshots?|facial?|faces?|lip[ -]?sync|voices?|dubbing|synthetic presenters?|characters?|mocap|motion capture|accuface|iclone|reallusion|elevenlabs|synthesia|heygen)\b", re.I),
+    "Music Production / Audio": re.compile(r"\b(music|audio|songs?|tracks?|vocals?|voices?|sound|stems?|mix(?:ing)?|master(?:ing)?|music labels?|suno|udio)\b", re.I),
+    "AI Design / Motion Graphics": re.compile(r"\b(design|motion graphics?|animation|figma|weave|frames?|creative canvas|prototype|storyboard)\b", re.I),
+    "Fashion / Apparel / Textile": re.compile(r"\b(fashion|apparel|textile|garments?|clothing|virtual models?|digital samples?|try-on)\b", re.I),
+    "Advertising / Brand Content": re.compile(r"\b(advertis(?:ing|ements?)|ads?|brand content|campaign creative|creative assets?|commercials?|agency production)\b", re.I),
+    "ArchViz": re.compile(r"\b(archviz|architectural visuali[sz]ation|architecture render(?:ing)?|building visuali[sz]ation|interior visuali[sz]ation|enscape|twinmotion)\b", re.I),
+    "Podcast / Long-Form Audio": re.compile(r"\b(podcasts?|long-form audio|episodes?|show notes|transcripts?|descript|riverside)\b", re.I),
+    "Education / E-Learning Content": re.compile(r"\b(e-?learning|education(?:al)? content|training videos?|course content|instructional design|learning and development|l&d|locali[sz]ed training)\b", re.I),
+    "Social / Short-Form Video": re.compile(r"\b(social video|short-form|tiktok|reels?|shorts?|creator video|capcut|meta edits|instagram edits)\b", re.I),
+    "Game Development / Real-Time 3D": re.compile(r"\b(game development|games?|unity|unreal|godot|real-time 3d|npcs?|procedural game|game assets?)\b", re.I),
+    "Cross-Vertical Watchlist": re.compile(r"\b(creative production|production workflow|content production|generative video|generative image|vfx|animation|design workflow|audio production|3d production|creator workflow)\b", re.I),
+}
+
+GENNY_AI_MECHANISM_PATTERNS = re.compile(
+    r"\b(ai|artificial intelligence|generative|synthetic media|machine learning|neural|diffusion|foundation model|"
+    r"text-to-(?:image|video|audio|3d)|image-to-video|video generation|image generation|voice clon(?:e|ing)|"
+    r"runway|aleph|smartroto|headshot|accuface|elevenlabs|synthesia|heygen|suno|udio|midjourney|"
+    r"stable diffusion|flux|firefly|sora|veo|kling|luma|pika|gemini|copilot)\b",
+    re.I,
+)
+
+GENNY_EVENT_PATTERNS = re.compile(
+    r"\b(announc(?:e[ds]?|ing)?|launch(?:es|ed|ing)?|releas(?:e[ds]?|ing)?|updat(?:e[ds]?|ing)|"
+    r"introduc(?:e[ds]?|ing)|add(?:s|ed|ing)?|acquir(?:e[ds]?|ing)?|invest(?:s|ed|ing|ment)?|"
+    r"partnership|partners? with|equity stake|funding|raises?|sues?|lawsuit|settlement|"
+    r"policy change|(?:new|updated?) (?:disclosure|licensing|rights|consent) (?:rule|requirement|policy|program)|"
+    r"deprecat(?:e[ds]?|ing)?|sunset|"
+    r"shut(?:ting)? down|migration|sdk|api|integration|open source|generally available|available globally|"
+    r"roll(?:s|ed|ing) out|new (?:ai|generative|feature|model|tool|capability|integration|workflow)|"
+    r"now (?:available|supports?|lets?|allows?|requires?|uses?|includes?)|can now|must now|will now|"
+    r"beta|v\d+(?:\.\d+)*)\b",
+    re.I,
+)
+
+UNCONFIRMED_SIGNAL_PATTERNS = re.compile(
+    r"\b(?:has|have|had) not confirmed\b|\bhaven['’]t confirmed\b|\bnot (?:yet )?confirmed\b|"
+    r"\bneither .{0,80}\bconfirmed\b|\bno confirmation (?:from|by)\b",
+    re.I,
+)
+
+NEGATED_AI_SIGNAL_PATTERNS = re.compile(
+    r"\bnot (?:a conversation )?about .{0,100}\b(?:ai|artificial intelligence|generative|tools?|pipelines?)\b|"
+    r"\b(?:ai|artificial intelligence|generative|tools?|pipelines?) (?:was|were|is|are) not (?:the )?(?:focus|subject|topic)\b",
+    re.I,
+)
+
+EVENT_PROMO_TITLE_PATTERNS = re.compile(
+    r"\b(?:at|heads? to|heading to|join(?:s|ing)? us at)\s+(?:siggraph|nab|ces|ibc|gdc)\b|"
+    r"\b(?:siggraph|nab|ces|ibc|gdc)\s+20\d{2}\b",
+    re.I,
+)
+
+TITLE_LEVEL_PRODUCT_CHANGE_PATTERNS = re.compile(
+    r"\b(announc|launch|release|introduc|adds?|updates?|acquir|partnership|equity stake|lawsuit|"
+    r"new (?:ai|generative|feature|model|tool|capability)|v\d+(?:\.\d+)*)\b",
+    re.I,
+)
+
 
 def has_marti_event_evidence(text: str) -> bool:
     if MARTI_CHANGE_PATTERNS.search(text):
         return True
     return bool(MARTI_OUTCOME_PATTERNS.search(text) and NUMERIC_EVIDENCE_PATTERNS.search(text))
+
+
+def has_genny_event_evidence(text: str) -> bool:
+    return bool(GENNY_EVENT_PATTERNS.search(text))
+
+
+def required_pattern_for_vertical(vertical: str) -> re.Pattern[str] | None:
+    return MARTI_REQUIRED_PATTERNS.get(vertical) or GENNY_REQUIRED_PATTERNS.get(vertical)
 
 
 def verified_ssl_context() -> ssl.SSLContext:
@@ -516,6 +593,20 @@ def source_domain(url: str) -> str:
     return urllib.parse.urlparse(url).netloc.lower().removeprefix("www.")
 
 
+def domain_matches_any(url: str, domains: list[str]) -> bool:
+    domain = source_domain(url)
+    normalized = [str(value).lower().removeprefix("www.") for value in domains]
+    return bool(domain and any(domain == value or domain.endswith(f".{value}") for value in normalized))
+
+
+def review_source_type(source: dict[str, Any], url: str) -> str:
+    """Classify the evidence publisher, not merely its discovery channel."""
+    source_type = str(source.get("source_type") or "unknown")
+    if domain_matches_any(url, list(source.get("primary_domains", []))):
+        return "official_updates"
+    return source_type
+
+
 def fetch_article_excerpt(url: str, required_pattern: re.Pattern[str] | None = None) -> str:
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "GennySourceReviewer/1.0"})
@@ -547,26 +638,70 @@ def fetch_article_excerpt(url: str, required_pattern: re.Pattern[str] | None = N
     # single paragraph-like element. Exclude those blocks so article evidence
     # wins even when the page shell contains release/search vocabulary.
     paragraphs = [p for p in paragraphs if 60 <= len(p) <= 2_000]
-    evidence_paragraphs = [p for p in paragraphs if has_marti_event_evidence(p)]
+    evidence_paragraphs = [p for p in paragraphs if has_marti_event_evidence(p) or has_genny_event_evidence(p)]
     if required_pattern:
+        relevant_descriptions = [
+            description
+            for description in descriptions
+            if required_pattern.search(description)
+            and (has_marti_event_evidence(description) or has_genny_event_evidence(description))
+        ]
         relevant_evidence = [p for p in evidence_paragraphs if required_pattern.search(p)]
     else:
+        relevant_descriptions = []
         relevant_evidence = []
-    candidates = relevant_evidence or evidence_paragraphs or paragraphs
+    # A coherent metadata description is usually cleaner than a page paragraph
+    # polluted by navigation, JSON-LD, or pricing/footer chrome. Use it first;
+    # fall back to article paragraphs when metadata is generic or absent.
+    candidates = relevant_descriptions or relevant_evidence or evidence_paragraphs or paragraphs
     candidates = sorted(candidates, key=len, reverse=True)
     selected = candidates[:2] or descriptions[:1]
     return truncate_text(" ".join(dict.fromkeys(selected)), 320)
 
 
 def quality_review(vertical: str, source: dict[str, Any], title: str, summary: str, url: str, date: str = "") -> tuple[bool, int, str]:
-    is_news_search = source.get("source_type") == "news_search"
+    is_news_search = bool(
+        source.get("source_type") == "news_search"
+        or is_google_news_url(str(source.get("rss") or ""))
+        or "news search" in str(source.get("name") or "").lower()
+    )
     if not is_briefable_url(url) and not is_news_search:
         return False, 0, "rejected-url"
     text = f"{title} {summary}"
+    source_context = " ".join(
+        str(value or "")
+        for value in (source.get("name"), source.get("url"), source.get("rss"), url)
+    )
     if FALSE_POSITIVE_PATTERNS.search(text):
         return False, 0, "false-positive entertainment/deal/pricing item"
-    if WEAK_SOURCE_PATTERNS.search(text):
+    if WEAK_SOURCE_PATTERNS.search(f"{text} {source_context}"):
         return False, 0, "weak aggregator source"
+    if is_news_search:
+        trusted_domains = list(source.get("trusted_domains", []))
+        if not trusted_domains or not domain_matches_any(url, trusted_domains):
+            return False, 0, "untrusted news-search publisher"
+    if UNCONFIRMED_SIGNAL_PATTERNS.search(text):
+        return False, 0, "unconfirmed product claim"
+    genny_required = GENNY_REQUIRED_PATTERNS.get(vertical)
+    if genny_required:
+        if len(strip_text(summary)) < 40:
+            return False, 0, "missing substantive source evidence"
+        if NEGATED_AI_SIGNAL_PATTERNS.search(text):
+            return False, 0, "source explicitly negates an AI production signal"
+        if EVENT_PROMO_TITLE_PATTERNS.search(title) and not TITLE_LEVEL_PRODUCT_CHANGE_PATTERNS.search(title):
+            return False, 0, "event promotion without title-level product change"
+        if not genny_required.search(text):
+            return False, 0, "missing vertical-specific production mechanism"
+        if not GENNY_AI_MECHANISM_PATTERNS.search(text):
+            return False, 0, "missing explicit generative-AI production mechanism"
+        coherent_genny_evidence = any(
+            genny_required.search(field)
+            and GENNY_AI_MECHANISM_PATTERNS.search(field)
+            and has_genny_event_evidence(field)
+            for field in (title, summary)
+        )
+        if not coherent_genny_evidence:
+            return False, 0, "missing concrete AI-production ecosystem change"
     marti_required = MARTI_REQUIRED_PATTERNS.get(vertical)
     if marti_required and not marti_required.search(text):
         return False, 0, "missing layer-specific marketing mechanism"
@@ -603,7 +738,7 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
     score = 0
     if HIGH_VALUE_SIGNAL_PATTERNS.search(text):
         score += 3
-    if source.get("source_type") in {"official_updates", "release_notes", "github_releases"}:
+    if review_source_type(source, url) in {"official_updates", "release_notes", "github_releases"}:
         score += 3
     if NEWS_TITLE_PATTERNS.search(text):
         score += 1
@@ -646,7 +781,7 @@ def append_candidate_review(
         vertical=vertical,
         source_name=source_name or str(source.get("name") or "Source"),
         source_url=str(source.get("url") or ""),
-        source_type=str(source.get("source_type") or "unknown"),
+        source_type=review_source_type(source, url),
         source_priority=str(source.get("priority") or "medium"),
         title=title,
         summary=summary,
@@ -736,7 +871,7 @@ def fetch_rss(
             resolved_url = resolve_google_news_url(url, publisher_url)
             if resolved_url != url:
                 url = resolved_url
-                summary = fetch_article_excerpt(url, MARTI_REQUIRED_PATTERNS.get(vertical)) or summary
+                summary = fetch_article_excerpt(url, required_pattern_for_vertical(vertical)) or summary
                 article_reads += 1
         if (
             vertical in MARTI_REQUIRED_PATTERNS
@@ -744,6 +879,13 @@ def fetch_rss(
             and (not summary or not has_marti_event_evidence(f"{title} {summary}"))
         ):
             summary = fetch_article_excerpt(url, MARTI_REQUIRED_PATTERNS.get(vertical)) or summary
+            article_reads += 1
+        if (
+            vertical in GENNY_REQUIRED_PATTERNS
+            and article_reads < RSS_ARTICLE_READS_PER_SOURCE
+            and (len(strip_text(summary)) < 40 or not has_genny_event_evidence(f"{title} {summary}"))
+        ):
+            summary = fetch_article_excerpt(url, GENNY_REQUIRED_PATTERNS.get(vertical)) or summary
             article_reads += 1
         if vertical in MARTI_REQUIRED_PATTERNS and not summary:
             continue
@@ -858,7 +1000,7 @@ def fetch_manual_links(
         if article_reads >= ARTICLE_READS_PER_SOURCE:
             break
         article_reads += 1
-        excerpt = fetch_article_excerpt(href, MARTI_REQUIRED_PATTERNS.get(vertical))
+        excerpt = fetch_article_excerpt(href, required_pattern_for_vertical(vertical))
         passed, score, reason = quality_review(vertical, source, title, excerpt, href)
         review_id = append_candidate_review(
             reviews,

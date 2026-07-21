@@ -309,6 +309,38 @@ class MartiPipelineTests(unittest.TestCase):
         self.assertNotIn("Archive navigation entry", excerpt)
         self.assertTrue(composer.has_marti_event_evidence(excerpt))
 
+    def test_article_enrichment_prefers_coherent_metadata_over_page_chrome(self) -> None:
+        article = b"""<html><head>
+<meta property="og:description" content="Runway introduced Aleph 2.0, its updated generative AI video editing model, inside the Figma Weave design workflow.">
+</head><body>
+<p>Creative Dev Robotics Resources Enterprise Pricing Enterprise Sales Login. Runway announces updates and product resources for design teams.</p>
+</body></html>"""
+
+        class Headers:
+            def get(self, name, default=""):
+                return "text/html" if name.lower() == "content-type" else default
+
+        class FakeResponse:
+            headers = Headers()
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self, *_args):
+                return article
+
+        with mock.patch.object(composer.urllib.request, "urlopen", return_value=FakeResponse()):
+            excerpt = composer.fetch_article_excerpt(
+                "https://runwayml.com/news/aleph-2-in-figma-weave",
+                composer.GENNY_REQUIRED_PATTERNS["AI Design / Motion Graphics"],
+            )
+
+        self.assertIn("Aleph 2.0", excerpt)
+        self.assertNotIn("Enterprise Pricing", excerpt)
+
 
 if __name__ == "__main__":
     unittest.main()

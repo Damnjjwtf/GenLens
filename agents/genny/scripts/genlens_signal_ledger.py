@@ -226,10 +226,14 @@ def decision_enrichment(
     if re.search(r"\b(shut(?:ting)? down|sunset|deprecat(?:e[ds]?|ing)?|end of life|migration|migrate)\b", text):
         action = "migrate"
         mechanism = "service shutdown, deprecation, or migration"
-    elif re.search(r"\b(pricing|price change|duties|fees?|costs?|billing|commercial terms)\b", text):
+    elif re.search(
+        r"\b(pricing (?:change|changes|model|strategy|update|updated)|price (?:change|changes|increase|decrease)|"
+        r"duties(?:-inclusive)?|transaction fees?|billing (?:change|model)|commercial terms|cost per|token cost)\b",
+        text,
+    ):
         action = "budget"
         mechanism = "pricing, fee, or commercial-model change"
-    elif re.search(r"\b(disclosure|transparency|policy|license|rights|consent|compliance|governance)\b", text):
+    elif re.search(r"\b(disclosure|transparency|policy|license|rights|consent|compliance|governance|label|labels|labeled|labeling|copyright|lawsuit|legal action|settlement)\b", text):
         action = "brief"
         mechanism = "policy, disclosure, rights, or governance change"
     elif re.search(r"\b(measurement|attribution|report(?:s|ing)?|search console|track(?:s|ing)?|analytics|incrementality)\b", text):

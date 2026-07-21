@@ -144,6 +144,25 @@
         "required_terms": [
           "AI"
         ],
+        "trusted_domains": [
+          "adobe.com",
+          "canva.com",
+          "creativeforce.io",
+          "photoroom.com",
+          "pebblely.com",
+          "shopify.com",
+          "reuters.com",
+          "techcrunch.com",
+          "theverge.com"
+        ],
+        "primary_domains": [
+          "adobe.com",
+          "canva.com",
+          "creativeforce.io",
+          "photoroom.com",
+          "pebblely.com",
+          "shopify.com"
+        ],
         "source_type": "news_search"
       }
     ],
@@ -319,7 +338,20 @@
           "node packs",
           "video pipelines",
           "production case studies"
-        ]
+        ],
+        "trusted_domains": [
+          "comfy.org",
+          "github.com",
+          "huggingface.co",
+          "techcrunch.com",
+          "theverge.com"
+        ],
+        "primary_domains": [
+          "comfy.org",
+          "github.com",
+          "huggingface.co"
+        ],
+        "source_type": "news_search"
       },
       {
         "name": "fal Blog",
@@ -353,7 +385,17 @@
           "image models",
           "latency",
           "pricing"
-        ]
+        ],
+        "trusted_domains": [
+          "fal.ai",
+          "techcrunch.com",
+          "theverge.com",
+          "venturebeat.com"
+        ],
+        "primary_domains": [
+          "fal.ai"
+        ],
+        "source_type": "news_search"
       },
       {
         "name": "fxguide",
@@ -410,6 +452,24 @@
         ],
         "required_terms": [
           "AI"
+        ],
+        "trusted_domains": [
+          "adobe.com",
+          "blog.google",
+          "deepmind.google",
+          "deadline.com",
+          "hollywoodreporter.com",
+          "reuters.com",
+          "runwayml.com",
+          "techcrunch.com",
+          "theverge.com",
+          "variety.com"
+        ],
+        "primary_domains": [
+          "adobe.com",
+          "blog.google",
+          "deepmind.google",
+          "runwayml.com"
         ],
         "source_type": "news_search"
       }
@@ -502,7 +562,18 @@
           "templates",
           "localization",
           "commercial licensing"
-        ]
+        ],
+        "trusted_domains": [
+          "elevenlabs.io",
+          "reuters.com",
+          "techcrunch.com",
+          "theverge.com",
+          "venturebeat.com"
+        ],
+        "primary_domains": [
+          "elevenlabs.io"
+        ],
+        "source_type": "news_search"
       },
       {
         "name": "Synthesia Blog",
@@ -903,7 +974,18 @@
           "design workflow",
           "brand content",
           "motion"
-        ]
+        ],
+        "trusted_domains": [
+          "figma.com",
+          "runwayml.com",
+          "techcrunch.com",
+          "theverge.com"
+        ],
+        "primary_domains": [
+          "figma.com",
+          "runwayml.com"
+        ],
+        "source_type": "news_search"
       },
       {
         "name": "Framer Blog",
@@ -971,6 +1053,22 @@
         ],
         "required_terms": [
           "AI"
+        ],
+        "trusted_domains": [
+          "billboard.com",
+          "elevenlabs.io",
+          "reuters.com",
+          "rollingstone.com",
+          "suno.com",
+          "techcrunch.com",
+          "theverge.com",
+          "udio.com",
+          "variety.com"
+        ],
+        "primary_domains": [
+          "elevenlabs.io",
+          "suno.com",
+          "udio.com"
         ],
         "source_type": "news_search"
       }
@@ -1150,6 +1248,24 @@
         ],
         "required_terms": [
           "AI"
+        ],
+        "trusted_domains": [
+          "about.fb.com",
+          "blog.google",
+          "capcut.com",
+          "newsroom.tiktok.com",
+          "opus.pro",
+          "techcrunch.com",
+          "theverge.com",
+          "tiktok.com"
+        ],
+        "primary_domains": [
+          "about.fb.com",
+          "blog.google",
+          "capcut.com",
+          "newsroom.tiktok.com",
+          "opus.pro",
+          "tiktok.com"
         ],
         "source_type": "news_search"
       }

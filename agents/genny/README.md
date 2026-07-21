@@ -22,6 +22,8 @@ For the canonical product hierarchy, positioning, north-star metric, and
 milestones, see [`docs/GENLENS_NORTH_STAR.md`](docs/GENLENS_NORTH_STAR.md).
 For Marti's current evidence and promotion gate, see
 [`docs/MARTI_MVP_EVALUATION.md`](docs/MARTI_MVP_EVALUATION.md).
+For Genny's production-specific admission, publisher-trust, and live evaluation
+evidence, see [`docs/GENNY_QUALITY_GATE.md`](docs/GENNY_QUALITY_GATE.md).
 For stable signal IDs, accepted/rejected review history, and runtime artifacts,
 see [`docs/SIGNAL_LEDGER.md`](docs/SIGNAL_LEDGER.md).
 For evidence-bound operator recommendations that do not mutate WVDA, see
@@ -41,6 +43,11 @@ python3 scripts/genlens_compose_brief.py --mode expanded --per-vertical 5 --rss-
 
 The composer also writes `state/signal_ledger.json`. Marti and unified runs use
 their own suffixed ledger files.
+
+Genny cards must pass the production-specific contract documented in
+`docs/GENNY_QUALITY_GATE.md`. Google News sources require explicit trusted and
+primary publisher domains; a search result is never trusted merely because it
+appeared in the feed.
 
 Render decision recommendations from the validated ledger:
 
