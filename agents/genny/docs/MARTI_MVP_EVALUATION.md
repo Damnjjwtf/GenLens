@@ -1,7 +1,7 @@
 # Marti MVP Evaluation
 
-Date: July 20, 2026
-Status: Running research MVP; not approved for scheduled sends
+Date: July 21, 2026
+Status: Research MVP passes one evaluation run; not approved for scheduled sends
 
 ## What is live
 
@@ -36,6 +36,42 @@ The first unified pass produced seven cards across both lenses. Its initial
 convergence suggestion relied on broad creative language, so the detector was
 tightened. Convergence remains a research prompt until a human verifies the
 shared workflow or economic consequence.
+
+## Source-expansion evaluation
+
+Human review invalidated the July 20 source-expansion pass because a static
+RudderStack explainer had been admitted as a change signal. The article page's
+footer contained a separate product-update link, and the parser incorrectly
+combined that footer language with the explainer title. That run does not count
+toward promotion.
+
+The repaired July 21 no-send evaluation produced seven linked cards across five
+Marti layers, with no duplicate titles and seven links not present in the
+isolated evaluation history:
+
+- Paid Media / Creative Performance: 3
+- Stack Consolidation / Displacement: 1
+- Lifecycle / Retention: 1
+- Commerce / Conversion: 1
+- SEO / AEO / Content Systems: 1
+
+Six of the seven cards resolve to official first-party sources. Zapier's Relay
+shutdown notice is the one credible secondary source. The accepted set includes
+official Google Ads campaign and disclosure changes, Meta's Creator Marketing
+Hub announcement, a Salesforce/Slackbot workflow change, Shopify Managed
+Markets pricing, and the new Search Console platform-property type.
+
+The repair requires a concrete change or measured outcome, keeps the layer
+mechanism and change evidence in the same title or summary, rejects static
+how-to/comparison pages that borrow product-update language from page chrome,
+and reads evidence-bearing article paragraphs when official feeds provide weak
+summaries. Regression tests cover the RudderStack false positive and the late
+Search Console article body.
+
+This clean July 21 result counts as evaluation run 1 of the three consecutive
+passing runs required for promotion. It does not authorize scheduled sends, and
+no email was sent. Agentic Marketing Workflows remains the highest-priority
+source gap.
 
 ## Reassessment of the Marti-Genny thesis
 
@@ -73,9 +109,10 @@ gate and at least three convergence candidates have survived human verification.
 
 ## Recommended next build order
 
-1. Improve the active Marti source pool, especially stack displacement and
-   agentic marketing workflows.
-2. Add canonical URL resolution for Google News discovery links.
+1. Repeat the live evaluation twice more and manually review the accepted-card
+   set before considering scheduled delivery.
+2. Improve the Agentic Marketing Workflows source pool without lowering the
+   editorial gate.
 3. Introduce structured signal records with stable IDs, source type, confidence,
    lens, layer, mechanism, use case, and impact fields.
 4. Record rejected candidates with machine-readable rejection reasons.

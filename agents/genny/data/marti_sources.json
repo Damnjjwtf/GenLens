@@ -35,7 +35,7 @@
         "name": "Google Ads and Commerce",
         "url": "https://blog.google/products/ads-commerce/",
         "rss": "https://blog.google/products/ads-commerce/rss/",
-        "source_type": "news",
+        "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
         "watch_for": ["Google Ads", "Performance Max", "creative", "measurement", "campaign"]
@@ -60,6 +60,15 @@
       }
     ],
     "Stack Consolidation / Displacement": [
+      {
+        "name": "Zapier Blog",
+        "url": "https://zapier.com/blog/",
+        "rss": "https://zapier.com/blog/feeds/latest/",
+        "source_type": "blog",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["shutdown", "migration", "replacement", "automation platform", "pricing"]
+      },
       {
         "name": "PostHog Releases",
         "url": "https://github.com/PostHog/posthog/releases",
@@ -102,7 +111,7 @@
         "name": "Salesforce News",
         "url": "https://www.salesforce.com/news/",
         "rss": "https://www.salesforce.com/news/feed/",
-        "source_type": "news",
+        "source_type": "official_updates",
         "priority": "medium",
         "cadence": "daily",
         "watch_for": ["Marketing Cloud", "Agentforce", "Data Cloud", "personalization", "CRM"]
@@ -113,7 +122,7 @@
         "name": "Google Ads and Commerce",
         "url": "https://blog.google/products/ads-commerce/",
         "rss": "https://blog.google/products/ads-commerce/rss/",
-        "source_type": "news",
+        "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
         "watch_for": ["measurement", "attribution", "conversion", "incrementality", "analytics"]
@@ -142,7 +151,7 @@
         "name": "Google Ads and Commerce",
         "url": "https://blog.google/products/ads-commerce/",
         "rss": "https://blog.google/products/ads-commerce/rss/",
-        "source_type": "news",
+        "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
         "watch_for": ["commerce", "shopping", "merchant", "conversion", "retail"]
@@ -171,6 +180,15 @@
       }
     ],
     "Marketing Data / Identity": [
+      {
+        "name": "RudderStack Blog",
+        "url": "https://www.rudderstack.com/blog/",
+        "rss": "https://www.rudderstack.com/blog/rss.xml",
+        "source_type": "blog",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["customer data", "identity", "CDP", "warehouse", "data governance"]
+      },
       {
         "name": "RudderStack Releases",
         "url": "https://github.com/rudderlabs/rudder-server/releases",
