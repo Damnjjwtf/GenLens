@@ -11,6 +11,7 @@ SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
 import genlens_compose_brief as composer
+import genlens_editorial_ops as editorial_ops
 import genlens_send_email as email
 
 
@@ -31,13 +32,45 @@ class MartiPipelineTests(unittest.TestCase):
         self.assertTrue(composer.likely_recent("Current release", today.isoformat()))
         self.assertFalse(composer.likely_recent("Old release", (today - dt.timedelta(days=46)).isoformat()))
 
-    def test_convergence_requires_both_lenses(self) -> None:
-        self.assertEqual(composer.convergence_candidates({"genny": [], "marti": []}), [])
-        pairs = composer.convergence_candidates({
-            "genny": [{"title": "Product image workflow API", "summary": "Commerce creative pipeline", "url": "https://example.com/genny/release"}],
-            "marti": [{"title": "Commerce campaign API", "summary": "Creative conversion workflow", "url": "https://example.com/marti/release"}],
-        })
-        self.assertGreaterEqual(len(pairs), 1)
+    def test_unified_composer_never_publishes_unverified_convergence(self) -> None:
+        with mock.patch.object(composer, "load_sources", return_value={"verticals": {}}):
+            markdown = composer.compose(
+                mode="active",
+                per_vertical=2,
+                rss_limit=2,
+                lens="unified",
+            )
+
+        self.assertNotIn("Convergence candidate:", markdown)
+        self.assertNotIn("## Verified Convergence", markdown)
+        self.assertIn("separate convergence review artifact", markdown)
+
+    def test_unified_delivery_fails_closed_until_promotion_gate_is_explicitly_met(self) -> None:
+        held_for_evidence = editorial_ops.apply_unified_promotion_gate(
+            lens="unified",
+            send_ready=True,
+            reason="passed editorial gate",
+            verified_count=2,
+            allow_unified_delivery=True,
+        )
+        held_for_approval = editorial_ops.apply_unified_promotion_gate(
+            lens="unified",
+            send_ready=True,
+            reason="passed editorial gate",
+            verified_count=3,
+            allow_unified_delivery=False,
+        )
+        promoted = editorial_ops.apply_unified_promotion_gate(
+            lens="unified",
+            send_ready=True,
+            reason="passed editorial gate",
+            verified_count=3,
+            allow_unified_delivery=True,
+        )
+
+        self.assertEqual(held_for_evidence, (False, "hold: human-verified convergence=2/3"))
+        self.assertEqual(held_for_approval, (False, "hold: unified delivery requires explicit promotion approval"))
+        self.assertEqual(promoted, (True, "passed editorial gate"))
 
     def test_housekeeping_does_not_become_marti_card(self) -> None:
         markdown = """# Marti Briefing

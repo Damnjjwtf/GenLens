@@ -158,6 +158,12 @@ These are targets and promotion gates, not claims of current performance:
 - Turn repeated verified patterns into benchmarks, market maps, and paid
   intelligence products.
 
+Implementation boundary: `scripts/genlens_convergence.py` and
+`data/genlens_convergence.schema.json` now provide the structured candidate and
+append-only human-review layer. This satisfies the storage and publication
+boundary; it does not satisfy the promotion metric until at least three real
+conclusions survive human verification.
+
 ## Non-goals
 
 - Becoming an exhaustive general-purpose AI news service.

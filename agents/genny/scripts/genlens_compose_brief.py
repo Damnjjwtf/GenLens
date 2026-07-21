@@ -1129,40 +1129,6 @@ def rank_items(
     )
 
 
-def convergence_candidates(items_by_lens: dict[str, list[dict[str, str]]]) -> list[dict[str, str]]:
-    themes = {
-        "creative-volume economics": {"creative", "variant", "campaign", "video", "image", "ads", "cpm", "roas"},
-        "agentic production and distribution": {"agent", "automation", "workflow", "orchestration", "pipeline", "api"},
-        "commerce asset conversion": {"commerce", "product", "catalog", "shopify", "conversion", "storefront"},
-        "measurement and provenance": {"measurement", "attribution", "provenance", "rights", "compliance", "consent"},
-    }
-    genny_items = items_by_lens.get("genny", [])
-    marti_items = items_by_lens.get("marti", [])
-    candidates: list[dict[str, str]] = []
-    seen_pairs: set[tuple[str, str]] = set()
-    for theme, terms in themes.items():
-        def theme_match(item: dict[str, str]) -> bool:
-            text = f"{item.get('title', '')} {item.get('summary', '')}".lower()
-            return sum(1 for term in terms if term in text) >= 2
-
-        genny = next((item for item in genny_items if theme_match(item)), None)
-        marti = next((item for item in marti_items if theme_match(item)), None)
-        if not genny or not marti:
-            continue
-        pair = (item_key(genny), item_key(marti))
-        if pair in seen_pairs:
-            continue
-        seen_pairs.add(pair)
-        candidates.append({
-            "theme": theme,
-            "genny_title": genny.get("title", "Genny signal"),
-            "genny_url": genny.get("url", ""),
-            "marti_title": marti.get("title", "Marti signal"),
-            "marti_url": marti.get("url", ""),
-        })
-    return candidates[:3]
-
-
 def compose(
     mode: str,
     per_vertical: int,
@@ -1203,7 +1169,6 @@ def compose(
     ]
     current_phase = ""
     coverage_gaps: list[str] = []
-    items_by_lens: dict[str, list[dict[str, str]]] = {name: [] for name in lenses}
     candidate_reviews: list[dict[str, Any]] = []
     for current_lens, vertical in vertical_rows:
         phase = phase_for_vertical(vertical, current_lens)
@@ -1240,7 +1205,6 @@ def compose(
                 "published",
                 "published in brief",
             )
-        items_by_lens[current_lens].extend(picked[:per_vertical])
         if not picked and not sources:
             continue
         if not picked:
@@ -1286,21 +1250,10 @@ def compose(
     if mode == "expanded" and "genny" in lenses:
         lines.extend(render_market_intelligence_section())
     if lens == "unified":
-        convergence = convergence_candidates(items_by_lens)
-        if convergence:
-            lines.extend([
-                "## GenLens",
-                "",
-                "_Convergence candidates connect one production signal with one distribution signal. They are prompts for editorial verification, not automatic causal claims._",
-                "",
-            ])
-            for item in convergence:
-                genny_link = f"[{item['genny_title']}]({item['genny_url']})" if item["genny_url"] else item["genny_title"]
-                marti_link = f"[{item['marti_title']}]({item['marti_url']})" if item["marti_url"] else item["marti_title"]
-                lines.append(f"- **Convergence candidate: {item['theme']}** — Genny: {genny_link}. Marti: {marti_link}. Verify the shared workflow or economic consequence before promotion. `convergence candidate`")
-            lines.append("")
-        else:
-            coverage_gaps.append("Unified: no convergence candidate met the minimum two-term overlap in both lenses. Do not manufacture a cross-lens claim.")
+        coverage_gaps.append(
+            "Unified: cross-lens candidates are generated in a separate convergence review artifact. "
+            "Only conclusions with an attributed human verification event may be appended to this briefing."
+        )
     if coverage_gaps:
         lines.extend([
             "## Source Coverage Notes",

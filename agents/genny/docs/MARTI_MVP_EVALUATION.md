@@ -13,7 +13,9 @@ Status: Research MVP passes one evaluation run; not approved for scheduled sends
 - separate Marti brief, audit, preflight, and tool-candidate artifacts
 - Marti and unified email identities in the existing Resend renderer
 - lens-aware daily email command
-- convergence candidate detection requiring two theme terms in each lens
+- structured convergence candidates requiring one current published signal
+  from each lens, a shared workflow, a shared mechanism or entity, and overlap
+  across at least two dimensions
 - deterministic regression tests for taxonomy, recency, housekeeping suppression, email identity, and convergence
 
 ## First live-feed results
@@ -33,9 +35,11 @@ government stories. The stricter rules reduced the set to three stronger cards.
 This is evidence that Marti needs narrower sources, not lower thresholds.
 
 The first unified pass produced seven cards across both lenses. Its initial
-convergence suggestion relied on broad creative language, so the detector was
-tightened. Convergence remains a research prompt until a human verifies the
-shared workflow or economic consequence.
+convergence suggestion relied on broad creative language. That legacy
+keyword-overlap card has been removed from the briefing composer. Convergence
+now lives in a separate structured research artifact and remains unpublished
+until an attributed human review verifies the shared workflow or economic
+consequence.
 
 ## Source-expansion evaluation
 

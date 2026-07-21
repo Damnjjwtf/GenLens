@@ -28,6 +28,8 @@ For stable signal IDs, accepted/rejected review history, and runtime artifacts,
 see [`docs/SIGNAL_LEDGER.md`](docs/SIGNAL_LEDGER.md).
 For evidence-bound operator recommendations that do not mutate WVDA, see
 [`docs/DECISION_BRIEF.md`](docs/DECISION_BRIEF.md).
+For structured cross-lens hypotheses and the attributed human-verification
+boundary, see [`docs/CONVERGENCE.md`](docs/CONVERGENCE.md).
 For explicit user actions, queue state, and Weekly Verified Decision Actions,
 see [`docs/DECISION_QUEUE.md`](docs/DECISION_QUEUE.md).
 
@@ -131,6 +133,14 @@ python3 scripts/genlens_editorial_ops.py --lens unified --mode expanded
 Marti and unified runs use separate brief, audit, preflight, and tool-candidate
 artifacts. The existing Genny files are not overwritten. Add `--send` only after
 the preflight reports `ready`.
+
+Unified runs also write `state/convergence_candidates.json` and
+`state/convergence_brief.md`. Candidate hypotheses never enter the email.
+Only an attributed human review event recorded with
+`scripts/genlens_convergence.py review` can make a conclusion eligible for the
+`Verified Convergence` section. Unified delivery remains held until three
+conclusions are verified and an operator explicitly supplies
+`--allow-unified-delivery`; see `docs/CONVERGENCE.md`.
 
 ## Sync The Live Hermes Profile
 

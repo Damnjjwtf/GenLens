@@ -35,6 +35,10 @@ with stable source-derived IDs; see `docs/SIGNAL_LEDGER.md`.
 runtime decision queue. It links explicit actor-attributed actions to verified
 signal IDs; see `docs/DECISION_QUEUE.md`.
 
+`data/genlens_convergence.schema.json` is the versioned contract for structured
+Genny–Marti candidate pairs. Candidate generation and human review are separate
+from the decision queue; see `docs/CONVERGENCE.md`.
+
 `data/genlens_tools_manifest.md` is the canonical tool taxonomy.
 
 `data/genlens_vertical_backlog.md` tracks verticals that are on deck but not part of default daily coverage.
@@ -72,6 +76,11 @@ mutations, manages queue state, and reports Weekly Verified Decision Actions.
 Its runtime artifact is `state/decision_queue.json`, which is also preserved
 across deployment and excluded from Git. The editorial pipeline does not create
 decision events automatically.
+
+`scripts/genlens_convergence.py` reads only the current published Genny and
+Marti records in a validated unified ledger. It creates cross-lens hypotheses
+from shared structured dimensions, maintains append-only attributed review
+events, and appends only human-verified conclusions to a unified brief.
 
 `scripts/genlens_send_email.py` sends visual Resend emails. It contains the GenLens briefing email template.
 
