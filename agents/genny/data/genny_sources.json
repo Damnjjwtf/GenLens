@@ -2,13 +2,14 @@
   "source_registry": {
     "name": "GenLens creative production intelligence sources",
     "owner": "Genny",
-    "updated": "2026-07-16",
+    "updated": "2026-07-21",
     "notes": [
       "This is Genny's source of truth for external monitoring.",
       "The GenLens digest endpoint is optional and currently treated as an unhealthy upstream until TLS is fixed.",
       "Manual sources require source-backed summarization; do not infer product claims from the source name alone.",
       "Expanded-mode candidate verticals are on deck for robust briefs; daily default remains active GenLens verticals unless requested.",
-      "ComfyUI is tracked through GitHub Atom feeds; fal and Figma Weave are tracked through official/manual pages plus curated news-search feeds because no reliable official RSS feed was found."
+      "ComfyUI is tracked through GitHub Atom feeds; fal and Figma Weave are tracked through official/manual pages plus curated news-search feeds because no reliable official RSS feed was found.",
+      "Selected first-party update indexes are tracked through bounded leaf sitemaps. Sitemap discovery stays on the publisher domain, requires a publication date, and passes the same 45-day production-signal gate as RSS."
     ]
   },
   "verticals": {
@@ -40,6 +41,30 @@
           "marketplace imagery",
           "AI editing",
           "batch creative"
+        ]
+      },
+      {
+        "name": "Photoroom Product Updates",
+        "url": "https://www.photoroom.com/inside-photoroom",
+        "sitemap": "https://www.photoroom.com/sitemap/en.xml",
+        "source_type": "official_sitemap",
+        "include_patterns": [
+          "/inside-photoroom/(?:new-in-product|what-is-new-in-product|new-in-photoroom|[^/]*product-recap|[^/]*visual-guarantee|photoroom-launches)"
+        ],
+        "sitemap_article_reads": 4,
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "AI",
+          "product photography",
+          "product imagery",
+          "catalog",
+          "virtual models",
+          "product fidelity",
+          "batch production"
+        ],
+        "required_terms": [
+          "AI"
         ]
       },
       {
@@ -1178,6 +1203,30 @@
           "instructional design",
           "AI training content",
           "e-learning workflow"
+        ]
+      },
+      {
+        "name": "Articulate Product Updates",
+        "url": "https://www.articulate.com/blog/",
+        "sitemap": "https://www.articulate.com/post-sitemap.xml",
+        "source_type": "official_sitemap",
+        "include_patterns": [
+          "/blog/(?:announcing-new-articulate-features|articulate-feature-release|articulate-360s-newest-feature-releases)"
+        ],
+        "sitemap_article_reads": 8,
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "AI",
+          "course content",
+          "training",
+          "instructional design",
+          "Rise",
+          "Storyline",
+          "localization"
+        ],
+        "required_terms": [
+          "AI"
         ]
       },
       {

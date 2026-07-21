@@ -60,6 +60,97 @@ class GennyPipelineTests(unittest.TestCase):
                 self.assertGreater(len(source.get("primary_domains", [])), 0)
                 self.assertTrue(set(source["primary_domains"]) <= set(source["trusted_domains"]))
 
+    def test_every_official_sitemap_is_leaf_bounded_and_first_party(self) -> None:
+        source_path = Path(__file__).resolve().parents[1] / "data" / "genny_sources.json"
+        registry = json.loads(source_path.read_text())
+        sitemap_sources = [
+            source
+            for sources in registry["verticals"].values()
+            for source in sources
+            if source.get("source_type") == "official_sitemap"
+        ]
+
+        self.assertGreater(len(sitemap_sources), 0)
+        for source in sitemap_sources:
+            with self.subTest(source=source["name"]):
+                self.assertTrue(str(source.get("sitemap") or "").startswith("https://"))
+                self.assertGreater(len(source.get("include_patterns", [])), 0)
+                self.assertEqual(
+                    composer.source_domain(source["url"]),
+                    composer.source_domain(source["sitemap"]),
+                )
+
+    def test_sitemap_parser_rejects_cross_domain_and_out_of_scope_urls(self) -> None:
+        body = b"""<?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          <url><loc>https://vendor.example.com/blog/older</loc><lastmod>2026-06-20</lastmod></url>
+          <url><loc>https://evil.example.net/blog/new</loc><lastmod>2026-07-21</lastmod></url>
+          <url><loc>https://vendor.example.com/pricing</loc><lastmod>2026-07-21</lastmod></url>
+          <url><loc>https://vendor.example.com/blog/new</loc><lastmod>2026-07-20</lastmod></url>
+        </urlset>"""
+        source = {
+            "name": "Official updates",
+            "url": "https://vendor.example.com/blog",
+            "sitemap": "https://vendor.example.com/sitemap.xml",
+            "source_type": "official_sitemap",
+            "include_patterns": [r"/blog/"],
+        }
+
+        rows = composer.parse_sitemap_rows(body, source)
+
+        self.assertEqual(
+            [row["url"] for row in rows],
+            [
+                "https://vendor.example.com/blog/new",
+                "https://vendor.example.com/blog/older",
+            ],
+        )
+
+    def test_json_ld_article_metadata_supplies_evidence_and_publication_date(self) -> None:
+        body = """
+        <html><head>
+          <meta property="og:title" content="Articulate launches AI course production updates">
+          <script type="application/ld+json">
+          {
+            "@type": "NewsArticle",
+            "headline": "Articulate launches AI course production updates",
+            "datePublished": "2026-07-16T12:00:00Z",
+            "description": "Articulate AI course content workflows help training teams work in Rise and Storyline."
+          }
+          </script>
+        </head><body></body></html>
+        """
+
+        title, summary, date = composer.article_metadata_from_html(
+            body,
+            composer.GENNY_REQUIRED_PATTERNS["Education / E-Learning Content"],
+        )
+
+        self.assertEqual(title, "Articulate launches AI course production updates")
+        self.assertEqual(date, "2026-07-16")
+        self.assertIn("AI course content", summary)
+        accepted, _score, reason = self.review(
+            "Education / E-Learning Content",
+            title,
+            summary,
+            source={
+                **self.official_source,
+                "source_type": "official_sitemap",
+                "sitemap": "https://vendor.example.com/sitemap.xml",
+            },
+            url="https://vendor.example.com/blog/q2-release",
+        )
+        self.assertTrue(accepted, reason)
+        rejected = self.review(
+            "Education / E-Learning Content",
+            title,
+            summary,
+            source={**self.official_source, "source_type": "blog"},
+            url="https://vendor.example.com/blog/q2-release",
+        )
+        self.assertFalse(rejected[0])
+        self.assertEqual(rejected[2], "missing concrete AI-production ecosystem change")
+
     def test_generic_engine_and_renderer_releases_are_not_ai_production_signals(self) -> None:
         cases = [
             (
@@ -79,6 +170,28 @@ class GennyPipelineTests(unittest.TestCase):
                 accepted, _score, reason = self.review(vertical, title, summary)
                 self.assertFalse(accepted)
                 self.assertEqual(reason, "missing explicit generative-AI production mechanism")
+
+    def test_game_automation_requires_a_generative_production_artifact(self) -> None:
+        automation = self.review(
+            "Game Development / Real-Time 3D",
+            "Meet the Unity CLI: manage Unity from your terminal",
+            "Unity becomes an environment an AI agent can work in. Drop its runtime component into a development build and a running game exposes the same API.",
+        )
+        generative = self.review(
+            "Game Development / Real-Time 3D",
+            "Scenario launches generative AI game asset workflow",
+            "The new model generates consistent 2D game assets and characters for production teams.",
+        )
+        unity_generator = self.review(
+            "Game Development / Real-Time 3D",
+            "Unity AI Open Beta: Create props with the 3D Object Generator",
+            "The new generator creates static 3D mesh prefabs from text prompts and saves the generated game assets in Unity.",
+        )
+
+        self.assertFalse(automation[0])
+        self.assertEqual(automation[2], "missing generative game-production mechanism")
+        self.assertTrue(generative[0], generative[2])
+        self.assertTrue(unity_generator[0], unity_generator[2])
 
     def test_broad_ai_infrastructure_is_not_a_digital_human_signal(self) -> None:
         accepted, _score, reason = self.review(
@@ -244,6 +357,41 @@ class GennyPipelineTests(unittest.TestCase):
         self.assertEqual(fashion_analysis[2], "missing concrete AI-production ecosystem change")
         self.assertFalse(conference_promo[0])
         self.assertEqual(conference_promo[2], "event promotion without title-level product change")
+
+    def test_weekly_multi_item_roundup_is_not_an_atomic_fashion_signal(self) -> None:
+        roundup = self.review(
+            "Fashion / Apparel / Textile",
+            "An AI Likeness Free-For-All, Cataloguing, Sorting, And Persuasion",
+            "This weekly show covers an AI wardrobe funding round, textile sorting, and several unrelated technology stories.",
+        )
+
+        self.assertFalse(roundup[0])
+        self.assertEqual(roundup[2], "multi-item roundup without atomic change")
+
+    def test_cross_source_headlines_for_the_same_launch_are_collapsed(self) -> None:
+        items = [
+            {
+                "title": "Direct Every Frame with Runway Aleph 2.0, Now in Figma Weave",
+                "url": "https://figma.com/blog/runway-aleph-2",
+                "source": "Figma",
+                "priority": "medium",
+                "score": "8",
+                "date": "2026-07-19",
+            },
+            {
+                "title": "Aleph 2.0 Is Now in Figma Weave",
+                "url": "https://runwayml.com/news/aleph-2-figma-weave",
+                "source": "Runway",
+                "priority": "high",
+                "score": "9",
+                "date": "2026-07-20",
+            },
+        ]
+
+        ranked = composer.rank_items(items)
+
+        self.assertEqual(len(ranked), 1)
+        self.assertEqual(ranked[0]["source"], "Runway")
 
     def test_recommendation_classifier_ignores_page_chrome_pricing_and_briefs_labeling(self) -> None:
         runway = ledger.decision_enrichment(

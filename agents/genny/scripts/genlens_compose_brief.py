@@ -147,7 +147,7 @@ DISCOVERY_SOURCE_PATTERNS = re.compile(
 )
 
 BRIEFABLE_URL_PATTERNS = re.compile(
-    r"(/blog/|/news/|/news/stories/|/learn/|/insights/|/resources/|/magazine/|/articles?/|/posts/|/products/ads-commerce/|/research/|/case-stud|/customer-stor|/press|/release|/announc|/update|/changelog|/paper|arxiv\.org/abs/|github\.com/.+/(releases|commits|pulls)|/20\d{2}/)",
+    r"(/blog/|/inside-photoroom/|/news/|/news/stories/|/learn/|/insights/|/resources/|/magazine/|/articles?/|/posts/|/products/ads-commerce/|/research/|/case-stud|/customer-stor|/press|/release|/announc|/update|/changelog|/paper|arxiv\.org/abs/|github\.com/.+/(releases|commits|pulls)|/20\d{2}/)",
     re.I,
 )
 
@@ -211,6 +211,7 @@ TITLE_DATE_PATTERN = re.compile(
 )
 ARTICLE_READS_PER_SOURCE = 1
 RSS_ARTICLE_READS_PER_SOURCE = 4
+SITEMAP_ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_SITEMAP_ARTICLE_READS", "8"))
 MAX_ITEM_AGE_DAYS = int(os.environ.get("GENLENS_MAX_ITEM_AGE_DAYS", "45"))
 MAX_PER_SOURCE = int(os.environ.get("GENLENS_MAX_PER_SOURCE", "2"))
 MAX_PER_DOMAIN = int(os.environ.get("GENLENS_MAX_PER_DOMAIN", "2"))
@@ -244,7 +245,7 @@ GENNY_REQUIRED_PATTERNS = {
     "Advertising / Brand Content": re.compile(r"\b(advertis(?:ing|ements?)|ads?|brand content|campaign creative|creative assets?|commercials?|agency production)\b", re.I),
     "ArchViz": re.compile(r"\b(archviz|architectural visuali[sz]ation|architecture render(?:ing)?|building visuali[sz]ation|interior visuali[sz]ation|enscape|twinmotion)\b", re.I),
     "Podcast / Long-Form Audio": re.compile(r"\b(podcasts?|long-form audio|episodes?|show notes|transcripts?|descript|riverside)\b", re.I),
-    "Education / E-Learning Content": re.compile(r"\b(e-?learning|education(?:al)? content|training videos?|course content|instructional design|learning and development|l&d|locali[sz]ed training)\b", re.I),
+    "Education / E-Learning Content": re.compile(r"\b(e-?learning|education(?:al)? content|training (?:videos?|content)|course (?:content|authoring)|instructional design|workplace training|learning and development|l&d|locali[sz]ed training|ai tutor|rise|storyline)\b", re.I),
     "Social / Short-Form Video": re.compile(r"\b(social video|short-form|tiktok|reels?|shorts?|creator video|capcut|meta edits|instagram edits)\b", re.I),
     "Game Development / Real-Time 3D": re.compile(r"\b(game development|games?|unity|unreal|godot|real-time 3d|npcs?|procedural game|game assets?)\b", re.I),
     "Cross-Vertical Watchlist": re.compile(r"\b(creative production|production workflow|content production|generative video|generative image|vfx|animation|design workflow|audio production|3d production|creator workflow)\b", re.I),
@@ -258,15 +259,30 @@ GENNY_AI_MECHANISM_PATTERNS = re.compile(
     re.I,
 )
 
+# An AI agent controlling an engine is automation, but it is not automatically
+# generative-content production. Game signals must describe the creation or
+# editing of a game-production artifact such as an asset, level, scene, NPC, or
+# gameplay system.
+GAME_GENERATIVE_PRODUCTION_PATTERNS = re.compile(
+    r"\b(generative|text-to-(?:3d|image)|image-to-3d|ai-generated|"
+    r"ai (?:npcs?|characters?|assets?|props?|objects?|levels?|scenes?|gameplay|worlds?|ui|interfaces?)|"
+    r"(?:3d object|ui|sprite|texture) generator|"
+    r"(?:game|3d) (?:assets?|characters?|levels?|scenes?).{0,60}\bai\b|"
+    r"\bai\b.{0,60}(?:game assets?|npcs?|level design|scene generation|procedural content|gameplay)|"
+    r"ai agents?.{0,24}(?:can |to )?(?:create|build|generate|edit).{0,60}(?:games?|scenes?|assets?|props?|levels?|npcs?))\b",
+    re.I,
+)
+
 GENNY_EVENT_PATTERNS = re.compile(
     r"\b(announc(?:e[ds]?|ing)?|launch(?:es|ed|ing)?|releas(?:e[ds]?|ing)?|updat(?:e[ds]?|ing)|"
     r"introduc(?:e[ds]?|ing)|add(?:s|ed|ing)?|acquir(?:e[ds]?|ing)?|invest(?:s|ed|ing|ment)?|"
+    r"ship(?:s|ped|ping)?|"
     r"partnership|partners? with|equity stake|funding|raises?|sues?|lawsuit|settlement|"
     r"policy change|(?:new|updated?) (?:disclosure|licensing|rights|consent) (?:rule|requirement|policy|program)|"
     r"deprecat(?:e[ds]?|ing)?|sunset|"
     r"shut(?:ting)? down|migration|sdk|api|integration|open source|generally available|available globally|"
     r"roll(?:s|ed|ing) out|new (?:ai|generative|feature|model|tool|capability|integration|workflow)|"
-    r"now (?:available|supports?|lets?|allows?|requires?|uses?|includes?)|can now|must now|will now|"
+    r"now (?:available|supports?|lets?|allows?|requires?|uses?|includes?)|now (?:you|teams?|creators?|users?) can|can now|must now|will now|"
     r"beta|v\d+(?:\.\d+)*)\b",
     re.I,
 )
@@ -286,6 +302,11 @@ NEGATED_AI_SIGNAL_PATTERNS = re.compile(
 EVENT_PROMO_TITLE_PATTERNS = re.compile(
     r"\b(?:at|heads? to|heading to|join(?:s|ing)? us at)\s+(?:siggraph|nab|ces|ibc|gdc)\b|"
     r"\b(?:siggraph|nab|ces|ibc|gdc)\s+20\d{2}\b",
+    re.I,
+)
+
+ROUNDUP_SIGNAL_PATTERNS = re.compile(
+    r"\b(?:daily|weekly) (?:show|roundup|round-up|digest)\b|\bthis week(?:'s)? (?:roundup|news)\b",
     re.I,
 )
 
@@ -529,7 +550,7 @@ def normalized_path(url: str) -> str:
 def is_discovery_source(source: dict[str, Any]) -> bool:
     """Whether a manual source page is worth crawling for article links."""
     url = source.get("url", "")
-    if source.get("rss"):
+    if source.get("rss") or source.get("sitemap"):
         return True
     if source.get("source_type") in {"news", "blog", "research", "publication", "release_notes"}:
         return True
@@ -602,24 +623,26 @@ def domain_matches_any(url: str, domains: list[str]) -> bool:
 def review_source_type(source: dict[str, Any], url: str) -> str:
     """Classify the evidence publisher, not merely its discovery channel."""
     source_type = str(source.get("source_type") or "unknown")
+    if source_type == "official_sitemap":
+        return "official_updates"
     if domain_matches_any(url, list(source.get("primary_domains", []))):
         return "official_updates"
     return source_type
 
 
-def fetch_article_excerpt(url: str, required_pattern: re.Pattern[str] | None = None) -> str:
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "GennySourceReviewer/1.0"})
-        ctx = verified_ssl_context()
-        with urllib.request.urlopen(req, timeout=4, context=ctx) as response:
-            ctype = response.headers.get("content-type", "")
-            if "html" not in ctype:
-                return ""
-            body = response.read(700_000).decode("utf-8", "replace")
-    except Exception:
-        return ""
+def article_metadata_from_html(
+    body: str,
+    required_pattern: re.Pattern[str] | None = None,
+) -> tuple[str, str, str]:
+    """Extract title, evidence excerpt, and publication date from an article.
 
+    Modern first-party update pages often expose cleaner evidence in OpenGraph
+    or JSON-LD than in their rendered paragraph markup. Keeping this parser pure
+    makes the daily sitemap path testable without network access.
+    """
     descriptions: list[str] = []
+    titles: list[str] = []
+    date_values: list[str] = []
     for tag in re.findall(r"<meta\b[^>]*>", body, re.I | re.S):
         attributes = {
             name.lower(): html.unescape(value)
@@ -633,13 +656,87 @@ def fetch_article_excerpt(url: str, required_pattern: re.Pattern[str] | None = N
         content = clean_excerpt(str(attributes.get("content") or ""))
         if description_type in {"description", "og:description", "twitter:description"} and content:
             descriptions.append(content)
+        if description_type in {"og:title", "twitter:title"} and content:
+            titles.append(content)
+        if description_type in {
+            "article:published_time",
+            "date",
+            "datepublished",
+            "publishdate",
+            "pub_date",
+        } and content:
+            date_values.append(content)
+
+    for tag in re.findall(r"<time\b[^>]*>", body, re.I | re.S):
+        attributes = {
+            name.lower(): html.unescape(value)
+            for name, _quote, value in re.findall(
+                r"([:\w-]+)\s*=\s*([\"'])(.*?)\2",
+                tag,
+                re.I | re.S,
+            )
+        }
+        datetime_value = clean_excerpt(str(attributes.get("datetime") or ""))
+        if datetime_value:
+            date_values.append(datetime_value)
+
+    structured_bodies: list[str] = []
+
+    def collect_structured(value: Any) -> None:
+        if isinstance(value, list):
+            for child in value:
+                collect_structured(child)
+            return
+        if not isinstance(value, dict):
+            return
+        headline = clean_excerpt(str(value.get("headline") or value.get("name") or ""))
+        description = clean_excerpt(str(value.get("description") or ""))
+        article_body = clean_excerpt(str(value.get("articleBody") or ""))
+        published = clean_excerpt(str(value.get("datePublished") or ""))
+        if headline:
+            titles.append(headline)
+        if description:
+            descriptions.append(description)
+        if article_body:
+            structured_bodies.append(article_body)
+        if published:
+            date_values.append(published)
+        for graph_key in ("@graph", "mainEntity", "itemListElement"):
+            if graph_key in value:
+                collect_structured(value[graph_key])
+
+    structured_scripts = [
+        script
+        for attributes, script in re.findall(r"<script\b([^>]*)>(.*?)</script>", body, re.I | re.S)
+        if re.search(r"\btype\s*=\s*[\"']application/ld\+json[\"']", attributes, re.I)
+    ]
+    for script in structured_scripts:
+        try:
+            collect_structured(json.loads(html.unescape(script).strip()))
+        except (TypeError, json.JSONDecodeError):
+            continue
+
+    title_match = re.search(r"<title[^>]*>(.*?)</title>", body, re.I | re.S)
+    if title_match:
+        titles.append(clean_excerpt(title_match.group(1)))
+
     paragraphs = [clean_excerpt(match.group(1)) for match in re.finditer(r"<p[^>]*>(.*?)</p>", body, re.I | re.S)]
+    for article_body in structured_bodies:
+        paragraphs.extend(
+            sentence
+            for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z0-9])", article_body)
+            if 60 <= len(sentence) <= 2_000
+        )
     # Large developer portals sometimes wrap their entire navigation tree in a
     # single paragraph-like element. Exclude those blocks so article evidence
     # wins even when the page shell contains release/search vocabulary.
     paragraphs = [p for p in paragraphs if 60 <= len(p) <= 2_000]
     evidence_paragraphs = [p for p in paragraphs if has_marti_event_evidence(p) or has_genny_event_evidence(p)]
     if required_pattern:
+        vertical_paragraphs = [p for p in paragraphs if required_pattern.search(p)]
+        vertical_ai_paragraphs = [
+            p for p in vertical_paragraphs if GENNY_AI_MECHANISM_PATTERNS.search(p)
+        ]
         relevant_descriptions = [
             description
             for description in descriptions
@@ -647,16 +744,116 @@ def fetch_article_excerpt(url: str, required_pattern: re.Pattern[str] | None = N
             and (has_marti_event_evidence(description) or has_genny_event_evidence(description))
         ]
         relevant_evidence = [p for p in evidence_paragraphs if required_pattern.search(p)]
+        coherent_evidence = [
+            p for p in relevant_evidence if GENNY_AI_MECHANISM_PATTERNS.search(p)
+        ]
     else:
+        vertical_paragraphs = []
+        vertical_ai_paragraphs = []
         relevant_descriptions = []
         relevant_evidence = []
+        coherent_evidence = []
     # A coherent metadata description is usually cleaner than a page paragraph
     # polluted by navigation, JSON-LD, or pricing/footer chrome. Use it first;
     # fall back to article paragraphs when metadata is generic or absent.
-    candidates = relevant_descriptions or relevant_evidence or evidence_paragraphs or paragraphs
+    candidates = (
+        relevant_descriptions
+        or coherent_evidence
+        or relevant_evidence
+        or vertical_ai_paragraphs
+        or vertical_paragraphs
+        or evidence_paragraphs
+        or paragraphs
+    )
     candidates = sorted(candidates, key=len, reverse=True)
     selected = candidates[:2] or descriptions[:1]
-    return truncate_text(" ".join(dict.fromkeys(selected)), 320)
+    excerpt_text = " ".join(dict.fromkeys(selected))
+    if required_pattern and excerpt_text:
+        sentences = [
+            clean_excerpt(sentence)
+            for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z0-9])", excerpt_text)
+        ]
+        relevant_sentences = [sentence for sentence in sentences if required_pattern.search(sentence)]
+        if relevant_sentences:
+            relevant_sentences.sort(
+                key=lambda sentence: (
+                    bool(GENNY_AI_MECHANISM_PATTERNS.search(sentence)),
+                    has_genny_event_evidence(sentence) or has_marti_event_evidence(sentence),
+                    len(sentence),
+                ),
+                reverse=True,
+            )
+            focused_sentences: list[str] = []
+            for sentence in relevant_sentences[:3]:
+                if len(sentence) <= 300:
+                    focused_sentences.append(sentence)
+                    continue
+                match = required_pattern.search(sentence)
+                if not match:
+                    continue
+                start = max(0, match.start() - 130)
+                end = min(len(sentence), match.end() + 170)
+                if start:
+                    start = sentence.find(" ", start) + 1
+                if end < len(sentence):
+                    boundary = sentence.rfind(" ", start, end)
+                    end = boundary if boundary > start else end
+                focused = sentence[start:end].strip(" ,;:-")
+                focused_sentences.append(("…" if start else "") + focused + ("…" if end < len(sentence) else ""))
+            excerpt_text = " ".join(dict.fromkeys(focused_sentences))
+        else:
+            match = required_pattern.search(excerpt_text)
+            if match and len(excerpt_text) > 300:
+                start = max(0, match.start() - 130)
+                end = min(len(excerpt_text), match.end() + 170)
+                if start:
+                    start = excerpt_text.find(" ", start) + 1
+                if end < len(excerpt_text):
+                    boundary = excerpt_text.rfind(" ", start, end)
+                    end = boundary if boundary > start else end
+                excerpt_text = (
+                    ("…" if start else "")
+                    + excerpt_text[start:end].strip(" ,;:-")
+                    + ("…" if end < len(excerpt_text) else "")
+                )
+    title = next((value for value in titles if value), "")
+    title = re.sub(r"\s+[|–—-]\s+[^|–—-]{2,60}$", "", title).strip()
+    date = ""
+    for value in date_values:
+        match = re.search(r"(?<!\d)(20\d{2}-\d{2}-\d{2})(?!\d)", value)
+        if match:
+            date = match.group(1)
+            break
+        for fmt in ("%B %d, %Y", "%b %d, %Y"):
+            try:
+                date = dt.datetime.strptime(value.strip(), fmt).date().isoformat()
+                break
+            except ValueError:
+                continue
+        if date:
+            break
+    return title, truncate_text(excerpt_text, 320), date
+
+
+def fetch_article_metadata(
+    url: str,
+    required_pattern: re.Pattern[str] | None = None,
+) -> tuple[str, str, str]:
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "GennySourceReviewer/1.0"})
+        ctx = verified_ssl_context()
+        with urllib.request.urlopen(req, timeout=6, context=ctx) as response:
+            ctype = response.headers.get("content-type", "")
+            if "html" not in ctype:
+                return "", "", ""
+            body = response.read(1_200_000).decode("utf-8", "replace")
+    except Exception:
+        return "", "", ""
+    return article_metadata_from_html(body, required_pattern)
+
+
+def fetch_article_excerpt(url: str, required_pattern: re.Pattern[str] | None = None) -> str:
+    return fetch_article_metadata(url, required_pattern)[1]
 
 
 def quality_review(vertical: str, source: dict[str, Any], title: str, summary: str, url: str, date: str = "") -> tuple[bool, int, str]:
@@ -690,16 +887,29 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
             return False, 0, "source explicitly negates an AI production signal"
         if EVENT_PROMO_TITLE_PATTERNS.search(title) and not TITLE_LEVEL_PRODUCT_CHANGE_PATTERNS.search(title):
             return False, 0, "event promotion without title-level product change"
+        if ROUNDUP_SIGNAL_PATTERNS.search(text) and not TITLE_LEVEL_PRODUCT_CHANGE_PATTERNS.search(title):
+            return False, 0, "multi-item roundup without atomic change"
         if not genny_required.search(text):
             return False, 0, "missing vertical-specific production mechanism"
         if not GENNY_AI_MECHANISM_PATTERNS.search(text):
             return False, 0, "missing explicit generative-AI production mechanism"
+        if vertical == "Game Development / Real-Time 3D" and not GAME_GENERATIVE_PRODUCTION_PATTERNS.search(text):
+            return False, 0, "missing generative game-production mechanism"
         coherent_genny_evidence = any(
             genny_required.search(field)
             and GENNY_AI_MECHANISM_PATTERNS.search(field)
             and has_genny_event_evidence(field)
             for field in (title, summary)
         )
+        if not coherent_genny_evidence and review_source_type(source, url) == "official_updates":
+            # A leaf-sitemap article title and its structured excerpt are one
+            # first-party evidence unit. Allow the event verb in the headline
+            # to pair with the AI production mechanism in the article summary.
+            coherent_genny_evidence = bool(
+                genny_required.search(text)
+                and GENNY_AI_MECHANISM_PATTERNS.search(text)
+                and has_genny_event_evidence(text)
+            )
         if not coherent_genny_evidence:
             return False, 0, "missing concrete AI-production ecosystem change"
     marti_required = MARTI_REQUIRED_PATTERNS.get(vertical)
@@ -930,6 +1140,137 @@ def fetch_rss(
     return out
 
 
+def parse_sitemap_rows(body: bytes, source: dict[str, Any]) -> list[dict[str, str]]:
+    """Parse and bound one official URL-set sitemap.
+
+    Registry entries point to leaf URL sets, not sitemap indexes. Every accepted
+    URL must stay on the source's own domain and match its explicit path scope.
+    """
+    root = ET.fromstring(body)
+    if root.tag.split("}", 1)[-1].lower() != "urlset":
+        raise ValueError("official sitemap must be a leaf urlset")
+    source_url = str(source.get("url") or source.get("sitemap") or "")
+    source_host = source_domain(source_url)
+    include_patterns = [re.compile(str(value), re.I) for value in source.get("include_patterns", [])]
+    exclude_patterns = [re.compile(str(value), re.I) for value in source.get("exclude_patterns", [])]
+    rows: list[dict[str, str]] = []
+    for index, node in enumerate(list(root)):
+        fields = {
+            child.tag.split("}", 1)[-1].lower(): strip_text(child.text)
+            for child in list(node)
+        }
+        url = fields.get("loc", "")
+        if not url or urllib.parse.urlparse(url).scheme not in {"http", "https"}:
+            continue
+        if source_host and source_domain(url) != source_host:
+            continue
+        if include_patterns and not any(pattern.search(url) for pattern in include_patterns):
+            continue
+        if any(pattern.search(url) for pattern in exclude_patterns):
+            continue
+        rows.append({
+            "url": url,
+            "date": fields.get("lastmod", "")[:10],
+            "_index": str(index),
+        })
+    return sorted(
+        rows,
+        key=lambda row: (
+            bool(parsed_iso_date(row.get("date", ""))),
+            row.get("date", ""),
+            int(row.get("_index", "0")),
+        ),
+        reverse=True,
+    )
+
+
+def fetch_sitemap(
+    source: dict[str, Any],
+    vertical: str,
+    limit: int,
+    reviews: list[dict[str, Any]] | None = None,
+    lens: str = "genny",
+) -> list[dict[str, str]]:
+    sitemap = str(source.get("sitemap") or "")
+    if not sitemap or source.get("source_type") != "official_sitemap":
+        return []
+    req = urllib.request.Request(sitemap, headers={"User-Agent": "GennyBriefComposer/1.0"})
+    ctx = verified_ssl_context()
+    with urllib.request.urlopen(req, timeout=20, context=ctx) as response:
+        body = response.read(3_500_000)
+    rows = parse_sitemap_rows(body, source)
+    out: list[dict[str, str]] = []
+    article_reads = 0
+    max_reads = max(1, min(int(source.get("sitemap_article_reads") or SITEMAP_ARTICLE_READS_PER_SOURCE), 20))
+    required_pattern = required_pattern_for_vertical(vertical)
+    for row in rows:
+        sitemap_date = row.get("date", "")
+        if sitemap_date and not likely_recent("", sitemap_date):
+            continue
+        if article_reads >= max_reads:
+            break
+        article_reads += 1
+        url = row["url"]
+        title, summary, published_date = fetch_article_metadata(url, required_pattern)
+        date = published_date or sitemap_date
+        if not title:
+            title = urllib.parse.unquote(urllib.parse.urlparse(url).path.rstrip("/").split("/")[-1])
+            title = re.sub(r"[-_]+", " ", title).strip().title()
+        if not date:
+            append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source,
+                title=title,
+                summary=summary,
+                url=url,
+                date="",
+                status="rejected",
+                score=0,
+                reason="missing publication date for daily discovery",
+            )
+            continue
+        passed, score, reason = quality_review(vertical, source, title, summary, url, date)
+        review_id = append_candidate_review(
+            reviews,
+            lens=lens,
+            vertical=vertical,
+            source=source,
+            title=title,
+            summary=summary,
+            url=url,
+            date=date,
+            status="qualified" if passed else "rejected",
+            score=score,
+            reason=reason,
+        )
+        if not passed:
+            continue
+        if relevance_score(vertical, source, title, summary) <= 0:
+            signal_ledger.update_review_status(
+                reviews or [],
+                review_id,
+                "rejected",
+                "missing vertical relevance",
+            )
+            continue
+        out.append({
+            "title": title,
+            "url": url,
+            "date": date,
+            "summary": truncate_text(summary, 260),
+            "source": str(source.get("name") or "Official update"),
+            "priority": str(source.get("priority") or "high"),
+            "score": str(score),
+            "review": reason,
+            "_review_id": review_id,
+        })
+        if len(out) >= min(limit, MAX_PER_SOURCE):
+            break
+    return out
+
+
 def fetch_manual_links(
     source: dict[str, Any],
     vertical: str,
@@ -1082,6 +1423,29 @@ def priority_weight(priority: str) -> int:
     return {"high": 3, "medium": 2, "low": 1}.get(priority, 1)
 
 
+TOPIC_TOKEN_STOPWORDS = {
+    "about", "adds", "after", "announces", "available", "direct", "every",
+    "from", "inside", "introduces", "launches", "new", "now",
+    "release", "releases", "the", "their", "through", "updates", "version",
+    "with", "your",
+}
+
+
+def topic_tokens(title: str) -> set[str]:
+    return {
+        token
+        for token in re.findall(r"[a-z0-9]+", title.lower())
+        if len(token) >= 3 and token not in TOPIC_TOKEN_STOPWORDS
+    }
+
+
+def is_near_duplicate_topic(left: set[str], right: set[str]) -> bool:
+    if not left or not right:
+        return False
+    overlap = len(left & right)
+    return overlap >= 3 and overlap / min(len(left), len(right)) >= 0.75
+
+
 def rank_items(
     items: list[dict[str, str]],
     reviews: list[dict[str, Any]] | None = None,
@@ -1091,7 +1455,17 @@ def rank_items(
     source_counts: dict[str, int] = {}
     domain_counts: dict[str, int] = {}
     topic_counts: dict[str, int] = {}
-    for item in items:
+    topic_token_sets: list[set[str]] = []
+    ordered_items = sorted(
+        items,
+        key=lambda item: (
+            priority_weight(item.get("priority", "medium")),
+            int(item.get("score", "0") or 0),
+            item.get("date", ""),
+        ),
+        reverse=True,
+    )
+    for item in ordered_items:
         key = item_key(item)
         review_id = item.get("_review_id", "")
         if not key:
@@ -1099,6 +1473,10 @@ def rank_items(
             continue
         if key in seen:
             signal_ledger.update_review_status(reviews or [], review_id, "rejected", "duplicate signal")
+            continue
+        tokens = topic_tokens(item.get("title", ""))
+        if any(is_near_duplicate_topic(tokens, existing) for existing in topic_token_sets):
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "cross-source near-duplicate signal")
             continue
         source_bucket = f"{item.get('source', 'Source')}:{source_domain(item.get('url', ''))}"
         domain = source_domain(item.get("url", ""))
@@ -1117,16 +1495,9 @@ def rank_items(
         if domain:
             domain_counts[domain] = domain_counts.get(domain, 0) + 1
         topic_counts[topic] = topic_counts.get(topic, 0) + 1
+        topic_token_sets.append(tokens)
         deduped.append(item)
-    return sorted(
-        deduped,
-        key=lambda item: (
-            priority_weight(item.get("priority", "medium")),
-            int(item.get("score", "0") or 0),
-            item.get("date", ""),
-        ),
-        reverse=True,
-    )
+    return deduped
 
 
 def compose(
@@ -1185,6 +1556,14 @@ def compose(
                         reviews=candidate_reviews,
                         lens=current_lens,
                     ))
+                elif source.get("sitemap"):
+                    candidates.extend(fetch_sitemap(
+                        source,
+                        vertical,
+                        rss_limit,
+                        reviews=candidate_reviews,
+                        lens=current_lens,
+                    ))
                 elif include_manual:
                     candidates.extend(fetch_manual_links(
                         source,
@@ -1209,8 +1588,16 @@ def compose(
             continue
         if not picked:
             audit_sources = [s for s in sources if is_discovery_source(s)]
-            feed_names = ", ".join(s.get("name", "source") for s in audit_sources if s.get("rss")) or "none"
-            manual_names = ", ".join(s.get("name", "source") for s in audit_sources if not s.get("rss"))
+            feed_names = ", ".join(
+                s.get("name", "source")
+                for s in audit_sources
+                if s.get("rss") or s.get("sitemap")
+            ) or "none"
+            manual_names = ", ".join(
+                s.get("name", "source")
+                for s in audit_sources
+                if not s.get("rss") and not s.get("sitemap")
+            )
             if audit_sources:
                 if include_manual:
                     gap = f"{vertical}: checked feeds/pages but rejected homepage, product, generic marketing, stale, or weak-relevance links."
