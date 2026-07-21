@@ -71,6 +71,17 @@ Use that section to:
 - add new primary sources when a company repeatedly appears in accepted signals;
 - turn noisy channels into discovery-only inputs instead of briefing evidence.
 
+## Direct Verification Queue
+
+`data/career_sources.json` includes `direct_source_targets`.
+
+Use it this way:
+
+- Search/RSS feeds discover a possible role.
+- If the lead is promising, verify it against `direct_source_targets.company_watchlist` or a known public ATS domain.
+- If only the ATS homepage/domain is available, label the signal `lead-needs-direct-url`.
+- Only mark salary, location, and tool-stack claims as verified after the direct posting or pasted job text is available.
+
 ## Scripts
 
 Scan public career sources:

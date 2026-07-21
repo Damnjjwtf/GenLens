@@ -92,14 +92,48 @@ VERTICAL_PATTERNS = {
     "Infrastructure": r"\binference\b|\bGPU\b|\bCUDA\b|\bAPI\b|\borchestration\b",
 }
 
+COMPANY_PATTERNS = {
+    "Adobe": r"\badobe\b|\bfirefly\b",
+    "Sphere": r"\bsphere\b",
+    "Paramount": r"\bparamount\b",
+    "Lightricks": r"\blightricks\b|\bltx\b",
+    "Amazon Prime Video": r"\bamazon prime video\b|\bprime video\b|\bamazon mgm\b",
+    "Netflix": r"\bnetflix\b",
+    "Epic Games": r"\bepic games\b|\bunreal engine\b",
+    "OpusClip": r"\bopusclip\b",
+    "Twilio Segment": r"\btwilio segment\b|\bsegment\b",
+    "Jasper": r"\bjasper\b",
+    "Vantage Point": r"\bvantage point\b",
+    "BBD Boom": r"\bbbd boom\b",
+}
+
+LOCATION_PATTERNS = {
+    "Los Angeles": r"\blos angeles\b|\bLA\b",
+    "Culver City": r"\bculver city\b",
+    "San Francisco": r"\bsan francisco\b",
+    "New York City": r"\bnew york\b|\bNYC\b",
+    "Las Vegas": r"\blas vegas\b",
+    "Los Gatos": r"\blos gatos\b",
+    "Vancouver": r"\bvancouver\b",
+    "Toronto": r"\btoronto\b",
+    "Montreal": r"\bmontreal\b|\bmontr[eé]al\b",
+    "Remote": r"\bremote\b",
+    "Hybrid": r"\bhybrid\b",
+}
+
 POSITIVE_PATTERNS = re.compile(
     r"\b(job|jobs|career|careers|hiring|role|roles|salary|skills?|workflow|pipeline|production|studio|artist|engineer|technologist|director|producer|VFX|ComfyUI|inference|GPU|generative AI|AI video|creative AI)\b",
+    re.I,
+)
+SALARY_PATTERN = re.compile(
+    r"(\$\s?\d{2,3}(?:,\d{3})?(?:k|K)?(?:\s?[-–]\s?\$?\s?\d{2,3}(?:,\d{3})?(?:k|K)?)?|\$\s?\d+\s?(?:per hour|/hour|\/hr|hr))",
     re.I,
 )
 NEGATIVE_PATTERNS = re.compile(
     r"\b(best \d+|best tools?|top \d+|serverless GPU clouds?|cost-effective GPUs?|jobgether|coupon|pricing|login|signup|subscribe|privacy|terms|course discount|affiliate|stock picks?|crypto)\b",
     re.I,
 )
+ATS_DOMAINS = {"boards.greenhouse.io", "jobs.lever.co", "jobs.ashbyhq.com", "jobs.workable.com", "workable.com"}
 
 
 def now_iso() -> str:
@@ -217,6 +251,30 @@ def matches(patterns: dict[str, str], text: str) -> list[str]:
     return found
 
 
+def first_salary(text: str) -> str:
+    match = SALARY_PATTERN.search(text)
+    return re.sub(r"\s+", " ", match.group(1)).strip() if match else ""
+
+
+def verification_status(source: dict[str, Any], url: str, raw_url: str, publisher_url: str, text: str) -> str:
+    tier = str(source.get("evidence_tier") or "secondary").lower()
+    domain = source_domain(url)
+    parsed = urllib.parse.urlparse(url)
+    path = parsed.path.strip("/")
+    has_direct_job_path = bool(path) and path not in {"jobs", "careers", "search", "job-board"}
+    if tier == "primary" and domain in ATS_DOMAINS and has_direct_job_path:
+        return "verified-direct-posting"
+    if tier == "primary" and domain in ATS_DOMAINS:
+        return "lead-needs-direct-url"
+    if publisher_url and is_google_news_url(raw_url):
+        return "publisher-domain-lead"
+    if tier in {"demand", "discovery"}:
+        return "demand-lead"
+    if re.search(r"\b(salary|compensation|location|remote|hybrid|requirements?|responsibilities)\b", text, re.I):
+        return "secondary-specific"
+    return "needs-verification"
+
+
 def fingerprint(title: str, url: str) -> str:
     basis = (url or title).strip().lower()
     return hashlib.sha256(basis.encode("utf-8")).hexdigest()[:16]
@@ -304,6 +362,9 @@ def candidate_from_item(item: dict[str, str], source: dict[str, Any]) -> dict[st
     roles = matches(ROLE_PATTERNS, text)
     tools = matches(TOOL_PATTERNS, text)
     skills = matches(SKILL_PATTERNS, text)
+    companies = matches(COMPANY_PATTERNS, text)
+    locations = matches(LOCATION_PATTERNS, text)
+    salary = first_salary(text)
     verticals = matches(VERTICAL_PATTERNS, text) or list(source.get("verticals", [])) or ["Cross-Vertical Watchlist"]
     score, reasons = score_candidate(title, summary, source)
     noisy = bool(NEGATIVE_PATTERNS.search(text))
@@ -325,6 +386,10 @@ def candidate_from_item(item: dict[str, str], source: dict[str, Any]) -> dict[st
         "summary": summary,
         "score": score,
         "status": status,
+        "verification_status": verification_status(source, item.get("url", ""), item.get("raw_url", ""), item.get("publisher_url", ""), text),
+        "companies": companies,
+        "locations": locations,
+        "salary": salary,
         "roles": roles,
         "tools": tools,
         "skills": skills,
@@ -501,7 +566,11 @@ def render_markdown(signals: list[dict[str, Any]], notes: list[str], source_stat
             f"- Status: {row.get('status')}",
             f"- Source: {row.get('source')}",
             f"- Evidence tier: {row.get('evidence_tier')}",
+            f"- Verification: {row.get('verification_status')}",
             f"- Domain: {row.get('domain') or 'unknown'}",
+            f"- Companies: {', '.join(row.get('companies', [])) or 'Unidentified'}",
+            f"- Locations: {', '.join(row.get('locations', [])) or 'Unspecified'}",
+            f"- Salary/rate: {row.get('salary') or 'Unspecified'}",
             f"- Verticals: {', '.join(row.get('verticals', [])) or 'Unassigned'}",
             f"- Roles: {', '.join(row.get('roles', [])) or 'Unclassified'}",
             f"- Tools: {', '.join(row.get('tools', [])) or 'None detected'}",
