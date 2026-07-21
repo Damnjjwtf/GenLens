@@ -146,15 +146,37 @@ def child_link(node: ET.Element) -> str:
     return ""
 
 
-def resolved_google_news_url(url: str) -> str:
+def child_source(node: ET.Element) -> tuple[str, str]:
+    for child in list(node):
+        local = child.tag.split("}", 1)[-1].lower()
+        if local == "source":
+            return strip_text(child.text), child.attrib.get("url", "").strip()
+    return "", ""
+
+
+def source_domain(url: str) -> str:
+    try:
+        return urllib.parse.urlparse(url).netloc.removeprefix("www.").lower()
+    except Exception:
+        return ""
+
+
+def is_google_news_url(url: str) -> bool:
     parsed = urllib.parse.urlparse(url)
-    if "news.google." not in parsed.netloc:
+    return "news.google." in parsed.netloc
+
+
+def resolved_google_news_url(url: str, publisher_url: str = "") -> str:
+    parsed = urllib.parse.urlparse(url)
+    if not is_google_news_url(url):
         return url
     query = urllib.parse.parse_qs(parsed.query)
     for key in ("url", "q"):
         value = query.get(key, [""])[0]
         if value.startswith("http"):
             return value
+    if publisher_url.startswith("http"):
+        return publisher_url
     return url
 
 
@@ -168,13 +190,19 @@ def fetch_rss(url: str, limit: int) -> list[dict[str, str]]:
     items: list[dict[str, str]] = []
     for node in nodes[:limit]:
         title = child_text(node, ("title",))
-        link = resolved_google_news_url(child_link(node))
+        publisher, publisher_url = child_source(node)
+        raw_link = child_link(node)
+        link = resolved_google_news_url(raw_link, publisher_url)
         published = child_text(node, ("pubdate", "published", "updated", "date"))
         summary = child_text(node, ("description", "summary", "content", "encoded"))
         if title:
             items.append({
                 "title": title,
                 "url": link,
+                "raw_url": raw_link,
+                "publisher": publisher,
+                "publisher_url": publisher_url,
+                "domain": source_domain(link),
                 "date": parse_date(published),
                 "summary": summary[:500],
             })
@@ -286,6 +314,10 @@ def candidate_from_item(item: dict[str, str], source: dict[str, Any]) -> dict[st
         "id": fingerprint(title, item.get("url", "")),
         "title": title,
         "url": item.get("url", ""),
+        "raw_url": item.get("raw_url", ""),
+        "publisher": item.get("publisher", ""),
+        "publisher_url": item.get("publisher_url", ""),
+        "domain": item.get("domain", source_domain(item.get("url", ""))),
         "source": source.get("name", "Unknown source"),
         "source_type": source.get("type", "unknown"),
         "evidence_tier": source.get("evidence_tier", "secondary"),
@@ -469,6 +501,7 @@ def render_markdown(signals: list[dict[str, Any]], notes: list[str], source_stat
             f"- Status: {row.get('status')}",
             f"- Source: {row.get('source')}",
             f"- Evidence tier: {row.get('evidence_tier')}",
+            f"- Domain: {row.get('domain') or 'unknown'}",
             f"- Verticals: {', '.join(row.get('verticals', [])) or 'Unassigned'}",
             f"- Roles: {', '.join(row.get('roles', [])) or 'Unclassified'}",
             f"- Tools: {', '.join(row.get('tools', [])) or 'None detected'}",
@@ -477,6 +510,10 @@ def render_markdown(signals: list[dict[str, Any]], notes: list[str], source_stat
         ])
         if row.get("summary"):
             lines.append(f"- Summary: {row.get('summary')}")
+        if row.get("publisher_url") and row.get("publisher_url") != row.get("url"):
+            lines.append(f"- Publisher URL: {row.get('publisher_url')}")
+        if row.get("raw_url") and is_google_news_url(str(row.get("raw_url"))) and row.get("raw_url") != row.get("url"):
+            lines.append("- URL note: resolved from Google News wrapper.")
         lines.append("")
 
     lines.extend(["## Job Source Quality", ""])
