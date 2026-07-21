@@ -12,6 +12,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 import genlens_signal_ledger as ledger
 import genlens_compose_brief as composer
+import genlens_editorial_ops as editorial_ops
 
 
 class SignalLedgerTests(unittest.TestCase):
@@ -288,6 +289,26 @@ class SignalLedgerTests(unittest.TestCase):
             self.assertEqual(data["records"][0]["reviews"][0]["quality_reason_code"], "publishable")
             self.assertEqual(data["records"][0]["reviews"][0]["reason_code"], "published-in-brief")
             self.assertEqual(markdown, without_ledger)
+
+    def test_preflight_preserves_career_and_signal_ledger_artifacts(self) -> None:
+        markdown = editorial_ops.render_preflight(
+            analysis={
+                "cards": 1,
+                "linked_cards": 1,
+                "vertical_count": 1,
+                "signal_vertical_count": 1,
+                "verticals": ["AI Filmmaking"],
+                "source_counts": {"Runway": 1},
+                "duplicates": {},
+            },
+            send_ready=True,
+            reason="passed editorial gate",
+            career_radar_path=Path("/tmp/career_radar.md"),
+            signal_ledger_path=Path("/tmp/signal_ledger.json"),
+        )
+
+        self.assertIn("Career radar: `/tmp/career_radar.md`", markdown)
+        self.assertIn("Signal ledger: `/tmp/signal_ledger.json`", markdown)
 
 
 if __name__ == "__main__":

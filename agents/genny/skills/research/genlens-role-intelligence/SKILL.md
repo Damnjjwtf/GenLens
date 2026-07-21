@@ -13,8 +13,26 @@ Use this skill when Jonathan asks about jobs, new roles, career paths, role arbi
 
 - Role memo: `/root/.hermes/profiles/genny/data/genlens_role_intelligence.md`
 - Structured signals: `/root/.hermes/profiles/genny/data/role_signals.json`
+- Career sources: `/root/.hermes/profiles/genny/data/career_sources.json`
+- Career signal ledger: `/root/.hermes/profiles/genny/data/career_signals.json`
 - Tools manifest: `/root/.hermes/profiles/genny/data/genlens_tools_manifest.md`
 - Sources registry: `/root/.hermes/profiles/genny/data/genny_sources.json`
+
+## First Command
+
+For career intelligence, run the scanner before summarizing:
+
+```bash
+python3 /root/.hermes/profiles/genny/scripts/genlens_career_intel.py --limit 8
+```
+
+Always read the `Job Source Quality` section in the generated Career Radar before answering. If sources are weak, say which source types need replacement or promotion instead of pretending the job market is fully covered.
+
+If Jonathan provides job posts, transcripts, or snippets, save them to a temporary text file and ingest them:
+
+```bash
+python3 /root/.hermes/profiles/genny/scripts/genlens_career_intel.py --input-file /tmp/job-posts.txt
+```
 
 ## Output Modes
 
@@ -26,6 +44,7 @@ For real job posts, extract:
 - Role title
 - Location / remote / hybrid
 - Salary or rate
+- Direct job URL, publisher URL, and source domain
 - Vertical
 - Required tools
 - Required skills
@@ -66,6 +85,10 @@ Allowed:
 - Public search feeds for tightly scoped role queries.
 - Pasted job posts/transcripts from Jonathan.
 
+Prefer direct ATS/company URLs. If a result only has a Google News/search wrapper URL, label it as a lead and verify the original posting before making salary, location, or tool-stack claims.
+
+Use `data/career_sources.json` -> `direct_source_targets` as the verification queue. Search feeds discover leads; company career pages and public ATS postings verify them.
+
 Avoid:
 
 - No login bypass.
@@ -77,6 +100,14 @@ Avoid:
 ## Genny Rule
 
 Job posts are market intelligence. They reveal future creative-production workflows before the industry has stable job titles.
+
+Evidence tiers:
+
+- `primary`: public company careers, public ATS postings, pasted source text. Can support observed roles.
+- `secondary`: articles/trade publications/search feeds. Use for emerging signals unless role facts are specific.
+- `discovery`: social/community screenshots. Verify before publishing.
+- `demand`: freelance/community requests. Use for market demand and proof-builds, not stable role titles.
+- `manual`: watchlist sources requiring review.
 
 Use role intelligence to make GenLens stronger:
 
