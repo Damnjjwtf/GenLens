@@ -325,7 +325,7 @@ def validate_signal_ledger(payload: dict[str, Any]) -> None:
         if status == "rejected":
             if record.get("recommended_action") is not None or not record.get("rejection_reason"):
                 raise ValueError(f"Rejected signal {signal_id} has inconsistent decision fields")
-        elif record.get("recommended_action") not in {"test", "adopt", "avoid", "migrate", "brief", "budget", "watch"}:
+        elif record.get("recommended_action") not in {"test", "adopt", "avoid", "migrate", "brief", "budget", "plan", "watch"}:
             raise ValueError(f"Qualified signal {signal_id} is missing a supported action")
         if status == "published" and not record.get("evidence"):
             raise ValueError(f"Published signal {signal_id} has no evidence")

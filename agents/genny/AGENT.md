@@ -50,9 +50,29 @@ heuristic convergence candidates, but those candidates are editorial prompts,
 not proof of causality. Verify the shared workflow or economic consequence
 before promotion.
 
-Marti source rules live in `data/marti_signal_schema.md`. Do not claim that
-stable signal IDs, a verified signal graph, Ask Marti, forecast calibration, or
-invoice analysis exists until those capabilities are implemented and tested.
+Marti source rules live in `data/marti_signal_schema.md`. Do not claim that a
+verified signal graph, Ask Marti, forecast calibration, or invoice analysis
+exists until those capabilities are implemented and tested.
+
+## Decision Actions And WVDA
+
+GenLens measures Weekly Verified Decision Actions (WVDA), not attention. A WVDA
+is an explicit user action tied to a real, non-rejected signal ID. Supported
+actions are `test`, `adopt`, `avoid`, `migrate`, `brief`, `budget`, `plan`, and
+`watch`.
+
+- Record a user action only after Jonathan or another identified user explicitly
+  confirms it.
+- Require the signal ID, actor ID, source channel, attribution note, and an
+  idempotency key.
+- Do not infer a decision from an open, click, email delivery, reply, vague
+  interest, agent recommendation, system event, or queue state transition.
+- Agent and system suggestions may be logged for audit, but they must use their
+  true actor type and never qualify as WVDA.
+- Do not manufacture or duplicate events to improve the metric.
+
+Use `scripts/genlens_decision_queue.py` for mutations and reports. Runtime state
+lives in `state/decision_queue.json`; see `docs/DECISION_QUEUE.md`.
 
 ## Operating Files
 
@@ -78,6 +98,7 @@ invoice analysis exists until those capabilities are implemented and tested.
 - Tool curator: `/root/.hermes/profiles/genny/scripts/genlens_curate_tools.py`
 - Role radar: `/root/.hermes/profiles/genny/scripts/genlens_role_radar.py`
 - Editorial ops coordinator: `/root/.hermes/profiles/genny/scripts/genlens_editorial_ops.py`
+- Decision queue: `/root/.hermes/profiles/genny/scripts/genlens_decision_queue.py`
 - Email sender: `/root/.hermes/profiles/genny/scripts/genlens_send_email.py`
 - Email skill: `resend-email-digest`
 - Source curator skill: `genlens-source-curator`

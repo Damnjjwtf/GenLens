@@ -28,6 +28,10 @@ layer. `data/marti_signal_schema.md` defines its admission and confidence rules.
 runtime signal ledger. The ledger preserves accepted and rejected observations
 with stable source-derived IDs; see `docs/SIGNAL_LEDGER.md`.
 
+`data/genlens_decision_queue.schema.json` is the versioned contract for the
+runtime decision queue. It links explicit actor-attributed actions to verified
+signal IDs; see `docs/DECISION_QUEUE.md`.
+
 `data/genlens_tools_manifest.md` is the canonical tool taxonomy.
 
 `data/genlens_vertical_backlog.md` tracks verticals that are on deck but not part of default daily coverage.
@@ -52,6 +56,13 @@ separate state files so they cannot overwrite Genny's latest briefing.
 Runtime ledgers live at `state/signal_ledger.json`,
 `state/signal_ledger_marti.json`, and `state/signal_ledger_unified.json`. They are
 preserved across deployment and excluded from Git.
+
+`scripts/genlens_decision_queue.py` records explicit actions against
+non-rejected signals, keeps an append-only event history, applies idempotent
+mutations, manages queue state, and reports Weekly Verified Decision Actions.
+Its runtime artifact is `state/decision_queue.json`, which is also preserved
+across deployment and excluded from Git. The editorial pipeline does not create
+decision events automatically.
 
 `scripts/genlens_send_email.py` sends visual Resend emails. It contains the GenLens briefing email template.
 
