@@ -11,8 +11,8 @@ Her job is to monitor AI creative production signals, compose GenLens briefings,
 ## What Is In This Project
 
 - `AGENT.md` - Genny's operating persona and rules.
-- `data/` - source registry, tools manifest, preferences, backlog, NotebookLM seed bundle, and Jonathan feedback.
-- `scripts/` - source scan, career intelligence, briefing composition, daily digest, retry digest, and Resend email delivery.
+- `data/` - source registry, signal-record schema, tools manifest, preferences, backlog, NotebookLM seed bundle, and Jonathan feedback.
+- `scripts/` - source scan, career intelligence, briefing composition, structured signal ledger, daily digest, retry digest, and Resend email delivery.
 - `prompts/` - reusable prompt specs for signal scoring, briefing format, and delta extraction.
 - `docs/` - setup and architecture notes.
 
@@ -22,6 +22,8 @@ For the canonical product hierarchy, positioning, north-star metric, and
 milestones, see [`docs/GENLENS_NORTH_STAR.md`](docs/GENLENS_NORTH_STAR.md).
 For Marti's current evidence and promotion gate, see
 [`docs/MARTI_MVP_EVALUATION.md`](docs/MARTI_MVP_EVALUATION.md).
+For stable signal IDs, accepted/rejected review history, and runtime artifacts,
+see [`docs/SIGNAL_LEDGER.md`](docs/SIGNAL_LEDGER.md).
 
 No API keys, bot tokens, Google credentials, or Resend secrets are stored here.
 
@@ -32,6 +34,9 @@ Compose an expanded briefing:
 ```bash
 python3 scripts/genlens_compose_brief.py --mode expanded --per-vertical 5 --rss-limit 12 --out state/latest_brief.md
 ```
+
+The composer also writes `state/signal_ledger.json`. Marti and unified runs use
+their own suffixed ledger files.
 
 Send a visual email:
 
