@@ -1,0 +1,86 @@
+{
+  "updated": "2026-07-20",
+  "purpose": "Career intelligence sources for Genny: public feeds and search queries that reveal demand for AI creative production roles, tools, and proof-build skills.",
+  "rules": [
+    "Treat job posts as market intelligence, not recruiting targets.",
+    "Do not scrape login-only job boards or automate applications.",
+    "Prefer public company career pages, public RSS feeds, public news/search RSS, and pasted job posts from Jonathan.",
+    "Label every role signal as observed, emerging, forecast, or market-demand.",
+    "A candidate must mention a role, tool, workflow, company, skill, or market pain to enter Career Radar."
+  ],
+  "sources": [
+    {
+      "name": "Creative AI Jobs News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%22creative%20technologist%22%20%22generative%20AI%22%20OR%20%22AI%20creative%22%20jobs&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["Cross-Vertical Watchlist"],
+      "watch_for": ["creative technologist", "generative AI", "AI creative jobs", "skills gap"],
+      "trust": "medium",
+      "cadence": "daily"
+    },
+    {
+      "name": "Generative Artist News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%22generative%20artist%22%20OR%20%22AI%20artist%22%20%22job%22&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["AI Filmmaking", "AI Design / Motion Graphics"],
+      "watch_for": ["generative artist", "AI artist", "motion graphics", "VFX"],
+      "trust": "medium",
+      "cadence": "daily"
+    },
+    {
+      "name": "AI Pipeline Engineer News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%22AI%20pipeline%20engineer%22%20OR%20%22AI%20pipeline%22%20VFX%20OR%20ComfyUI&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["AI Filmmaking", "Infrastructure", "Digital Humans"],
+      "watch_for": ["AI pipeline engineer", "ComfyUI", "VFX pipeline", "model routing"],
+      "trust": "medium",
+      "cadence": "daily"
+    },
+    {
+      "name": "Creative Inference Ops News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%22model%20inference%22%20%22creative%20technology%22%20OR%20%22GPU%22%20%22AI%20video%22%20pipeline&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["Infrastructure", "AI Filmmaking"],
+      "watch_for": ["inference", "GPU", "latency", "AI video pipeline", "fal", "Replicate"],
+      "trust": "medium",
+      "cadence": "daily"
+    },
+    {
+      "name": "AI Filmmaking Hiring News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%22AI%20filmmaking%22%20jobs%20OR%20%22generative%20AI%22%20%22film%22%20%22hiring%22&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["AI Filmmaking"],
+      "watch_for": ["AI filmmaking", "film hiring", "synthetic production", "VFX"],
+      "trust": "medium",
+      "cadence": "daily"
+    },
+    {
+      "name": "Game AI Roles News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%22generative%20AI%22%20%22games%22%20%22engineer%22%20OR%20%22AI%20game%20tools%22&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["Game Development / Real-Time 3D"],
+      "watch_for": ["game tools", "level blocking", "asset variation", "NPC", "Unreal", "Unity"],
+      "trust": "medium",
+      "cadence": "daily"
+    },
+    {
+      "name": "Digital Humans Hiring News",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=%22digital%20human%22%20%22generative%20AI%22%20jobs%20OR%20%22synthetic%20actor%22&hl=en-US&gl=US&ceid=US:en",
+      "verticals": ["Digital Humans"],
+      "watch_for": ["digital human", "synthetic actor", "voice", "avatar", "lip sync"],
+      "trust": "medium",
+      "cadence": "daily"
+    },
+    {
+      "name": "Public Company Career Watchlist",
+      "type": "manual",
+      "url": "",
+      "verticals": ["Cross-Vertical Watchlist"],
+      "watch_for": ["Adobe", "Netflix", "Amazon", "Epic Games", "Sphere", "Lightricks", "Runway", "fal", "ElevenLabs", "Synthesia", "HeyGen"],
+      "trust": "high",
+      "cadence": "weekly",
+      "notes": "Manual/company pages require explicit review; do not scrape login-only sites."
+    }
+  ]
+}

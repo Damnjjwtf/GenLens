@@ -8,7 +8,7 @@ Her job is to monitor AI creative production signals, compose GenLens briefings,
 
 - `AGENT.md` - Genny's operating persona and rules.
 - `data/` - source registry, tools manifest, preferences, backlog, NotebookLM seed bundle, and Jonathan feedback.
-- `scripts/` - source scan, briefing composition, daily digest, retry digest, and Resend email delivery.
+- `scripts/` - source scan, career intelligence, briefing composition, daily digest, retry digest, and Resend email delivery.
 - `prompts/` - reusable prompt specs for signal scoring, briefing format, and delta extraction.
 - `docs/` - setup and architecture notes.
 
@@ -41,6 +41,24 @@ Run the daily digest fallback flow:
 
 ```bash
 python3 scripts/genlens_digest.py
+```
+
+Scan career intelligence signals:
+
+```bash
+python3 scripts/genlens_career_intel.py \
+  --limit 8 \
+  --out-json data/career_signals.json \
+  --out-md state/career_radar.md
+```
+
+Ingest a pasted job post or transcript:
+
+```bash
+python3 scripts/genlens_career_intel.py \
+  --input-file /path/to/job-posts.txt \
+  --out-json data/career_signals.json \
+  --out-md state/career_radar.md
 ```
 
 Run Marti without sending email:

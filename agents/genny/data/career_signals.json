@@ -1,0 +1,9 @@
+{
+  "updated": "2026-07-20T00:00:00Z",
+  "schema": {
+    "status": "observed | emerging | forecast | market-demand",
+    "accepted": "true when score >= 55, or explicit role signals score >= 45, or tool+skill signals score >= 40, with no noise pattern detected",
+    "score": "0-100 career-intelligence quality score"
+  },
+  "signals": []
+}

@@ -13,8 +13,24 @@ Use this skill when Jonathan asks about jobs, new roles, career paths, role arbi
 
 - Role memo: `/root/.hermes/profiles/genny/data/genlens_role_intelligence.md`
 - Structured signals: `/root/.hermes/profiles/genny/data/role_signals.json`
+- Career sources: `/root/.hermes/profiles/genny/data/career_sources.json`
+- Career signal ledger: `/root/.hermes/profiles/genny/data/career_signals.json`
 - Tools manifest: `/root/.hermes/profiles/genny/data/genlens_tools_manifest.md`
 - Sources registry: `/root/.hermes/profiles/genny/data/genny_sources.json`
+
+## First Command
+
+For career intelligence, run the scanner before summarizing:
+
+```bash
+python3 /root/.hermes/profiles/genny/scripts/genlens_career_intel.py --limit 8
+```
+
+If Jonathan provides job posts, transcripts, or snippets, save them to a temporary text file and ingest them:
+
+```bash
+python3 /root/.hermes/profiles/genny/scripts/genlens_career_intel.py --input-file /tmp/job-posts.txt
+```
 
 ## Output Modes
 

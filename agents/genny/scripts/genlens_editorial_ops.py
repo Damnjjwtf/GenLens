@@ -25,6 +25,7 @@ BRIEF_PATH = STATE_DIR / "latest_brief.md"
 AUDIT_PATH = STATE_DIR / "source_audit.md"
 TOOL_REPORT_PATH = STATE_DIR / "tool_curator_report.md"
 ROLE_RADAR_PATH = STATE_DIR / "genlens_role_radar.md"
+CAREER_RADAR_PATH = STATE_DIR / "career_radar.md"
 PREFLIGHT_PATH = STATE_DIR / "editorial_preflight.md"
 TOOL_CANDIDATES_PATH = DATA_DIR / "tool_candidates.json"
 SENT_HISTORY_PATH = STATE_DIR / "sent_brief_history.json"
@@ -148,6 +149,7 @@ def render_preflight(
     audit_path: Path = AUDIT_PATH,
     tool_report_path: Path = TOOL_REPORT_PATH,
     role_radar_path: Path = ROLE_RADAR_PATH,
+    career_radar_path: Path = CAREER_RADAR_PATH,
 ) -> str:
     lines = [
         "# GenLens Editorial Preflight",
@@ -193,6 +195,7 @@ def render_preflight(
         f"- Brief: `{brief_path}`",
         f"- Source audit: `{audit_path}`",
         f"- Tool curator report: `{tool_report_path}`",
+        f"- Career radar: `{career_radar_path}`",
         f"- Role radar: `{role_radar_path}`",
     ])
     return "\n".join(lines).rstrip() + "\n"
@@ -222,6 +225,7 @@ def main() -> int:
     audit_path = STATE_DIR / f"source_audit{suffix}.md"
     tool_report_path = STATE_DIR / f"tool_curator_report{suffix}.md"
     role_radar_path = ROLE_RADAR_PATH
+    career_radar_path = CAREER_RADAR_PATH
     preflight_path = STATE_DIR / f"editorial_preflight{suffix}.md"
     tool_candidates_path = DATA_DIR / f"tool_candidates{suffix}.json"
     min_cards = args.min_cards if args.min_cards is not None else {"genny": 12, "marti": 6, "unified": 12}[args.lens]
@@ -243,6 +247,7 @@ def main() -> int:
         "--markdown", str(tool_report_path),
     ])
     if args.lens in {"genny", "unified"}:
+        run(["python3", str(SCRIPT_DIR / "genlens_career_intel.py"), "--limit", "8", "--out-md", str(career_radar_path)])
         run(["python3", str(SCRIPT_DIR / "genlens_role_radar.py"), "--mode", "all", "--out", str(role_radar_path)])
 
     analysis = analyze_brief(brief_path)
@@ -264,7 +269,7 @@ def main() -> int:
         elif new_link_count < args.min_new_links:
             send_ready = False
             reason = f"hold: only {new_link_count}/{args.min_new_links} new links versus recent sent briefings"
-    preflight_path.write_text(render_preflight(analysis, send_ready, reason, brief_path, audit_path, tool_report_path, role_radar_path))
+    preflight_path.write_text(render_preflight(analysis, send_ready, reason, brief_path, audit_path, tool_report_path, role_radar_path, career_radar_path))
 
     result: dict[str, object] = {
         "ready": send_ready,
