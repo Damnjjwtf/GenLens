@@ -48,12 +48,16 @@ it passed quality but was withheld by dedupe or concentration. Examples include
 ## Decision readiness
 
 Every record stores change, evidence, source classification, confidence, lens,
-layer, and a conservative recommended action. Newly qualified or published feed
-signals default to `watch`.
+layer, and a conservative recommended action. A deterministic controlled
+vocabulary maps explicit shutdown, pricing, governance, measurement, API,
+workflow, and product-capability language to a bounded recommendation. Signals
+without stronger evidence remain `watch`; rejected candidates remain
+unenriched.
 
-`mechanism`, `use_case`, and `impact` remain `null` until a later enrichment step
-can support them with evidence. The ledger must not invent those fields merely
-to look complete.
+`mechanism`, `use_case`, and `impact` use controlled, non-quantitative language
+derived from explicit source text and the accepted layer. The ledger does not
+invent performance outcomes. `docs/DECISION_BRIEF.md` defines how these fields
+become a readable advisory artifact.
 
 This ledger is not the Weekly Verified Decision Actions log. WVDA requires a
 separate user-attributed decision queue; opens and clicks are not decisions.

@@ -30,6 +30,21 @@ CONFIDENCE_PRIORITY = {
 }
 PRIMARY_SOURCE_TYPES = {"official_updates", "release_notes", "github_releases"}
 
+VERTICAL_IMPACT_CONTEXT = {
+    "Agentic Marketing Workflows": "marketing workflow automation and operator leverage",
+    "Paid Media / Creative Performance": "campaign control, creative performance, and media operations",
+    "Stack Consolidation / Displacement": "stack continuity, replacement timing, and migration effort",
+    "Lifecycle / Retention": "segmentation, engagement, and retention operations",
+    "Measurement / Attribution": "measurement coverage and attribution decisions",
+    "Commerce / Conversion": "conversion, merchandising, and commercial economics",
+    "SEO / AEO / Content Systems": "search visibility, content discovery, and reporting",
+    "Sales / Marketing Convergence": "revenue workflow coordination and pipeline operations",
+    "Marketing Data / Identity": "customer-data quality, identity, and governance",
+    "Product Photography": "production speed, asset control, and commercial image quality",
+    "AI Filmmaking": "production speed, editorial control, and video pipeline economics",
+    "Digital Humans": "performance control, localization, and synthetic-media operations",
+}
+
 
 def utc_now() -> str:
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
@@ -187,6 +202,66 @@ def public_review(review: dict[str, Any]) -> dict[str, Any]:
     return {key: review.get(key) for key in keys}
 
 
+def decision_enrichment(
+    *,
+    status: str,
+    title: str,
+    summary: str,
+    verticals: list[str],
+) -> dict[str, str | None]:
+    """Derive a conservative operator recommendation from explicit source text.
+
+    The output uses a controlled vocabulary and never records a user decision.
+    Rejected candidates remain intentionally unenriched.
+    """
+    if status not in {"published", "qualified"}:
+        return {
+            "mechanism": None,
+            "use_case": None,
+            "impact": None,
+            "recommended_action": None,
+        }
+
+    text = f"{title} {summary}".lower()
+    if re.search(r"\b(shut(?:ting)? down|sunset|deprecat(?:e[ds]?|ing)?|end of life|migration|migrate)\b", text):
+        action = "migrate"
+        mechanism = "service shutdown, deprecation, or migration"
+    elif re.search(r"\b(pricing|price change|duties|fees?|costs?|billing|commercial terms)\b", text):
+        action = "budget"
+        mechanism = "pricing, fee, or commercial-model change"
+    elif re.search(r"\b(disclosure|transparency|policy|license|rights|consent|compliance|governance)\b", text):
+        action = "brief"
+        mechanism = "policy, disclosure, rights, or governance change"
+    elif re.search(r"\b(measurement|attribution|report(?:s|ing)?|search console|track(?:s|ing)?|analytics|incrementality)\b", text):
+        action = "test"
+        mechanism = "measurement or reporting capability"
+    elif re.search(r"\b(api|sdk|mcp|integration|automation|agent(?:ic)?|workflow|orchestration)\b", text):
+        action = "test"
+        mechanism = "API, integration, agent, or workflow capability"
+    elif re.search(r"\b(launch(?:es|ed|ing)?|releas(?:e[ds]?|ing)?|introduc(?:e[ds]?|ing)|add(?:s|ed|ing)?|new (?:feature|tool|capability|control|property)|now available|available globally|can now)\b", text):
+        action = "test"
+        mechanism = "new or expanded product capability"
+    else:
+        action = "watch"
+        mechanism = "verified ecosystem change"
+
+    vertical = verticals[0] if verticals else "the affected workflow"
+    context = VERTICAL_IMPACT_CONTEXT.get(vertical, f"the {vertical} workflow")
+    use_case = {
+        "migrate": f"Assess replacement and transition requirements in {vertical}.",
+        "budget": f"Review budget and commercial assumptions for {vertical}.",
+        "brief": f"Brief affected operators and update guidance for {vertical}.",
+        "test": f"Run a bounded evaluation in {vertical} before adoption.",
+        "watch": f"Monitor follow-on evidence for {vertical}.",
+    }[action]
+    return {
+        "mechanism": mechanism,
+        "use_case": use_case,
+        "impact": f"Potential impact on {context}.",
+        "recommended_action": action,
+    }
+
+
 def build_run_records(
     reviews: list[dict[str, Any]],
     *,
@@ -214,9 +289,18 @@ def build_run_records(
         )
         best = ranked[0]
         status = str(best.get("status") or "rejected")
+        membership_reviews = (
+            [row for row in signal_reviews if row.get("status") != "rejected"]
+            if status != "rejected"
+            else signal_reviews
+        )
         evidence = []
         evidence_seen: set[tuple[str, str]] = set()
-        for review in ranked:
+        for review in sorted(
+            membership_reviews,
+            key=lambda row: int(row.get("score") or 0),
+            reverse=True,
+        ):
             evidence_key = (
                 str(review.get("canonical_url") or ""),
                 str(review.get("source_name") or "Source"),
@@ -237,11 +321,19 @@ def build_run_records(
             key=lambda value: CONFIDENCE_PRIORITY.get(value, -1),
         )
         reviews_public = [public_review(row) for row in signal_reviews]
+        lenses = unique_strings([str(row.get("lens") or "") for row in membership_reviews])
+        verticals = unique_strings([str(row.get("vertical") or "") for row in membership_reviews])
+        enrichment = decision_enrichment(
+            status=status,
+            title=str(best.get("title") or ""),
+            summary=str(best.get("summary") or ""),
+            verticals=verticals,
+        )
         record = {
             "id": signal_id,
             "status": status,
-            "lenses": unique_strings([str(row.get("lens") or "") for row in signal_reviews]),
-            "verticals": unique_strings([str(row.get("vertical") or "") for row in signal_reviews]),
+            "lenses": lenses,
+            "verticals": verticals,
             "title": best.get("title") or "Untitled signal",
             "summary": best.get("summary") or "",
             "canonical_url": best.get("canonical_url") or "",
@@ -254,10 +346,10 @@ def build_run_records(
             },
             "evidence": evidence,
             "change": best.get("title") or "Untitled signal",
-            "mechanism": None,
-            "use_case": None,
-            "impact": None,
-            "recommended_action": "watch" if status in {"published", "qualified"} else None,
+            "mechanism": enrichment["mechanism"],
+            "use_case": enrichment["use_case"],
+            "impact": enrichment["impact"],
+            "recommended_action": enrichment["recommended_action"],
             "confidence": confidence,
             "score": max(int(row.get("score") or 0) for row in signal_reviews),
             "rejection_reason": best.get("reason_code") if status == "rejected" else None,

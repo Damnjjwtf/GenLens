@@ -151,6 +151,7 @@ def render_preflight(
     role_radar_path: Path = ROLE_RADAR_PATH,
     career_radar_path: Path = CAREER_RADAR_PATH,
     signal_ledger_path: Path | None = None,
+    decision_brief_path: Path | None = None,
 ) -> str:
     lines = [
         "# GenLens Editorial Preflight",
@@ -201,6 +202,8 @@ def render_preflight(
     ])
     if signal_ledger_path is not None:
         lines.append(f"- Signal ledger: `{signal_ledger_path}`")
+    if decision_brief_path is not None:
+        lines.append(f"- Decision brief: `{decision_brief_path}`")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -231,6 +234,7 @@ def main() -> int:
     career_radar_path = CAREER_RADAR_PATH
     preflight_path = STATE_DIR / f"editorial_preflight{suffix}.md"
     signal_ledger_path = STATE_DIR / f"signal_ledger{suffix}.json"
+    decision_brief_path = STATE_DIR / f"decision_brief{suffix}.md"
     tool_candidates_path = DATA_DIR / f"tool_candidates{suffix}.json"
     min_cards = args.min_cards if args.min_cards is not None else {"genny": 12, "marti": 6, "unified": 12}[args.lens]
     min_verticals = args.min_verticals if args.min_verticals is not None else {"genny": 5, "marti": 3, "unified": 6}[args.lens]
@@ -244,6 +248,11 @@ def main() -> int:
         "--rss-limit", str(args.rss_limit),
         "--out", str(brief_path),
         "--ledger-out", str(signal_ledger_path),
+    ])
+    run([
+        "python3", str(SCRIPT_DIR / "genlens_decision_brief.py"),
+        "--ledger", str(signal_ledger_path),
+        "--out", str(decision_brief_path),
     ])
     run([
         "python3", str(SCRIPT_DIR / "genlens_curate_tools.py"),
@@ -284,6 +293,7 @@ def main() -> int:
         role_radar_path=role_radar_path,
         career_radar_path=career_radar_path,
         signal_ledger_path=signal_ledger_path,
+        decision_brief_path=decision_brief_path,
     ))
 
     result: dict[str, object] = {
@@ -293,6 +303,7 @@ def main() -> int:
         "brief": str(brief_path),
         "preflight": str(preflight_path),
         "signal_ledger": str(signal_ledger_path),
+        "decision_brief": str(decision_brief_path),
         "analysis": analysis,
         "repeat": repeat,
     }

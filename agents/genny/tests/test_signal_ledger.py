@@ -69,13 +69,62 @@ class SignalLedgerTests(unittest.TestCase):
         record = records[0]
         self.assertRegex(record["id"], r"^sig_[a-f0-9]{20}$")
         self.assertEqual(record["status"], "published")
-        self.assertEqual(record["recommended_action"], "watch")
         self.assertEqual(record["confidence"], "primary-source")
         self.assertEqual(record["change"], review["title"])
-        self.assertIsNone(record["mechanism"])
-        self.assertIsNone(record["use_case"])
-        self.assertIsNone(record["impact"])
+        self.assertEqual(record["recommended_action"], "test")
+        self.assertEqual(record["mechanism"], "new or expanded product capability")
+        self.assertIn("bounded evaluation", record["use_case"])
+        self.assertIn("Potential impact", record["impact"])
         self.assertEqual(record["evidence"][0]["url"], review["canonical_url"])
+
+    def test_decision_enrichment_uses_conservative_controlled_actions(self) -> None:
+        cases = [
+            (
+                "Relay is shutting down and customers must migrate workflows",
+                "The service closes in September.",
+                "Stack Consolidation / Displacement",
+                "migrate",
+            ),
+            (
+                "Shopify changes duties-inclusive pricing",
+                "Managed Markets now includes duties and fees in product prices.",
+                "Commerce / Conversion",
+                "budget",
+            ),
+            (
+                "Google expands AI transparency in ads",
+                "A disclosure is automatically added to AI-generated ads.",
+                "Paid Media / Creative Performance",
+                "brief",
+            ),
+            (
+                "Search Console introduces platform properties",
+                "Teams can now track search terms leading to social channels.",
+                "SEO / AEO / Content Systems",
+                "test",
+            ),
+        ]
+
+        for title, summary, vertical, expected in cases:
+            with self.subTest(action=expected):
+                result = ledger.decision_enrichment(
+                    status="published",
+                    title=title,
+                    summary=summary,
+                    verticals=[vertical],
+                )
+                self.assertEqual(result["recommended_action"], expected)
+                self.assertIsNotNone(result["mechanism"])
+                self.assertIsNotNone(result["use_case"])
+                self.assertIsNotNone(result["impact"])
+
+        rejected = ledger.decision_enrichment(
+            status="rejected",
+            title="Static explainer",
+            summary="No verified change.",
+            verticals=["Marketing Data / Identity"],
+        )
+        self.assertTrue(all(value is None for value in rejected.values()))
 
     def test_direct_vendor_url_is_primary_even_when_discovered_by_search(self) -> None:
         review = self.candidate(
@@ -175,6 +224,29 @@ class SignalLedgerTests(unittest.TestCase):
             ["AI Filmmaking", "Advertising / Brand Content"],
         )
         self.assertEqual(len(records[0]["reviews"]), 2)
+
+    def test_rejected_layer_review_does_not_expand_published_membership(self) -> None:
+        url = "https://example.com/releases/shared-update"
+        reviews = [
+            self.candidate(url=url, vertical="AI Filmmaking", status="published"),
+            self.candidate(
+                url=url,
+                vertical="Advertising / Brand Content",
+                status="rejected",
+                score=0,
+                reason="missing vertical relevance",
+            ),
+        ]
+
+        record = ledger.build_run_records(
+            reviews,
+            run_lens="genny",
+            mode="expanded",
+            observed_at="2026-07-20T12:00:00+00:00",
+        )[0]
+
+        self.assertEqual(record["verticals"], ["AI Filmmaking"])
+        self.assertEqual(len(record["reviews"]), 2)
 
     def test_rss_review_captures_qualified_and_rejected_candidates(self) -> None:
         today = composer.dt.datetime.now(composer.dt.timezone.utc).date()
@@ -305,10 +377,12 @@ class SignalLedgerTests(unittest.TestCase):
             reason="passed editorial gate",
             career_radar_path=Path("/tmp/career_radar.md"),
             signal_ledger_path=Path("/tmp/signal_ledger.json"),
+            decision_brief_path=Path("/tmp/decision_brief.md"),
         )
 
         self.assertIn("Career radar: `/tmp/career_radar.md`", markdown)
         self.assertIn("Signal ledger: `/tmp/signal_ledger.json`", markdown)
+        self.assertIn("Decision brief: `/tmp/decision_brief.md`", markdown)
 
 
 if __name__ == "__main__":

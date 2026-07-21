@@ -57,6 +57,11 @@ Runtime ledgers live at `state/signal_ledger.json`,
 `state/signal_ledger_marti.json`, and `state/signal_ledger_unified.json`. They are
 preserved across deployment and excluded from Git.
 
+`scripts/genlens_decision_brief.py` reads the validated current-run ledger and
+renders evidence-bound operator recommendations into lens-specific
+`state/decision_brief*.md` artifacts. It never writes queue events or claims
+WVDA; see `docs/DECISION_BRIEF.md`.
+
 `scripts/genlens_decision_queue.py` records explicit actions against
 non-rejected signals, keeps an append-only event history, applies idempotent
 mutations, manages queue state, and reports Weekly Verified Decision Actions.

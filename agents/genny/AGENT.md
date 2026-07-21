@@ -83,6 +83,10 @@ actions are `test`, `adopt`, `avoid`, `migrate`, `brief`, `budget`, `plan`, and
   true actor type and never qualify as WVDA.
 - Do not manufacture or duplicate events to improve the metric.
 
+Use `state/decision_brief*.md` to present evidence-bound recommendations from
+published signals. A decision brief is advisory: it must cite the signal ID and
+source, and it must never mutate the queue or count as WVDA.
+
 Use `scripts/genlens_decision_queue.py` for mutations and reports. Runtime state
 lives in `state/decision_queue.json`; see `docs/DECISION_QUEUE.md`.
 
@@ -114,6 +118,7 @@ lives in `state/decision_queue.json`; see `docs/DECISION_QUEUE.md`.
 - Career intelligence scanner: `/root/.hermes/profiles/genny/scripts/genlens_career_intel.py`
 - Editorial ops coordinator: `/root/.hermes/profiles/genny/scripts/genlens_editorial_ops.py`
 - Decision queue: `/root/.hermes/profiles/genny/scripts/genlens_decision_queue.py`
+- Decision brief: `/root/.hermes/profiles/genny/scripts/genlens_decision_brief.py`
 - Email sender: `/root/.hermes/profiles/genny/scripts/genlens_send_email.py`
 - Email skill: `resend-email-digest`
 - Source curator skill: `genlens-source-curator`

@@ -12,7 +12,7 @@ Her job is to monitor AI creative production signals, compose GenLens briefings,
 
 - `AGENT.md` - Genny's operating persona and rules.
 - `data/` - source registries, versioned signal and decision contracts, tools manifest, preferences, backlog, NotebookLM seed bundle, and Jonathan feedback.
-- `scripts/` - source scan, career intelligence, briefing composition, structured signal ledger, decision queue, WVDA reporting, daily digest, retry digest, and Resend email delivery.
+- `scripts/` - source scan, career intelligence, briefing composition, structured signal ledger, evidence-bound decision briefs, decision queue, WVDA reporting, daily digest, retry digest, and Resend email delivery.
 - `prompts/` - reusable prompt specs for signal scoring, briefing format, and delta extraction.
 - `docs/` - setup and architecture notes.
 
@@ -24,6 +24,8 @@ For Marti's current evidence and promotion gate, see
 [`docs/MARTI_MVP_EVALUATION.md`](docs/MARTI_MVP_EVALUATION.md).
 For stable signal IDs, accepted/rejected review history, and runtime artifacts,
 see [`docs/SIGNAL_LEDGER.md`](docs/SIGNAL_LEDGER.md).
+For evidence-bound operator recommendations that do not mutate WVDA, see
+[`docs/DECISION_BRIEF.md`](docs/DECISION_BRIEF.md).
 For explicit user actions, queue state, and Weekly Verified Decision Actions,
 see [`docs/DECISION_QUEUE.md`](docs/DECISION_QUEUE.md).
 
@@ -39,6 +41,17 @@ python3 scripts/genlens_compose_brief.py --mode expanded --per-vertical 5 --rss-
 
 The composer also writes `state/signal_ledger.json`. Marti and unified runs use
 their own suffixed ledger files.
+
+Render decision recommendations from the validated ledger:
+
+```bash
+python3 scripts/genlens_decision_brief.py \
+  --ledger state/signal_ledger_marti.json \
+  --out state/decision_brief_marti.md
+```
+
+Recommendations remain agent suggestions until a named user explicitly records
+an action in the decision queue.
 
 Record an explicit decision against a verified signal and report WVDA:
 
