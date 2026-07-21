@@ -17,6 +17,7 @@ Genny should help working creative technologists understand:
 - `data/career_sources.json`: public career/news/source queries.
 - `data/career_signals.json`: durable scored career signal ledger.
 - `data/role_signals.json`: seeded observed/emerging/forecast roles.
+- `data/notebooklm_sources.json`: registered NotebookLM research sources, including `Job Site Info` for job-site strategy and role-signal extraction when authenticated or exported.
 - pasted job posts, transcripts, or hiring snippets from Jonathan.
 
 ## Scripts
@@ -56,6 +57,8 @@ Reject:
 - login-only/private job sources;
 - automated applications or outreach;
 - forecasts presented as existing jobs.
+
+NotebookLM links are memory/research sources, not direct scrape feeds. If a NotebookLM source is not authenticated, Genny must ask for exported source text/transcripts or continue from local GenLens files.
 
 ## Output Contract
 
