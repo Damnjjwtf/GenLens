@@ -148,6 +148,7 @@ def render_preflight(
     audit_path: Path = AUDIT_PATH,
     tool_report_path: Path = TOOL_REPORT_PATH,
     role_radar_path: Path = ROLE_RADAR_PATH,
+    signal_ledger_path: Path | None = None,
 ) -> str:
     lines = [
         "# GenLens Editorial Preflight",
@@ -195,6 +196,8 @@ def render_preflight(
         f"- Tool curator report: `{tool_report_path}`",
         f"- Role radar: `{role_radar_path}`",
     ])
+    if signal_ledger_path is not None:
+        lines.append(f"- Signal ledger: `{signal_ledger_path}`")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -223,6 +226,7 @@ def main() -> int:
     tool_report_path = STATE_DIR / f"tool_curator_report{suffix}.md"
     role_radar_path = ROLE_RADAR_PATH
     preflight_path = STATE_DIR / f"editorial_preflight{suffix}.md"
+    signal_ledger_path = STATE_DIR / f"signal_ledger{suffix}.json"
     tool_candidates_path = DATA_DIR / f"tool_candidates{suffix}.json"
     min_cards = args.min_cards if args.min_cards is not None else {"genny": 12, "marti": 6, "unified": 12}[args.lens]
     min_verticals = args.min_verticals if args.min_verticals is not None else {"genny": 5, "marti": 3, "unified": 6}[args.lens]
@@ -235,6 +239,7 @@ def main() -> int:
         "--per-vertical", str(args.per_vertical),
         "--rss-limit", str(args.rss_limit),
         "--out", str(brief_path),
+        "--ledger-out", str(signal_ledger_path),
     ])
     run([
         "python3", str(SCRIPT_DIR / "genlens_curate_tools.py"),
@@ -264,7 +269,16 @@ def main() -> int:
         elif new_link_count < args.min_new_links:
             send_ready = False
             reason = f"hold: only {new_link_count}/{args.min_new_links} new links versus recent sent briefings"
-    preflight_path.write_text(render_preflight(analysis, send_ready, reason, brief_path, audit_path, tool_report_path, role_radar_path))
+    preflight_path.write_text(render_preflight(
+        analysis,
+        send_ready,
+        reason,
+        brief_path,
+        audit_path,
+        tool_report_path,
+        role_radar_path,
+        signal_ledger_path,
+    ))
 
     result: dict[str, object] = {
         "ready": send_ready,
@@ -272,6 +286,7 @@ def main() -> int:
         "lens": args.lens,
         "brief": str(brief_path),
         "preflight": str(preflight_path),
+        "signal_ledger": str(signal_ledger_path),
         "analysis": analysis,
         "repeat": repeat,
     }

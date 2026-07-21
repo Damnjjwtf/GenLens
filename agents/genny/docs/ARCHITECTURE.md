@@ -24,6 +24,10 @@ runtime artifacts.
 `data/marti_sources.json` is Marti's separate source registry, grouped by stack
 layer. `data/marti_signal_schema.md` defines its admission and confidence rules.
 
+`data/genlens_signal_record.schema.json` is the versioned contract for the
+runtime signal ledger. The ledger preserves accepted and rejected observations
+with stable source-derived IDs; see `docs/SIGNAL_LEDGER.md`.
+
 `data/genlens_tools_manifest.md` is the canonical tool taxonomy.
 
 `data/genlens_vertical_backlog.md` tracks verticals that are on deck but not part of default daily coverage.
@@ -34,10 +38,20 @@ layer. `data/marti_signal_schema.md` defines its admission and confidence rules.
 
 ## Script Layer
 
-`scripts/genlens_compose_brief.py` builds source-backed Markdown briefings from the local registry.
+`scripts/genlens_compose_brief.py` builds source-backed Markdown briefings from
+the local registry and records candidate reviews in the lens-specific signal
+ledger.
+
+`scripts/genlens_signal_ledger.py` canonicalizes evidence URLs, assigns stable
+signal IDs, merges repeated observations, and writes the versioned ledger
+atomically.
 
 The composer accepts `--lens genny|marti|unified`. Marti and unified runs write
 separate state files so they cannot overwrite Genny's latest briefing.
+
+Runtime ledgers live at `state/signal_ledger.json`,
+`state/signal_ledger_marti.json`, and `state/signal_ledger_unified.json`. They are
+preserved across deployment and excluded from Git.
 
 `scripts/genlens_send_email.py` sends visual Resend emails. It contains the GenLens briefing email template.
 

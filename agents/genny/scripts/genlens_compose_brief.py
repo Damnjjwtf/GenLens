@@ -22,6 +22,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
+import genlens_signal_ledger as signal_ledger
+
 BASE_DIR = Path(__file__).resolve().parents[1]
 SOURCE_PATH = Path(os.environ.get("GENLENS_SOURCE_PATH", "/root/.hermes/profiles/genny/data/genny_sources.json"))
 if not SOURCE_PATH.exists():
@@ -572,7 +574,60 @@ def is_briefable_item(vertical: str, source: dict[str, Any], title: str, summary
     return quality_review(vertical, source, title, summary, url, date)[0]
 
 
-def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[str, str]]:
+def append_candidate_review(
+    reviews: list[dict[str, Any]] | None,
+    *,
+    lens: str,
+    vertical: str,
+    source: dict[str, Any],
+    title: str,
+    summary: str,
+    url: str,
+    date: str,
+    status: str,
+    score: int,
+    reason: str,
+    source_name: str = "",
+) -> str:
+    if reviews is None:
+        return ""
+    review = signal_ledger.make_candidate_review(
+        lens=lens,
+        vertical=vertical,
+        source_name=source_name or str(source.get("name") or "Source"),
+        source_url=str(source.get("url") or ""),
+        source_type=str(source.get("source_type") or "unknown"),
+        source_priority=str(source.get("priority") or "medium"),
+        title=title,
+        summary=summary,
+        url=url,
+        published_at=date,
+        status=status,
+        score=score,
+        reason=reason,
+    )
+    for existing in reviews:
+        if existing.get("review_id") != review["review_id"]:
+            continue
+        existing_rank = signal_ledger.STATUS_PRIORITY.get(str(existing.get("status")), -1)
+        review_rank = signal_ledger.STATUS_PRIORITY.get(str(review.get("status")), -1)
+        if (review_rank, int(review.get("score") or 0)) > (
+            existing_rank,
+            int(existing.get("score") or 0),
+        ):
+            existing.update(review)
+        return str(existing["review_id"])
+    reviews.append(review)
+    return str(review["review_id"])
+
+
+def fetch_rss(
+    source: dict[str, Any],
+    vertical: str,
+    limit: int,
+    reviews: list[dict[str, Any]] | None = None,
+    lens: str = "genny",
+) -> list[dict[str, str]]:
     rss = source.get("rss")
     if not rss:
         return []
@@ -585,42 +640,100 @@ def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[st
     out: list[dict[str, str]] = []
     for node in nodes[:limit]:
         title = child_text(node, ("title",))
-        if not title or NOISE_PATTERNS.search(title):
+        if not title:
             continue
         summary = child_text(node, ("description", "summary", "content", "encoded"))
         url = child_link(node)
         date = parse_date(child_text(node, ("pubdate", "published", "updated", "date")))
         publisher, publisher_url = child_source(node)
+        source_name = publisher or str(source.get("name") or "Source")
+        if NOISE_PATTERNS.search(title):
+            append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source,
+                title=title,
+                summary=summary,
+                url=url,
+                date=date,
+                status="rejected",
+                score=0,
+                reason="noise title",
+                source_name=source_name,
+            )
+            continue
         if is_google_news_url(url):
             title = clean_google_news_title(title, publisher)
             summary = clean_google_news_summary(summary, title, publisher)
             if not likely_recent(title, date):
+                append_candidate_review(
+                    reviews,
+                    lens=lens,
+                    vertical=vertical,
+                    source=source,
+                    title=title,
+                    summary=summary,
+                    url=url,
+                    date=date,
+                    status="rejected",
+                    score=0,
+                    reason="stale item",
+                    source_name=source_name,
+                )
                 continue
             resolved_url = resolve_google_news_url(url, publisher_url)
             if resolved_url != url:
                 url = resolved_url
                 summary = fetch_article_excerpt(url) or summary
         passed, score, reason = quality_review(vertical, source, title, summary, url, date)
+        review_id = append_candidate_review(
+            reviews,
+            lens=lens,
+            vertical=vertical,
+            source=source,
+            title=title,
+            summary=summary,
+            url=url,
+            date=date,
+            status="qualified" if passed else "rejected",
+            score=score,
+            reason=reason,
+            source_name=source_name,
+        )
         if not passed:
             continue
         if relevance_score(vertical, source, title, summary) <= 0:
+            signal_ledger.update_review_status(
+                reviews or [],
+                review_id,
+                "rejected",
+                "missing vertical relevance",
+            )
             continue
         out.append({
             "title": title,
             "url": url,
             "date": date,
             "summary": truncate_text(summary, 260),
-            "source": publisher or source.get("name", "Source"),
+            "source": source_name,
             "priority": source.get("priority", "medium"),
             "score": str(score),
             "review": reason,
+            "_review_id": review_id,
         })
         if len(out) >= min(limit, MAX_PER_SOURCE):
             break
     return out
 
 
-def fetch_manual_links(source: dict[str, Any], vertical: str, limit: int) -> list[dict[str, str]]:
+def fetch_manual_links(
+    source: dict[str, Any],
+    vertical: str,
+    limit: int,
+    reviews: list[dict[str, Any]] | None = None,
+    lens: str = "genny",
+) -> list[dict[str, str]]:
     url = source.get("url")
     if not url:
         return []
@@ -652,17 +765,62 @@ def fetch_manual_links(source: dict[str, Any], vertical: str, limit: int) -> lis
         if len(title) < 8 or len(title) > 180 or NOISE_PATTERNS.search(title):
             continue
         if LOW_VALUE_TITLE_PATTERNS.search(title) and not HIGH_VALUE_SIGNAL_PATTERNS.search(title):
+            append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source,
+                title=title,
+                summary="",
+                url=href,
+                date="",
+                status="rejected",
+                score=0,
+                reason="generic/how-to/category title",
+            )
             continue
         if not is_briefable_url(href):
+            append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source,
+                title=title,
+                summary="",
+                url=href,
+                date="",
+                status="rejected",
+                score=0,
+                reason="rejected-url",
+            )
             continue
         if article_reads >= ARTICLE_READS_PER_SOURCE:
             break
         article_reads += 1
         excerpt = fetch_article_excerpt(href)
         passed, score, reason = quality_review(vertical, source, title, excerpt, href)
+        review_id = append_candidate_review(
+            reviews,
+            lens=lens,
+            vertical=vertical,
+            source=source,
+            title=title,
+            summary=excerpt,
+            url=href,
+            date="",
+            status="qualified" if passed else "rejected",
+            score=score,
+            reason=reason,
+        )
         if not passed:
             continue
         if score <= 0:
+            signal_ledger.update_review_status(
+                reviews or [],
+                review_id,
+                "rejected",
+                "non-positive quality score",
+            )
             continue
         seen.add(href)
         out.append({
@@ -674,6 +832,7 @@ def fetch_manual_links(source: dict[str, Any], vertical: str, limit: int) -> lis
             "priority": source.get("priority", "medium"),
             "score": str(score),
             "review": reason,
+            "_review_id": review_id,
         })
         if len(out) >= limit:
             break
@@ -720,7 +879,10 @@ def priority_weight(priority: str) -> int:
     return {"high": 3, "medium": 2, "low": 1}.get(priority, 1)
 
 
-def rank_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
+def rank_items(
+    items: list[dict[str, str]],
+    reviews: list[dict[str, Any]] | None = None,
+) -> list[dict[str, str]]:
     seen: set[str] = set()
     deduped: list[dict[str, str]] = []
     source_counts: dict[str, int] = {}
@@ -728,16 +890,24 @@ def rank_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
     topic_counts: dict[str, int] = {}
     for item in items:
         key = item_key(item)
-        if not key or key in seen:
+        review_id = item.get("_review_id", "")
+        if not key:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "missing signal key")
+            continue
+        if key in seen:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "duplicate signal")
             continue
         source_bucket = f"{item.get('source', 'Source')}:{source_domain(item.get('url', ''))}"
         domain = source_domain(item.get("url", ""))
         if source_counts.get(source_bucket, 0) >= MAX_PER_SOURCE:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "source concentration limit")
             continue
         if domain and domain_counts.get(domain, 0) >= MAX_PER_DOMAIN:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "domain concentration limit")
             continue
         topic = topic_cluster_key(item)
         if topic_counts.get(topic, 0) >= MAX_PER_TOPIC_CLUSTER:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "topic concentration limit")
             continue
         seen.add(key)
         source_counts[source_bucket] = source_counts.get(source_bucket, 0) + 1
@@ -790,7 +960,14 @@ def convergence_candidates(items_by_lens: dict[str, list[dict[str, str]]]) -> li
     return candidates[:3]
 
 
-def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool = False, lens: str = "genny") -> str:
+def compose(
+    mode: str,
+    per_vertical: int,
+    rss_limit: int,
+    include_manual: bool = False,
+    lens: str = "genny",
+    ledger_out: Path | None = None,
+) -> str:
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
     lenses = ["genny", "marti"] if lens == "unified" else [lens]
     data_by_lens = {name: load_sources(name) for name in lenses}
@@ -824,6 +1001,7 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
     current_phase = ""
     coverage_gaps: list[str] = []
     items_by_lens: dict[str, list[dict[str, str]]] = {name: [] for name in lenses}
+    candidate_reviews: list[dict[str, Any]] = []
     for current_lens, vertical in vertical_rows:
         phase = phase_for_vertical(vertical, current_lens)
         sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
@@ -832,14 +1010,33 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
         for source in sources:
             try:
                 if source.get("rss"):
-                    candidates.extend(fetch_rss(source, vertical, rss_limit))
+                    candidates.extend(fetch_rss(
+                        source,
+                        vertical,
+                        rss_limit,
+                        reviews=candidate_reviews,
+                        lens=current_lens,
+                    ))
                 elif include_manual:
-                    candidates.extend(fetch_manual_links(source, vertical, max(2, rss_limit // 2)))
+                    candidates.extend(fetch_manual_links(
+                        source,
+                        vertical,
+                        max(2, rss_limit // 2),
+                        reviews=candidate_reviews,
+                        lens=current_lens,
+                    ))
             except (urllib.error.URLError, ET.ParseError, TimeoutError) as exc:
                 errors.append(f"{source.get('name', 'Source')}: {exc}")
             except Exception as exc:
                 errors.append(f"{source.get('name', 'Source')}: {exc}")
-        picked = rank_items(candidates)
+        picked = rank_items(candidates, candidate_reviews)
+        for item in picked[:per_vertical]:
+            signal_ledger.update_review_status(
+                candidate_reviews,
+                item.get("_review_id", ""),
+                "published",
+                "published in brief",
+            )
         items_by_lens[current_lens].extend(picked[:per_vertical])
         if not picked and not sources:
             continue
@@ -911,6 +1108,13 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
         for gap in coverage_gaps[:12]:
             lines.append(f"- {gap}")
         lines.append("")
+    if ledger_out is not None:
+        signal_ledger.write_signal_ledger(
+            ledger_out,
+            candidate_reviews,
+            run_lens=lens,
+            mode=mode,
+        )
     return "\n".join(lines).strip() + "\n"
 
 
@@ -979,10 +1183,20 @@ def main() -> int:
     parser.add_argument("--out", default=str(OUT_PATH))
     parser.add_argument("--per-vertical", type=int, default=5)
     parser.add_argument("--rss-limit", type=int, default=12)
+    parser.add_argument("--ledger-out", default="")
     parser.add_argument("--include-manual", action="store_true", help="Also crawl manual blog/news pages. Slower; use for audits, not normal cron.")
     args = parser.parse_args()
-    text = compose(args.mode, max(1, min(args.per_vertical, 10)), max(1, min(args.rss_limit, 20)), args.include_manual, args.lens)
     out = Path(args.out)
+    suffix = "" if args.lens == "genny" else f"_{args.lens}"
+    ledger_out = Path(args.ledger_out) if args.ledger_out else out.parent / f"signal_ledger{suffix}.json"
+    text = compose(
+        args.mode,
+        max(1, min(args.per_vertical, 10)),
+        max(1, min(args.rss_limit, 20)),
+        args.include_manual,
+        args.lens,
+        ledger_out,
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)
     print(str(out))

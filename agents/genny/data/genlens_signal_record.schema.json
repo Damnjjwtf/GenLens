@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://genlens.app/schemas/signal-ledger-1.0.0.json",
+  "title": "GenLens Signal Ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "latest_run", "records"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "latest_run": {
+      "$ref": "#/$defs/run"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/signal"
+      }
+    }
+  },
+  "$defs": {
+    "status": {
+      "enum": ["published", "qualified", "rejected"]
+    },
+    "confidence": {
+      "enum": ["primary-source", "corroborated", "single-source", "hypothesis"]
+    },
+    "decision": {
+      "type": ["string", "null"],
+      "enum": ["test", "adopt", "avoid", "migrate", "brief", "budget", "watch", null]
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lens", "mode", "observed_at", "review_count", "signal_count", "counts", "observed_signal_ids"],
+      "properties": {
+        "lens": {
+          "enum": ["genny", "marti", "unified"]
+        },
+        "mode": {
+          "enum": ["active", "expanded"]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "review_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "signal_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "required": ["published", "qualified", "rejected"]
+        },
+        "observed_signal_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^sig_[a-f0-9]{20}$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_id", "lens", "vertical", "status", "score", "quality_reason", "quality_reason_code", "reason", "reason_code", "confidence", "source_name", "source_url", "source_type", "source_priority", "authoritative"],
+      "properties": {
+        "review_id": {
+          "type": "string",
+          "pattern": "^rev_[a-f0-9]{20}$"
+        },
+        "lens": {
+          "enum": ["genny", "marti"]
+        },
+        "vertical": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "score": {
+          "type": "integer"
+        },
+        "quality_reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quality_reason_code": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "source_name": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "source_type": {
+          "type": "string"
+        },
+        "source_priority": {
+          "type": "string"
+        },
+        "authoritative": {
+          "type": "boolean"
+        }
+      }
+    },
+    "history": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed_at", "status", "review_count", "reason_codes"],
+      "properties": {
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "review_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "lenses", "verticals", "title", "summary", "canonical_url", "source", "evidence", "change", "mechanism", "use_case", "impact", "recommended_action", "confidence", "score", "rejection_reason", "first_observed_at", "last_observed_at", "observation_count", "reviews", "history"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^sig_[a-f0-9]{20}$"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "lenses": {
+          "type": "array",
+          "items": {
+            "enum": ["genny", "marti"]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "verticals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "canonical_url": {
+          "type": "string"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "url", "type", "priority", "authoritative"],
+          "properties": {
+            "name": {"type": "string"},
+            "url": {"type": "string"},
+            "type": {"type": "string"},
+            "priority": {"type": "string"},
+            "authoritative": {"type": "boolean"}
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["url", "source_name", "source_url", "source_type", "authoritative", "published_at"],
+            "properties": {
+              "url": {"type": "string", "minLength": 1},
+              "source_name": {"type": "string"},
+              "source_url": {"type": "string"},
+              "source_type": {"type": "string"},
+              "authoritative": {"type": "boolean"},
+              "published_at": {"type": ["string", "null"]}
+            }
+          }
+        },
+        "change": {"type": "string", "minLength": 1},
+        "mechanism": {"type": ["string", "null"]},
+        "use_case": {"type": ["string", "null"]},
+        "impact": {"type": ["string", "null"]},
+        "recommended_action": {"$ref": "#/$defs/decision"},
+        "confidence": {"$ref": "#/$defs/confidence"},
+        "score": {"type": "integer"},
+        "rejection_reason": {"type": ["string", "null"]},
+        "first_observed_at": {"type": "string", "format": "date-time"},
+        "last_observed_at": {"type": "string", "format": "date-time"},
+        "observation_count": {"type": "integer", "minimum": 1},
+        "reviews": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/review"}
+        },
+        "history": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/history"},
+          "maxItems": 50
+        }
+      }
+    }
+  }
+}
