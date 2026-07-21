@@ -1,6 +1,6 @@
 # Marti MVP Evaluation
 
-Date: July 20, 2026
+Date: July 21, 2026
 Status: Research MVP passes one evaluation run; not approved for scheduled sends
 
 ## What is live
@@ -39,23 +39,39 @@ shared workflow or economic consequence.
 
 ## Source-expansion evaluation
 
-The July 20 source-expansion run produced seven linked cards across five Marti
-layers, with no duplicate titles:
+Human review invalidated the July 20 source-expansion pass because a static
+RudderStack explainer had been admitted as a change signal. The article page's
+footer contained a separate product-update link, and the parser incorrectly
+combined that footer language with the explainer title. That run does not count
+toward promotion.
+
+The repaired July 21 no-send evaluation produced seven linked cards across five
+Marti layers, with no duplicate titles and seven links not present in the
+isolated evaluation history:
 
 - Paid Media / Creative Performance: 3
 - Stack Consolidation / Displacement: 1
+- Lifecycle / Retention: 1
 - Commerce / Conversion: 1
 - SEO / AEO / Content Systems: 1
-- Marketing Data / Identity: 1
 
-All seven cards resolved to authoritative first-party sources. Zapier's Relay
-shutdown notice added a concrete displacement signal, RudderStack added a
-customer-data signal, and the Google Ads feed added two official updates. A
-RudderStack free-trial promotion was rejected by an explicit regression guard.
+Six of the seven cards resolve to official first-party sources. Zapier's Relay
+shutdown notice is the one credible secondary source. The accepted set includes
+official Google Ads campaign and disclosure changes, Meta's Creator Marketing
+Hub announcement, a Salesforce/Slackbot workflow change, Shopify Managed
+Markets pricing, and the new Search Console platform-property type.
 
-This counts as evaluation run 1 of the three consecutive passing runs required
-for promotion. It does not authorize scheduled sends. Agentic Marketing
-Workflows remains the highest-priority source gap.
+The repair requires a concrete change or measured outcome, keeps the layer
+mechanism and change evidence in the same title or summary, rejects static
+how-to/comparison pages that borrow product-update language from page chrome,
+and reads evidence-bearing article paragraphs when official feeds provide weak
+summaries. Regression tests cover the RudderStack false positive and the late
+Search Console article body.
+
+This clean July 21 result counts as evaluation run 1 of the three consecutive
+passing runs required for promotion. It does not authorize scheduled sends, and
+no email was sent. Agentic Marketing Workflows remains the highest-priority
+source gap.
 
 ## Reassessment of the Marti-Genny thesis
 

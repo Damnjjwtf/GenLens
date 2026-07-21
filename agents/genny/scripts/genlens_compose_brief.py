@@ -164,6 +164,21 @@ HIGH_VALUE_SIGNAL_PATTERNS = re.compile(
     re.I,
 )
 
+MARTI_CHANGE_PATTERNS = re.compile(
+    r"\b(announc(?:e[ds]?|ing)?|launch(?:es|ed|ing)?|releas(?:e[ds]?|ing)?|updat(?:e[ds]?|ing)|introduc(?:e[ds]?|ing)|add(?:s|ed|ing)?|acquir(?:e[ds]?|ing)?|pricing change|policy change|deprecat(?:e[ds]?|ing)?|sunset|shut(?:ting)? down|migration|sdk|api|integration|open source|generally available|available globally|roll(?:s|ed|ing) out|new (?:feature|report|control|capability|integration|tool|panel)|now (?:available|supports?|lets?|allows?|requires?|uses?|includes?)|can now|must now|will now|beta|v\d+(?:\.\d+)*)\b",
+    re.I,
+)
+
+MARTI_OUTCOME_PATTERNS = re.compile(
+    r"\b(case study|customer story|roi|roas|cac|conversion|retention|reduc(?:e|ed|tion)|increas(?:e|ed)|lift|sav(?:e|ed|ings)|improv(?:e|ed|ement))\b",
+    re.I,
+)
+
+NUMERIC_EVIDENCE_PATTERNS = re.compile(
+    r"(?:\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|x|hours?|days?|weeks?|months?)\b)",
+    re.I,
+)
+
 LOW_VALUE_TITLE_PATTERNS = re.compile(
     r"\b(best|top|what is|how to|guide to|ultimate guide|tips|examples|template|category|all articles|learn more|resources|use cases|customer stories|case studies|compare|vs\.?|which .* fits|make money|start a podcast|embed a video|gaming headphones|signed synths?|supersaw sound|record cutting)\b",
     re.I,
@@ -190,6 +205,7 @@ TITLE_DATE_PATTERN = re.compile(
     re.I,
 )
 ARTICLE_READS_PER_SOURCE = 1
+RSS_ARTICLE_READS_PER_SOURCE = 4
 MAX_ITEM_AGE_DAYS = int(os.environ.get("GENLENS_MAX_ITEM_AGE_DAYS", "45"))
 MAX_PER_SOURCE = int(os.environ.get("GENLENS_MAX_PER_SOURCE", "2"))
 MAX_PER_DOMAIN = int(os.environ.get("GENLENS_MAX_PER_DOMAIN", "2"))
@@ -207,6 +223,12 @@ MARTI_REQUIRED_PATTERNS = {
     "Sales / Marketing Convergence": re.compile(r"\b(gtm|revops|outbound|sales hub|marketing hub|sales and marketing|crm pipeline|lead routing|sequencing)\b", re.I),
     "Marketing Data / Identity": re.compile(r"\b(cdp|customer data|identity resolution|reverse etl|consent|first-party data|clean room|marketing data|warehouse-native)\b", re.I),
 }
+
+
+def has_marti_event_evidence(text: str) -> bool:
+    if MARTI_CHANGE_PATTERNS.search(text):
+        return True
+    return bool(MARTI_OUTCOME_PATTERNS.search(text) and NUMERIC_EVIDENCE_PATTERNS.search(text))
 
 
 def verified_ssl_context() -> ssl.SSLContext:
@@ -492,7 +514,7 @@ def source_domain(url: str) -> str:
     return urllib.parse.urlparse(url).netloc.lower().removeprefix("www.")
 
 
-def fetch_article_excerpt(url: str) -> str:
+def fetch_article_excerpt(url: str, required_pattern: re.Pattern[str] | None = None) -> str:
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "GennySourceReviewer/1.0"})
         ctx = verified_ssl_context()
@@ -504,16 +526,34 @@ def fetch_article_excerpt(url: str) -> str:
     except Exception:
         return ""
 
-    meta = re.search(
-        r"<meta\s+[^>]*(?:name|property)=[\"'](?:description|og:description|twitter:description)[\"'][^>]*content=[\"']([^\"']+)[\"']",
-        body,
-        re.I | re.S,
-    )
-    if meta:
-        return truncate_text(meta.group(1), 320)
-    paragraphs = [strip_text(match.group(1)) for match in re.finditer(r"<p[^>]*>(.*?)</p>", body, re.I | re.S)]
-    paragraphs = [p for p in paragraphs if len(p) >= 60]
-    return truncate_text(" ".join(paragraphs[:2]), 320)
+    descriptions: list[str] = []
+    for tag in re.findall(r"<meta\b[^>]*>", body, re.I | re.S):
+        attributes = {
+            name.lower(): html.unescape(value)
+            for name, _quote, value in re.findall(
+                r"([:\w-]+)\s*=\s*([\"'])(.*?)\2",
+                tag,
+                re.I | re.S,
+            )
+        }
+        description_type = str(attributes.get("name") or attributes.get("property") or "").lower()
+        content = clean_excerpt(str(attributes.get("content") or ""))
+        if description_type in {"description", "og:description", "twitter:description"} and content:
+            descriptions.append(content)
+    paragraphs = [clean_excerpt(match.group(1)) for match in re.finditer(r"<p[^>]*>(.*?)</p>", body, re.I | re.S)]
+    # Large developer portals sometimes wrap their entire navigation tree in a
+    # single paragraph-like element. Exclude those blocks so article evidence
+    # wins even when the page shell contains release/search vocabulary.
+    paragraphs = [p for p in paragraphs if 60 <= len(p) <= 2_000]
+    evidence_paragraphs = [p for p in paragraphs if has_marti_event_evidence(p)]
+    if required_pattern:
+        relevant_evidence = [p for p in evidence_paragraphs if required_pattern.search(p)]
+    else:
+        relevant_evidence = []
+    candidates = relevant_evidence or evidence_paragraphs or paragraphs
+    candidates = sorted(candidates, key=len, reverse=True)
+    selected = candidates[:2] or descriptions[:1]
+    return truncate_text(" ".join(dict.fromkeys(selected)), 320)
 
 
 def quality_review(vertical: str, source: dict[str, Any], title: str, summary: str, url: str, date: str = "") -> tuple[bool, int, str]:
@@ -528,6 +568,15 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
     marti_required = MARTI_REQUIRED_PATTERNS.get(vertical)
     if marti_required and not marti_required.search(text):
         return False, 0, "missing layer-specific marketing mechanism"
+    coherent_marti_evidence = bool(
+        marti_required
+        and (
+            (marti_required.search(title) and has_marti_event_evidence(title))
+            or (marti_required.search(summary) and has_marti_event_evidence(summary))
+        )
+    )
+    if marti_required and not coherent_marti_evidence:
+        return False, 0, "missing concrete change or measured outcome"
     if re.search(r"\b(air force|defense department|military fleet|access control|jita|database internals?|retrieval infrastructure|vectors?)\b", text, re.I) and vertical in MARTI_REQUIRED_PATTERNS:
         return False, 0, "off-layer enterprise or platform infrastructure"
     if source.get("name") == "Motionographer" and not re.search(r"\b(ai|tool|tools|pipeline|workflow|automation|generative)\b", text, re.I):
@@ -543,7 +592,8 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
     required_terms = [str(term).lower() for term in source.get("required_terms", [])]
     if required_terms and not any(term in text.lower() for term in required_terms):
         return False, 0, "missing required source term"
-    if LOW_VALUE_TITLE_PATTERNS.search(title) and not HIGH_VALUE_SIGNAL_PATTERNS.search(text):
+    measured_outcome = bool(MARTI_OUTCOME_PATTERNS.search(text) and NUMERIC_EVIDENCE_PATTERNS.search(text))
+    if LOW_VALUE_TITLE_PATTERNS.search(title) and not HIGH_VALUE_SIGNAL_PATTERNS.search(title) and not measured_outcome:
         return False, 0, "generic/how-to/category title"
     if not likely_recent(title, date):
         return False, 0, "stale item"
@@ -583,6 +633,7 @@ def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[st
     root = ET.fromstring(body)
     nodes = [n for n in root.iter() if n.tag.split("}", 1)[-1].lower() in {"item", "entry"}]
     out: list[dict[str, str]] = []
+    article_reads = 0
     for node in nodes[:limit]:
         title = child_text(node, ("title",))
         if not title or NOISE_PATTERNS.search(title):
@@ -599,7 +650,17 @@ def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[st
             resolved_url = resolve_google_news_url(url, publisher_url)
             if resolved_url != url:
                 url = resolved_url
-                summary = fetch_article_excerpt(url) or summary
+                summary = fetch_article_excerpt(url, MARTI_REQUIRED_PATTERNS.get(vertical)) or summary
+                article_reads += 1
+        if (
+            vertical in MARTI_REQUIRED_PATTERNS
+            and article_reads < RSS_ARTICLE_READS_PER_SOURCE
+            and (not summary or not has_marti_event_evidence(f"{title} {summary}"))
+        ):
+            summary = fetch_article_excerpt(url, MARTI_REQUIRED_PATTERNS.get(vertical)) or summary
+            article_reads += 1
+        if vertical in MARTI_REQUIRED_PATTERNS and not summary:
+            continue
         passed, score, reason = quality_review(vertical, source, title, summary, url, date)
         if not passed:
             continue
@@ -658,7 +719,7 @@ def fetch_manual_links(source: dict[str, Any], vertical: str, limit: int) -> lis
         if article_reads >= ARTICLE_READS_PER_SOURCE:
             break
         article_reads += 1
-        excerpt = fetch_article_excerpt(href)
+        excerpt = fetch_article_excerpt(href, MARTI_REQUIRED_PATTERNS.get(vertical))
         passed, score, reason = quality_review(vertical, source, title, excerpt, href)
         if not passed:
             continue
