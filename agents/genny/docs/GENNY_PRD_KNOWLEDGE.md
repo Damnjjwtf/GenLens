@@ -3,11 +3,17 @@
 Status: Active working spec
 Owner: Jonathan "JJ" James
 Product: GenLens / Genny
-Last updated: July 19, 2026
+Last updated: July 20, 2026
 
 ## 1. Product Summary
 
-Genny is the GenLens intelligence agent for `genlens.app`.
+GenLens is the intelligence system for the generative AI economy. Genny is its
+production-intelligence lens; Marti is its AI-native marketing and MarTech
+lens. They share one verified intelligence spine but retain distinct coverage,
+voice, and promotion gates. Unified conclusions require a verified shared
+mechanism, workflow, or economic consequence.
+
+Genny is the GenLens production-intelligence agent for `genlens.app`.
 
 GenLens is a source-backed intelligence briefing for working creative technologists in AI-accelerated visual production. It is not a generic AI news digest. It exists for working Gen ADs: product photographers, VFX/CGI artists, AI filmmakers, digital human directors, motion designers, creative technologists, game/real-time 3D makers, and production leads who need signal, not noise.
 
@@ -25,6 +31,9 @@ Core thesis:
 > Signals are not the product. The arbitrage layer is the product.
 
 Genny should identify the gap between what a workflow is called today and what it is becoming.
+
+The canonical parent-product positioning, metrics, milestones, and non-goals
+live in `docs/GENLENS_NORTH_STAR.md`.
 
 ## 2. Audience
 

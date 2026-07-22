@@ -22,6 +22,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
+import genlens_signal_ledger as signal_ledger
+
 BASE_DIR = Path(__file__).resolve().parents[1]
 SOURCE_PATH = Path(os.environ.get("GENLENS_SOURCE_PATH", "/root/.hermes/profiles/genny/data/genny_sources.json"))
 if not SOURCE_PATH.exists():
@@ -145,7 +147,7 @@ DISCOVERY_SOURCE_PATTERNS = re.compile(
 )
 
 BRIEFABLE_URL_PATTERNS = re.compile(
-    r"(/blog/|/news/|/news/stories/|/learn/|/insights/|/resources/|/magazine/|/articles?/|/posts/|/products/ads-commerce/|/research/|/case-stud|/customer-stor|/press|/release|/announc|/update|/changelog|/paper|arxiv\.org/abs/|github\.com/.+/(releases|commits|pulls)|/20\d{2}/)",
+    r"(/blog/|/inside-photoroom/|/news/|/news/stories/|/learn/|/insights/|/resources/|/magazine/|/articles?/|/posts/|/products/ads-commerce/|/research/|/case-stud|/customer-stor|/press|/release|/announc|/update|/changelog|/paper|arxiv\.org/abs/|github\.com/.+/(releases|commits|pulls)|/20\d{2}/)",
     re.I,
 )
 
@@ -155,27 +157,45 @@ LANDING_PAGE_PATTERNS = re.compile(
 )
 
 NEWS_TITLE_PATTERNS = re.compile(
-    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|workflow|benchmarks?|pricing|license|policy|rights|compliance|production|pipeline|integrat|ships?|available|beta|sdk|api|v\d+(?:\.\d+)*)\b",
+    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|workflow|benchmarks?|pricing|license|policy|rights|compliance|production|pipeline|integrat|ships?|available|deprecat|sunset|shut(?:ting)? down|beta|sdk|api|v\d+(?:\.\d+)*)\b",
     re.I,
 )
 
 HIGH_VALUE_SIGNAL_PATTERNS = re.compile(
-    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|customer story|benchmark|pricing|license|policy|rights|compliance|sdk|api|integration|open source|generally available|beta|v\d+(?:\.\d+)*)\b",
+    r"\b(announc|launch|release|update|introduc|acquir|raises?|funding|study|report|research|case study|customer story|benchmark|pricing|license|policy|rights|compliance|deprecat|sunset|shut(?:ting)? down|sdk|api|integration|open source|generally available|now (?:available|supports?|lets?|allows?|requires?|uses?|includes?)|can now|must now|will now|beta|v\d+(?:\.\d+)*)\b",
+    re.I,
+)
+
+MARTI_CHANGE_PATTERNS = re.compile(
+    r"\b(announc(?:e[ds]?|ing)?|launch(?:es|ed|ing)?|releas(?:e[ds]?|ing)?|updat(?:e[ds]?|ing)|introduc(?:e[ds]?|ing)|add(?:s|ed|ing)?|acquir(?:e[ds]?|ing)?|pricing change|policy change|deprecat(?:e[ds]?|ing)?|sunset|shut(?:ting)? down|migration|sdk|api|integration|open source|generally available|available globally|roll(?:s|ed|ing) out|new (?:feature|report|control|capability|integration|tool|panel)|now (?:available|supports?|lets?|allows?|requires?|uses?|includes?)|can now|must now|will now|beta|v\d+(?:\.\d+)*)\b",
+    re.I,
+)
+
+MARTI_OUTCOME_PATTERNS = re.compile(
+    r"\b(case study|customer story|roi|roas|cac|conversion|retention|reduc(?:e|ed|tion)|increas(?:e|ed)|lift|sav(?:e|ed|ings)|improv(?:e|ed|ement))\b",
+    re.I,
+)
+
+NUMERIC_EVIDENCE_PATTERNS = re.compile(
+    r"(?:\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|x|hours?|days?|weeks?|months?)\b)",
     re.I,
 )
 
 LOW_VALUE_TITLE_PATTERNS = re.compile(
-    r"\b(best|top|what is|how to|guide to|ultimate guide|tips|examples|template|category|all articles|learn more|resources|use cases|customer stories|case studies|compare|vs\.?|which .* fits|make money|start a podcast|embed a video|gaming headphones|signed synths?|supersaw sound|record cutting)\b",
+    r"\b(best|top|what is|how to|how i (?:built|made|created)|guide to|ultimate guide|walkthrough|tutorial|step-by-step|"
+    r"building (?:a|an|the)|tips|examples|template|guide|category|all articles|learn more|resources|use cases|customer stories|"
+    r"case studies|compare|vs\.?|which .* fits|make money|start a podcast|embed a video|gaming headphones|signed synths?|"
+    r"supersaw sound|record cutting)\b",
     re.I,
 )
 
 WEAK_SOURCE_PATTERNS = re.compile(
-    r"\b(quasa|bitcoin world|startup story|startup fortune|digital terminal|gigazine|futurum group)\b",
+    r"\b(quasa|bitcoin world|startup story|startup fortune|digital terminal|gigazine|futurum\s*group|ein\s*news|einpresswire|mezha)\b",
     re.I,
 )
 
 FALSE_POSITIVE_PATTERNS = re.compile(
-    r"\b(project runway|new episodes air|drops trailer|recurring judge|free minutes|percent off|% off|coupon|promo code|pricing explained|free plan features|\d+\s+tools that automate|tools that automate your creative workflow|we(?:'|’)re going to|conference schedule|register for (?:the )?event)\b",
+    r"\b(project runway|new episodes air|drops trailer|recurring judge|free minutes|free trial|free for \d+ days?|percent off|% off|coupon|promo code|pricing explained|free plan features|\d+\s+tools that automate|tools that automate your creative workflow|we(?:'|’)re going to|conference schedule|register for (?:the )?event)\b",
     re.I,
 )
 
@@ -190,6 +210,8 @@ TITLE_DATE_PATTERN = re.compile(
     re.I,
 )
 ARTICLE_READS_PER_SOURCE = 1
+RSS_ARTICLE_READS_PER_SOURCE = 4
+SITEMAP_ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_SITEMAP_ARTICLE_READS", "8"))
 MAX_ITEM_AGE_DAYS = int(os.environ.get("GENLENS_MAX_ITEM_AGE_DAYS", "45"))
 MAX_PER_SOURCE = int(os.environ.get("GENLENS_MAX_PER_SOURCE", "2"))
 MAX_PER_DOMAIN = int(os.environ.get("GENLENS_MAX_PER_DOMAIN", "2"))
@@ -199,7 +221,7 @@ GOOGLE_NEWS_BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecut
 MARTI_REQUIRED_PATTERNS = {
     "Agentic Marketing Workflows": re.compile(r"(?=.*\b(agent|automation|orchestration|workflow|mcp)\b)(?=.*\b(marketing|campaign|ads?|crm|sales|content|commerce|growth)\b)", re.I),
     "Paid Media / Creative Performance": re.compile(r"\b(ads?|advertising|campaign|creative performance|roas|cac|cpm|bidding|performance max|advantage\+|marketer)\b", re.I),
-    "Stack Consolidation / Displacement": re.compile(r"\b(pricing change|acquisition|sunset|migration|consolidation|replacement|open source|marketing automation|cdp|analytics platform|stack)\b", re.I),
+    "Stack Consolidation / Displacement": re.compile(r"\b(pricing change|acquisition|sunset|shut(?:ting)? down|migration|consolidation|replacement|open source|marketing automation|cdp|analytics platform|stack)\b", re.I),
     "Lifecycle / Retention": re.compile(r"\b(lifecycle|retention|email|sms|push notification|journey|segmentation|loyalty|marketing cloud|customer engagement)\b", re.I),
     "Measurement / Attribution": re.compile(r"\b(attribution|incrementality|measurement|marketing mix|conversion tracking|experiments?|campaign analytics|roas|cac)\b", re.I),
     "Commerce / Conversion": re.compile(r"\b(commerce|shopify|checkout|merchant|merchandising|storefront|conversion|shopping|retail)\b", re.I),
@@ -207,6 +229,106 @@ MARTI_REQUIRED_PATTERNS = {
     "Sales / Marketing Convergence": re.compile(r"\b(gtm|revops|outbound|sales hub|marketing hub|sales and marketing|crm pipeline|lead routing|sequencing)\b", re.I),
     "Marketing Data / Identity": re.compile(r"\b(cdp|customer data|identity resolution|reverse etl|consent|first-party data|clean room|marketing data|warehouse-native)\b", re.I),
 }
+
+# Genny is a production-intelligence lens, not a broad creative-technology news
+# feed. A publishable item must name the affected production workflow, an AI
+# mechanism (or a known AI-production product), and a concrete ecosystem event.
+# Keeping these contracts separate from VERTICAL_SIGNAL_TERMS prevents a high
+# keyword score from promoting generic renderer, engine, or infrastructure news.
+GENNY_REQUIRED_PATTERNS = {
+    "Product Photography": re.compile(r"\b(product (?:photo(?:graphy|s?)|imag(?:e|es|ery))|e-?commerce imag(?:e|es|ery)|catalog|packshot|retouch(?:ing)?|background remov(?:al|er)|virtual try-on|merchandising)\b", re.I),
+    "AI Filmmaking": re.compile(r"\b(film(?:making)?|video|vfx|roto(?:scop(?:e|ing))?|composit(?:e|ing)|footage|shot|storyboard|cinematic|post-production|virtual production|lionsgate|netflix|runway)\b", re.I),
+    "Digital Humans": re.compile(r"\b(digital humans?|avatars?|headshots?|facial?|faces?|lip[ -]?sync|voices?|dubbing|synthetic presenters?|characters?|mocap|motion capture|accuface|iclone|reallusion|elevenlabs|synthesia|heygen)\b", re.I),
+    "Music Production / Audio": re.compile(r"\b(music|audio|songs?|tracks?|vocals?|voices?|sound|stems?|mix(?:ing)?|master(?:ing)?|music labels?|suno|udio)\b", re.I),
+    "AI Design / Motion Graphics": re.compile(r"\b(design|motion graphics?|animation|figma|weave|frames?|creative canvas|prototype|storyboard)\b", re.I),
+    "Fashion / Apparel / Textile": re.compile(r"\b(fashion|apparel|textile|garments?|clothing|virtual models?|digital samples?|try-on)\b", re.I),
+    "Advertising / Brand Content": re.compile(r"\b(advertis(?:ing|ements?)|ads?|brand content|campaign creative|creative assets?|commercials?|agency production)\b", re.I),
+    "ArchViz": re.compile(r"\b(archviz|architectural visuali[sz]ation|architecture render(?:ing)?|building visuali[sz]ation|interior visuali[sz]ation|enscape|twinmotion)\b", re.I),
+    "Podcast / Long-Form Audio": re.compile(r"\b(podcasts?|long-form audio|episodes?|show notes|transcripts?|descript|riverside)\b", re.I),
+    "Education / E-Learning Content": re.compile(r"\b(e-?learning|education(?:al)? content|training (?:videos?|content)|course (?:content|authoring)|instructional design|workplace training|learning and development|l&d|locali[sz]ed training|ai tutor|rise|storyline)\b", re.I),
+    "Social / Short-Form Video": re.compile(r"\b(social video|short-form|tiktok|reels?|shorts?|creator video|capcut|meta edits|instagram edits)\b", re.I),
+    "Game Development / Real-Time 3D": re.compile(r"\b(game development|games?|unity|unreal|godot|real-time 3d|npcs?|procedural game|game assets?)\b", re.I),
+    "Cross-Vertical Watchlist": re.compile(r"\b(creative production|production workflow|content production|generative video|generative image|vfx|animation|design workflow|audio production|3d production|creator workflow)\b", re.I),
+}
+
+GENNY_AI_MECHANISM_PATTERNS = re.compile(
+    r"\b(ai|artificial intelligence|generative|synthetic media|machine learning|neural|diffusion|foundation model|"
+    r"text-to-(?:image|video|audio|3d)|image-to-video|video generation|image generation|voice clon(?:e|ing)|"
+    r"runway|aleph|smartroto|headshot|accuface|elevenlabs|synthesia|heygen|suno|udio|midjourney|"
+    r"stable diffusion|flux|firefly|sora|veo|kling|luma|pika|gemini|copilot)\b",
+    re.I,
+)
+
+# An AI agent controlling an engine is automation, but it is not automatically
+# generative-content production. Game signals must describe the creation or
+# editing of a game-production artifact such as an asset, level, scene, NPC, or
+# gameplay system.
+GAME_GENERATIVE_PRODUCTION_PATTERNS = re.compile(
+    r"\b(generative|text-to-(?:3d|image)|image-to-3d|ai-generated|"
+    r"ai (?:npcs?|characters?|assets?|props?|objects?|levels?|scenes?|gameplay|worlds?|ui|interfaces?)|"
+    r"(?:3d object|ui|sprite|texture) generator|"
+    r"(?:game|3d) (?:assets?|characters?|levels?|scenes?).{0,60}\bai\b|"
+    r"\bai\b.{0,60}(?:game assets?|npcs?|level design|scene generation|procedural content|gameplay)|"
+    r"ai agents?.{0,24}(?:can |to )?(?:create|build|generate|edit).{0,60}(?:games?|scenes?|assets?|props?|levels?|npcs?))\b",
+    re.I,
+)
+
+GENNY_EVENT_PATTERNS = re.compile(
+    r"\b(announc(?:e[ds]?|ing)?|launch(?:es|ed|ing)?|releas(?:e[ds]?|ing)?|updat(?:e[ds]?|ing)|"
+    r"introduc(?:e[ds]?|ing)|add(?:s|ed|ing)?|acquir(?:e[ds]?|ing)?|invest(?:s|ed|ing|ment)?|"
+    r"ship(?:s|ped|ping)?|"
+    r"partnership|partners? with|equity stake|funding|raises?|sues?|lawsuit|settlement|"
+    r"policy change|(?:new|updated?) (?:disclosure|licensing|rights|consent) (?:rule|requirement|policy|program)|"
+    r"deprecat(?:e[ds]?|ing)?|sunset|"
+    r"shut(?:ting)? down|migration|sdk|api|integration|open source|generally available|available globally|"
+    r"roll(?:s|ed|ing) out|new (?:ai|generative|feature|model|tool|capability|integration|workflow)|"
+    r"now (?:available|supports?|lets?|allows?|requires?|uses?|includes?)|now (?:you|teams?|creators?|users?) can|can now|must now|will now|"
+    r"beta|v\d+(?:\.\d+)*)\b",
+    re.I,
+)
+
+UNCONFIRMED_SIGNAL_PATTERNS = re.compile(
+    r"\b(?:has|have|had) not confirmed\b|\bhaven['’]t confirmed\b|\bnot (?:yet )?confirmed\b|"
+    r"\bneither .{0,80}\bconfirmed\b|\bno confirmation (?:from|by)\b",
+    re.I,
+)
+
+NEGATED_AI_SIGNAL_PATTERNS = re.compile(
+    r"\bnot (?:a conversation )?about .{0,100}\b(?:ai|artificial intelligence|generative|tools?|pipelines?)\b|"
+    r"\b(?:ai|artificial intelligence|generative|tools?|pipelines?) (?:was|were|is|are) not (?:the )?(?:focus|subject|topic)\b",
+    re.I,
+)
+
+EVENT_PROMO_TITLE_PATTERNS = re.compile(
+    r"\b(?:at|heads? to|heading to|join(?:s|ing)? us at)\s+(?:siggraph|nab|ces|ibc|gdc)\b|"
+    r"\b(?:siggraph|nab|ces|ibc|gdc)\s+20\d{2}\b",
+    re.I,
+)
+
+ROUNDUP_SIGNAL_PATTERNS = re.compile(
+    r"\b(?:daily|weekly) (?:show|roundup|round-up|digest)\b|\bthis week(?:'s)? (?:roundup|news)\b",
+    re.I,
+)
+
+TITLE_LEVEL_PRODUCT_CHANGE_PATTERNS = re.compile(
+    r"\b(announc|launch|release|introduc|adds?|updates?|acquir|partnership|equity stake|lawsuit|"
+    r"new (?:ai|generative|feature|model|tool|capability)|v\d+(?:\.\d+)*)\b",
+    re.I,
+)
+
+
+def has_marti_event_evidence(text: str) -> bool:
+    if MARTI_CHANGE_PATTERNS.search(text):
+        return True
+    return bool(MARTI_OUTCOME_PATTERNS.search(text) and NUMERIC_EVIDENCE_PATTERNS.search(text))
+
+
+def has_genny_event_evidence(text: str) -> bool:
+    return bool(GENNY_EVENT_PATTERNS.search(text))
+
+
+def required_pattern_for_vertical(vertical: str) -> re.Pattern[str] | None:
+    return MARTI_REQUIRED_PATTERNS.get(vertical) or GENNY_REQUIRED_PATTERNS.get(vertical)
 
 
 def verified_ssl_context() -> ssl.SSLContext:
@@ -428,7 +550,7 @@ def normalized_path(url: str) -> str:
 def is_discovery_source(source: dict[str, Any]) -> bool:
     """Whether a manual source page is worth crawling for article links."""
     url = source.get("url", "")
-    if source.get("rss"):
+    if source.get("rss") or source.get("sitemap"):
         return True
     if source.get("source_type") in {"news", "blog", "research", "publication", "release_notes"}:
         return True
@@ -492,42 +614,316 @@ def source_domain(url: str) -> str:
     return urllib.parse.urlparse(url).netloc.lower().removeprefix("www.")
 
 
-def fetch_article_excerpt(url: str) -> str:
+def domain_matches_any(url: str, domains: list[str]) -> bool:
+    domain = source_domain(url)
+    normalized = [str(value).lower().removeprefix("www.") for value in domains]
+    return bool(domain and any(domain == value or domain.endswith(f".{value}") for value in normalized))
+
+
+def review_source_type(source: dict[str, Any], url: str) -> str:
+    """Classify the evidence publisher, not merely its discovery channel."""
+    source_type = str(source.get("source_type") or "unknown")
+    if source_type == "official_sitemap":
+        return "official_updates"
+    if domain_matches_any(url, list(source.get("primary_domains", []))):
+        return "official_updates"
+    return source_type
+
+
+def article_metadata_from_html(
+    body: str,
+    required_pattern: re.Pattern[str] | None = None,
+) -> tuple[str, str, str]:
+    """Extract title, evidence excerpt, and publication date from an article.
+
+    Modern first-party update pages often expose cleaner evidence in OpenGraph
+    or JSON-LD than in their rendered paragraph markup. Keeping this parser pure
+    makes the daily sitemap path testable without network access.
+    """
+    descriptions: list[str] = []
+    titles: list[str] = []
+    date_values: list[str] = []
+    for tag in re.findall(r"<meta\b[^>]*>", body, re.I | re.S):
+        attributes = {
+            name.lower(): html.unescape(value)
+            for name, _quote, value in re.findall(
+                r"([:\w-]+)\s*=\s*([\"'])(.*?)\2",
+                tag,
+                re.I | re.S,
+            )
+        }
+        description_type = str(attributes.get("name") or attributes.get("property") or "").lower()
+        content = clean_excerpt(str(attributes.get("content") or ""))
+        if description_type in {"description", "og:description", "twitter:description"} and content:
+            descriptions.append(content)
+        if description_type in {"og:title", "twitter:title"} and content:
+            titles.append(content)
+        if description_type in {
+            "article:published_time",
+            "date",
+            "datepublished",
+            "publishdate",
+            "pub_date",
+        } and content:
+            date_values.append(content)
+
+    for tag in re.findall(r"<time\b[^>]*>", body, re.I | re.S):
+        attributes = {
+            name.lower(): html.unescape(value)
+            for name, _quote, value in re.findall(
+                r"([:\w-]+)\s*=\s*([\"'])(.*?)\2",
+                tag,
+                re.I | re.S,
+            )
+        }
+        datetime_value = clean_excerpt(str(attributes.get("datetime") or ""))
+        if datetime_value:
+            date_values.append(datetime_value)
+
+    structured_bodies: list[str] = []
+
+    def collect_structured(value: Any) -> None:
+        if isinstance(value, list):
+            for child in value:
+                collect_structured(child)
+            return
+        if not isinstance(value, dict):
+            return
+        headline = clean_excerpt(str(value.get("headline") or value.get("name") or ""))
+        description = clean_excerpt(str(value.get("description") or ""))
+        article_body = clean_excerpt(str(value.get("articleBody") or ""))
+        published = clean_excerpt(str(value.get("datePublished") or ""))
+        if headline:
+            titles.append(headline)
+        if description:
+            descriptions.append(description)
+        if article_body:
+            structured_bodies.append(article_body)
+        if published:
+            date_values.append(published)
+        for graph_key in ("@graph", "mainEntity", "itemListElement"):
+            if graph_key in value:
+                collect_structured(value[graph_key])
+
+    structured_scripts = [
+        script
+        for attributes, script in re.findall(r"<script\b([^>]*)>(.*?)</script>", body, re.I | re.S)
+        if re.search(r"\btype\s*=\s*[\"']application/ld\+json[\"']", attributes, re.I)
+    ]
+    for script in structured_scripts:
+        try:
+            collect_structured(json.loads(html.unescape(script).strip()))
+        except (TypeError, json.JSONDecodeError):
+            continue
+
+    title_match = re.search(r"<title[^>]*>(.*?)</title>", body, re.I | re.S)
+    if title_match:
+        titles.append(clean_excerpt(title_match.group(1)))
+
+    paragraphs = [clean_excerpt(match.group(1)) for match in re.finditer(r"<p[^>]*>(.*?)</p>", body, re.I | re.S)]
+    for article_body in structured_bodies:
+        paragraphs.extend(
+            sentence
+            for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z0-9])", article_body)
+            if 60 <= len(sentence) <= 2_000
+        )
+    # Large developer portals sometimes wrap their entire navigation tree in a
+    # single paragraph-like element. Exclude those blocks so article evidence
+    # wins even when the page shell contains release/search vocabulary.
+    paragraphs = [p for p in paragraphs if 60 <= len(p) <= 2_000]
+    evidence_paragraphs = [p for p in paragraphs if has_marti_event_evidence(p) or has_genny_event_evidence(p)]
+    if required_pattern:
+        vertical_paragraphs = [p for p in paragraphs if required_pattern.search(p)]
+        vertical_ai_paragraphs = [
+            p for p in vertical_paragraphs if GENNY_AI_MECHANISM_PATTERNS.search(p)
+        ]
+        relevant_descriptions = [
+            description
+            for description in descriptions
+            if required_pattern.search(description)
+            and (has_marti_event_evidence(description) or has_genny_event_evidence(description))
+        ]
+        relevant_evidence = [p for p in evidence_paragraphs if required_pattern.search(p)]
+        coherent_evidence = [
+            p for p in relevant_evidence if GENNY_AI_MECHANISM_PATTERNS.search(p)
+        ]
+    else:
+        vertical_paragraphs = []
+        vertical_ai_paragraphs = []
+        relevant_descriptions = []
+        relevant_evidence = []
+        coherent_evidence = []
+    # A coherent metadata description is usually cleaner than a page paragraph
+    # polluted by navigation, JSON-LD, or pricing/footer chrome. Use it first;
+    # fall back to article paragraphs when metadata is generic or absent.
+    candidates = (
+        relevant_descriptions
+        or coherent_evidence
+        or relevant_evidence
+        or vertical_ai_paragraphs
+        or vertical_paragraphs
+        or evidence_paragraphs
+        or paragraphs
+    )
+    candidates = sorted(candidates, key=len, reverse=True)
+    selected = candidates[:2] or descriptions[:1]
+    excerpt_text = " ".join(dict.fromkeys(selected))
+    if required_pattern and excerpt_text:
+        sentences = [
+            clean_excerpt(sentence)
+            for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z0-9])", excerpt_text)
+        ]
+        relevant_sentences = [sentence for sentence in sentences if required_pattern.search(sentence)]
+        if relevant_sentences:
+            relevant_sentences.sort(
+                key=lambda sentence: (
+                    bool(GENNY_AI_MECHANISM_PATTERNS.search(sentence)),
+                    has_genny_event_evidence(sentence) or has_marti_event_evidence(sentence),
+                    len(sentence),
+                ),
+                reverse=True,
+            )
+            focused_sentences: list[str] = []
+            for sentence in relevant_sentences[:3]:
+                if len(sentence) <= 300:
+                    focused_sentences.append(sentence)
+                    continue
+                match = required_pattern.search(sentence)
+                if not match:
+                    continue
+                start = max(0, match.start() - 130)
+                end = min(len(sentence), match.end() + 170)
+                if start:
+                    start = sentence.find(" ", start) + 1
+                if end < len(sentence):
+                    boundary = sentence.rfind(" ", start, end)
+                    end = boundary if boundary > start else end
+                focused = sentence[start:end].strip(" ,;:-")
+                focused_sentences.append(("…" if start else "") + focused + ("…" if end < len(sentence) else ""))
+            excerpt_text = " ".join(dict.fromkeys(focused_sentences))
+        else:
+            match = required_pattern.search(excerpt_text)
+            if match and len(excerpt_text) > 300:
+                start = max(0, match.start() - 130)
+                end = min(len(excerpt_text), match.end() + 170)
+                if start:
+                    start = excerpt_text.find(" ", start) + 1
+                if end < len(excerpt_text):
+                    boundary = excerpt_text.rfind(" ", start, end)
+                    end = boundary if boundary > start else end
+                excerpt_text = (
+                    ("…" if start else "")
+                    + excerpt_text[start:end].strip(" ,;:-")
+                    + ("…" if end < len(excerpt_text) else "")
+                )
+    title = next((value for value in titles if value), "")
+    title = re.sub(r"\s+[|–—-]\s+[^|–—-]{2,60}$", "", title).strip()
+    date = ""
+    for value in date_values:
+        match = re.search(r"(?<!\d)(20\d{2}-\d{2}-\d{2})(?!\d)", value)
+        if match:
+            date = match.group(1)
+            break
+        for fmt in ("%B %d, %Y", "%b %d, %Y"):
+            try:
+                date = dt.datetime.strptime(value.strip(), fmt).date().isoformat()
+                break
+            except ValueError:
+                continue
+        if date:
+            break
+    return title, truncate_text(excerpt_text, 320), date
+
+
+def fetch_article_metadata(
+    url: str,
+    required_pattern: re.Pattern[str] | None = None,
+) -> tuple[str, str, str]:
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "GennySourceReviewer/1.0"})
         ctx = verified_ssl_context()
-        with urllib.request.urlopen(req, timeout=4, context=ctx) as response:
+        with urllib.request.urlopen(req, timeout=6, context=ctx) as response:
             ctype = response.headers.get("content-type", "")
             if "html" not in ctype:
-                return ""
-            body = response.read(700_000).decode("utf-8", "replace")
+                return "", "", ""
+            body = response.read(1_200_000).decode("utf-8", "replace")
     except Exception:
-        return ""
+        return "", "", ""
+    return article_metadata_from_html(body, required_pattern)
 
-    meta = re.search(
-        r"<meta\s+[^>]*(?:name|property)=[\"'](?:description|og:description|twitter:description)[\"'][^>]*content=[\"']([^\"']+)[\"']",
-        body,
-        re.I | re.S,
-    )
-    if meta:
-        return truncate_text(meta.group(1), 320)
-    paragraphs = [strip_text(match.group(1)) for match in re.finditer(r"<p[^>]*>(.*?)</p>", body, re.I | re.S)]
-    paragraphs = [p for p in paragraphs if len(p) >= 60]
-    return truncate_text(" ".join(paragraphs[:2]), 320)
+
+def fetch_article_excerpt(url: str, required_pattern: re.Pattern[str] | None = None) -> str:
+    return fetch_article_metadata(url, required_pattern)[1]
 
 
 def quality_review(vertical: str, source: dict[str, Any], title: str, summary: str, url: str, date: str = "") -> tuple[bool, int, str]:
-    is_news_search = source.get("source_type") == "news_search"
+    is_news_search = bool(
+        source.get("source_type") == "news_search"
+        or is_google_news_url(str(source.get("rss") or ""))
+        or "news search" in str(source.get("name") or "").lower()
+    )
     if not is_briefable_url(url) and not is_news_search:
         return False, 0, "rejected-url"
     text = f"{title} {summary}"
+    source_context = " ".join(
+        str(value or "")
+        for value in (source.get("name"), source.get("url"), source.get("rss"), url)
+    )
     if FALSE_POSITIVE_PATTERNS.search(text):
         return False, 0, "false-positive entertainment/deal/pricing item"
-    if WEAK_SOURCE_PATTERNS.search(text):
+    if WEAK_SOURCE_PATTERNS.search(f"{text} {source_context}"):
         return False, 0, "weak aggregator source"
+    if is_news_search:
+        trusted_domains = list(source.get("trusted_domains", []))
+        if not trusted_domains or not domain_matches_any(url, trusted_domains):
+            return False, 0, "untrusted news-search publisher"
+    if UNCONFIRMED_SIGNAL_PATTERNS.search(text):
+        return False, 0, "unconfirmed product claim"
+    genny_required = GENNY_REQUIRED_PATTERNS.get(vertical)
+    if genny_required:
+        if len(strip_text(summary)) < 40:
+            return False, 0, "missing substantive source evidence"
+        if NEGATED_AI_SIGNAL_PATTERNS.search(text):
+            return False, 0, "source explicitly negates an AI production signal"
+        if EVENT_PROMO_TITLE_PATTERNS.search(title) and not TITLE_LEVEL_PRODUCT_CHANGE_PATTERNS.search(title):
+            return False, 0, "event promotion without title-level product change"
+        if ROUNDUP_SIGNAL_PATTERNS.search(text) and not TITLE_LEVEL_PRODUCT_CHANGE_PATTERNS.search(title):
+            return False, 0, "multi-item roundup without atomic change"
+        if not genny_required.search(text):
+            return False, 0, "missing vertical-specific production mechanism"
+        if not GENNY_AI_MECHANISM_PATTERNS.search(text):
+            return False, 0, "missing explicit generative-AI production mechanism"
+        if vertical == "Game Development / Real-Time 3D" and not GAME_GENERATIVE_PRODUCTION_PATTERNS.search(text):
+            return False, 0, "missing generative game-production mechanism"
+        coherent_genny_evidence = any(
+            genny_required.search(field)
+            and GENNY_AI_MECHANISM_PATTERNS.search(field)
+            and has_genny_event_evidence(field)
+            for field in (title, summary)
+        )
+        if not coherent_genny_evidence and review_source_type(source, url) == "official_updates":
+            # A leaf-sitemap article title and its structured excerpt are one
+            # first-party evidence unit. Allow the event verb in the headline
+            # to pair with the AI production mechanism in the article summary.
+            coherent_genny_evidence = bool(
+                genny_required.search(text)
+                and GENNY_AI_MECHANISM_PATTERNS.search(text)
+                and has_genny_event_evidence(text)
+            )
+        if not coherent_genny_evidence:
+            return False, 0, "missing concrete AI-production ecosystem change"
     marti_required = MARTI_REQUIRED_PATTERNS.get(vertical)
     if marti_required and not marti_required.search(text):
         return False, 0, "missing layer-specific marketing mechanism"
+    coherent_marti_evidence = bool(
+        marti_required
+        and (
+            (marti_required.search(title) and has_marti_event_evidence(title))
+            or (marti_required.search(summary) and has_marti_event_evidence(summary))
+        )
+    )
+    if marti_required and not coherent_marti_evidence:
+        return False, 0, "missing concrete change or measured outcome"
     if re.search(r"\b(air force|defense department|military fleet|access control|jita|database internals?|retrieval infrastructure|vectors?)\b", text, re.I) and vertical in MARTI_REQUIRED_PATTERNS:
         return False, 0, "off-layer enterprise or platform infrastructure"
     if source.get("name") == "Motionographer" and not re.search(r"\b(ai|tool|tools|pipeline|workflow|automation|generative)\b", text, re.I):
@@ -543,7 +939,8 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
     required_terms = [str(term).lower() for term in source.get("required_terms", [])]
     if required_terms and not any(term in text.lower() for term in required_terms):
         return False, 0, "missing required source term"
-    if LOW_VALUE_TITLE_PATTERNS.search(title) and not HIGH_VALUE_SIGNAL_PATTERNS.search(text):
+    measured_outcome = bool(MARTI_OUTCOME_PATTERNS.search(text) and NUMERIC_EVIDENCE_PATTERNS.search(text))
+    if LOW_VALUE_TITLE_PATTERNS.search(title) and not HIGH_VALUE_SIGNAL_PATTERNS.search(title) and not measured_outcome:
         return False, 0, "generic/how-to/category title"
     if not likely_recent(title, date):
         return False, 0, "stale item"
@@ -551,7 +948,7 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
     score = 0
     if HIGH_VALUE_SIGNAL_PATTERNS.search(text):
         score += 3
-    if source.get("source_type") in {"release_notes", "github_releases"}:
+    if review_source_type(source, url) in {"official_updates", "release_notes", "github_releases"}:
         score += 3
     if NEWS_TITLE_PATTERNS.search(text):
         score += 1
@@ -572,7 +969,60 @@ def is_briefable_item(vertical: str, source: dict[str, Any], title: str, summary
     return quality_review(vertical, source, title, summary, url, date)[0]
 
 
-def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[str, str]]:
+def append_candidate_review(
+    reviews: list[dict[str, Any]] | None,
+    *,
+    lens: str,
+    vertical: str,
+    source: dict[str, Any],
+    title: str,
+    summary: str,
+    url: str,
+    date: str,
+    status: str,
+    score: int,
+    reason: str,
+    source_name: str = "",
+) -> str:
+    if reviews is None:
+        return ""
+    review = signal_ledger.make_candidate_review(
+        lens=lens,
+        vertical=vertical,
+        source_name=source_name or str(source.get("name") or "Source"),
+        source_url=str(source.get("url") or ""),
+        source_type=review_source_type(source, url),
+        source_priority=str(source.get("priority") or "medium"),
+        title=title,
+        summary=summary,
+        url=url,
+        published_at=date,
+        status=status,
+        score=score,
+        reason=reason,
+    )
+    for existing in reviews:
+        if existing.get("review_id") != review["review_id"]:
+            continue
+        existing_rank = signal_ledger.STATUS_PRIORITY.get(str(existing.get("status")), -1)
+        review_rank = signal_ledger.STATUS_PRIORITY.get(str(review.get("status")), -1)
+        if (review_rank, int(review.get("score") or 0)) > (
+            existing_rank,
+            int(existing.get("score") or 0),
+        ):
+            existing.update(review)
+        return str(existing["review_id"])
+    reviews.append(review)
+    return str(review["review_id"])
+
+
+def fetch_rss(
+    source: dict[str, Any],
+    vertical: str,
+    limit: int,
+    reviews: list[dict[str, Any]] | None = None,
+    lens: str = "genny",
+) -> list[dict[str, str]]:
     rss = source.get("rss")
     if not rss:
         return []
@@ -583,44 +1033,251 @@ def fetch_rss(source: dict[str, Any], vertical: str, limit: int) -> list[dict[st
     root = ET.fromstring(body)
     nodes = [n for n in root.iter() if n.tag.split("}", 1)[-1].lower() in {"item", "entry"}]
     out: list[dict[str, str]] = []
+    article_reads = 0
     for node in nodes[:limit]:
         title = child_text(node, ("title",))
-        if not title or NOISE_PATTERNS.search(title):
+        if not title:
             continue
         summary = child_text(node, ("description", "summary", "content", "encoded"))
         url = child_link(node)
         date = parse_date(child_text(node, ("pubdate", "published", "updated", "date")))
         publisher, publisher_url = child_source(node)
+        source_name = publisher or str(source.get("name") or "Source")
+        if NOISE_PATTERNS.search(title):
+            append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source,
+                title=title,
+                summary=summary,
+                url=url,
+                date=date,
+                status="rejected",
+                score=0,
+                reason="noise title",
+                source_name=source_name,
+            )
+            continue
         if is_google_news_url(url):
             title = clean_google_news_title(title, publisher)
             summary = clean_google_news_summary(summary, title, publisher)
             if not likely_recent(title, date):
+                append_candidate_review(
+                    reviews,
+                    lens=lens,
+                    vertical=vertical,
+                    source=source,
+                    title=title,
+                    summary=summary,
+                    url=url,
+                    date=date,
+                    status="rejected",
+                    score=0,
+                    reason="stale item",
+                    source_name=source_name,
+                )
                 continue
             resolved_url = resolve_google_news_url(url, publisher_url)
             if resolved_url != url:
                 url = resolved_url
-                summary = fetch_article_excerpt(url) or summary
+                summary = fetch_article_excerpt(url, required_pattern_for_vertical(vertical)) or summary
+                article_reads += 1
+        if (
+            vertical in MARTI_REQUIRED_PATTERNS
+            and article_reads < RSS_ARTICLE_READS_PER_SOURCE
+            and (not summary or not has_marti_event_evidence(f"{title} {summary}"))
+        ):
+            summary = fetch_article_excerpt(url, MARTI_REQUIRED_PATTERNS.get(vertical)) or summary
+            article_reads += 1
+        if (
+            vertical in GENNY_REQUIRED_PATTERNS
+            and article_reads < RSS_ARTICLE_READS_PER_SOURCE
+            and (len(strip_text(summary)) < 40 or not has_genny_event_evidence(f"{title} {summary}"))
+        ):
+            summary = fetch_article_excerpt(url, GENNY_REQUIRED_PATTERNS.get(vertical)) or summary
+            article_reads += 1
+        if vertical in MARTI_REQUIRED_PATTERNS and not summary:
+            continue
         passed, score, reason = quality_review(vertical, source, title, summary, url, date)
+        review_id = append_candidate_review(
+            reviews,
+            lens=lens,
+            vertical=vertical,
+            source=source,
+            title=title,
+            summary=summary,
+            url=url,
+            date=date,
+            status="qualified" if passed else "rejected",
+            score=score,
+            reason=reason,
+            source_name=source_name,
+        )
         if not passed:
             continue
         if relevance_score(vertical, source, title, summary) <= 0:
+            signal_ledger.update_review_status(
+                reviews or [],
+                review_id,
+                "rejected",
+                "missing vertical relevance",
+            )
             continue
         out.append({
             "title": title,
             "url": url,
             "date": date,
             "summary": truncate_text(summary, 260),
-            "source": publisher or source.get("name", "Source"),
+            "source": source_name,
             "priority": source.get("priority", "medium"),
             "score": str(score),
             "review": reason,
+            "_review_id": review_id,
         })
         if len(out) >= min(limit, MAX_PER_SOURCE):
             break
     return out
 
 
-def fetch_manual_links(source: dict[str, Any], vertical: str, limit: int) -> list[dict[str, str]]:
+def parse_sitemap_rows(body: bytes, source: dict[str, Any]) -> list[dict[str, str]]:
+    """Parse and bound one official URL-set sitemap.
+
+    Registry entries point to leaf URL sets, not sitemap indexes. Every accepted
+    URL must stay on the source's own domain and match its explicit path scope.
+    """
+    root = ET.fromstring(body)
+    if root.tag.split("}", 1)[-1].lower() != "urlset":
+        raise ValueError("official sitemap must be a leaf urlset")
+    source_url = str(source.get("url") or source.get("sitemap") or "")
+    source_host = source_domain(source_url)
+    include_patterns = [re.compile(str(value), re.I) for value in source.get("include_patterns", [])]
+    exclude_patterns = [re.compile(str(value), re.I) for value in source.get("exclude_patterns", [])]
+    rows: list[dict[str, str]] = []
+    for index, node in enumerate(list(root)):
+        fields = {
+            child.tag.split("}", 1)[-1].lower(): strip_text(child.text)
+            for child in list(node)
+        }
+        url = fields.get("loc", "")
+        if not url or urllib.parse.urlparse(url).scheme not in {"http", "https"}:
+            continue
+        if source_host and source_domain(url) != source_host:
+            continue
+        if include_patterns and not any(pattern.search(url) for pattern in include_patterns):
+            continue
+        if any(pattern.search(url) for pattern in exclude_patterns):
+            continue
+        rows.append({
+            "url": url,
+            "date": fields.get("lastmod", "")[:10],
+            "_index": str(index),
+        })
+    return sorted(
+        rows,
+        key=lambda row: (
+            bool(parsed_iso_date(row.get("date", ""))),
+            row.get("date", ""),
+            int(row.get("_index", "0")),
+        ),
+        reverse=True,
+    )
+
+
+def fetch_sitemap(
+    source: dict[str, Any],
+    vertical: str,
+    limit: int,
+    reviews: list[dict[str, Any]] | None = None,
+    lens: str = "genny",
+) -> list[dict[str, str]]:
+    sitemap = str(source.get("sitemap") or "")
+    if not sitemap or source.get("source_type") != "official_sitemap":
+        return []
+    req = urllib.request.Request(sitemap, headers={"User-Agent": "GennyBriefComposer/1.0"})
+    ctx = verified_ssl_context()
+    with urllib.request.urlopen(req, timeout=20, context=ctx) as response:
+        body = response.read(3_500_000)
+    rows = parse_sitemap_rows(body, source)
+    out: list[dict[str, str]] = []
+    article_reads = 0
+    max_reads = max(1, min(int(source.get("sitemap_article_reads") or SITEMAP_ARTICLE_READS_PER_SOURCE), 20))
+    required_pattern = required_pattern_for_vertical(vertical)
+    for row in rows:
+        sitemap_date = row.get("date", "")
+        if sitemap_date and not likely_recent("", sitemap_date):
+            continue
+        if article_reads >= max_reads:
+            break
+        article_reads += 1
+        url = row["url"]
+        title, summary, published_date = fetch_article_metadata(url, required_pattern)
+        date = published_date or sitemap_date
+        if not title:
+            title = urllib.parse.unquote(urllib.parse.urlparse(url).path.rstrip("/").split("/")[-1])
+            title = re.sub(r"[-_]+", " ", title).strip().title()
+        if not date:
+            append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source,
+                title=title,
+                summary=summary,
+                url=url,
+                date="",
+                status="rejected",
+                score=0,
+                reason="missing publication date for daily discovery",
+            )
+            continue
+        passed, score, reason = quality_review(vertical, source, title, summary, url, date)
+        review_id = append_candidate_review(
+            reviews,
+            lens=lens,
+            vertical=vertical,
+            source=source,
+            title=title,
+            summary=summary,
+            url=url,
+            date=date,
+            status="qualified" if passed else "rejected",
+            score=score,
+            reason=reason,
+        )
+        if not passed:
+            continue
+        if relevance_score(vertical, source, title, summary) <= 0:
+            signal_ledger.update_review_status(
+                reviews or [],
+                review_id,
+                "rejected",
+                "missing vertical relevance",
+            )
+            continue
+        out.append({
+            "title": title,
+            "url": url,
+            "date": date,
+            "summary": truncate_text(summary, 260),
+            "source": str(source.get("name") or "Official update"),
+            "priority": str(source.get("priority") or "high"),
+            "score": str(score),
+            "review": reason,
+            "_review_id": review_id,
+        })
+        if len(out) >= min(limit, MAX_PER_SOURCE):
+            break
+    return out
+
+
+def fetch_manual_links(
+    source: dict[str, Any],
+    vertical: str,
+    limit: int,
+    reviews: list[dict[str, Any]] | None = None,
+    lens: str = "genny",
+) -> list[dict[str, str]]:
     url = source.get("url")
     if not url:
         return []
@@ -652,17 +1309,62 @@ def fetch_manual_links(source: dict[str, Any], vertical: str, limit: int) -> lis
         if len(title) < 8 or len(title) > 180 or NOISE_PATTERNS.search(title):
             continue
         if LOW_VALUE_TITLE_PATTERNS.search(title) and not HIGH_VALUE_SIGNAL_PATTERNS.search(title):
+            append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source,
+                title=title,
+                summary="",
+                url=href,
+                date="",
+                status="rejected",
+                score=0,
+                reason="generic/how-to/category title",
+            )
             continue
         if not is_briefable_url(href):
+            append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source,
+                title=title,
+                summary="",
+                url=href,
+                date="",
+                status="rejected",
+                score=0,
+                reason="rejected-url",
+            )
             continue
         if article_reads >= ARTICLE_READS_PER_SOURCE:
             break
         article_reads += 1
-        excerpt = fetch_article_excerpt(href)
+        excerpt = fetch_article_excerpt(href, required_pattern_for_vertical(vertical))
         passed, score, reason = quality_review(vertical, source, title, excerpt, href)
+        review_id = append_candidate_review(
+            reviews,
+            lens=lens,
+            vertical=vertical,
+            source=source,
+            title=title,
+            summary=excerpt,
+            url=href,
+            date="",
+            status="qualified" if passed else "rejected",
+            score=score,
+            reason=reason,
+        )
         if not passed:
             continue
         if score <= 0:
+            signal_ledger.update_review_status(
+                reviews or [],
+                review_id,
+                "rejected",
+                "non-positive quality score",
+            )
             continue
         seen.add(href)
         out.append({
@@ -674,6 +1376,7 @@ def fetch_manual_links(source: dict[str, Any], vertical: str, limit: int) -> lis
             "priority": source.get("priority", "medium"),
             "score": str(score),
             "review": reason,
+            "_review_id": review_id,
         })
         if len(out) >= limit:
             break
@@ -720,33 +1423,41 @@ def priority_weight(priority: str) -> int:
     return {"high": 3, "medium": 2, "low": 1}.get(priority, 1)
 
 
-def rank_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
+TOPIC_TOKEN_STOPWORDS = {
+    "about", "adds", "after", "announces", "available", "direct", "every",
+    "from", "inside", "introduces", "launches", "new", "now",
+    "release", "releases", "the", "their", "through", "updates", "version",
+    "with", "your",
+}
+
+
+def topic_tokens(title: str) -> set[str]:
+    return {
+        token
+        for token in re.findall(r"[a-z0-9]+", title.lower())
+        if len(token) >= 3 and token not in TOPIC_TOKEN_STOPWORDS
+    }
+
+
+def is_near_duplicate_topic(left: set[str], right: set[str]) -> bool:
+    if not left or not right:
+        return False
+    overlap = len(left & right)
+    return overlap >= 3 and overlap / min(len(left), len(right)) >= 0.75
+
+
+def rank_items(
+    items: list[dict[str, str]],
+    reviews: list[dict[str, Any]] | None = None,
+) -> list[dict[str, str]]:
     seen: set[str] = set()
     deduped: list[dict[str, str]] = []
     source_counts: dict[str, int] = {}
     domain_counts: dict[str, int] = {}
     topic_counts: dict[str, int] = {}
-    for item in items:
-        key = item_key(item)
-        if not key or key in seen:
-            continue
-        source_bucket = f"{item.get('source', 'Source')}:{source_domain(item.get('url', ''))}"
-        domain = source_domain(item.get("url", ""))
-        if source_counts.get(source_bucket, 0) >= MAX_PER_SOURCE:
-            continue
-        if domain and domain_counts.get(domain, 0) >= MAX_PER_DOMAIN:
-            continue
-        topic = topic_cluster_key(item)
-        if topic_counts.get(topic, 0) >= MAX_PER_TOPIC_CLUSTER:
-            continue
-        seen.add(key)
-        source_counts[source_bucket] = source_counts.get(source_bucket, 0) + 1
-        if domain:
-            domain_counts[domain] = domain_counts.get(domain, 0) + 1
-        topic_counts[topic] = topic_counts.get(topic, 0) + 1
-        deduped.append(item)
-    return sorted(
-        deduped,
+    topic_token_sets: list[set[str]] = []
+    ordered_items = sorted(
+        items,
         key=lambda item: (
             priority_weight(item.get("priority", "medium")),
             int(item.get("score", "0") or 0),
@@ -754,43 +1465,49 @@ def rank_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
         ),
         reverse=True,
     )
-
-
-def convergence_candidates(items_by_lens: dict[str, list[dict[str, str]]]) -> list[dict[str, str]]:
-    themes = {
-        "creative-volume economics": {"creative", "variant", "campaign", "video", "image", "ads", "cpm", "roas"},
-        "agentic production and distribution": {"agent", "automation", "workflow", "orchestration", "pipeline", "api"},
-        "commerce asset conversion": {"commerce", "product", "catalog", "shopify", "conversion", "storefront"},
-        "measurement and provenance": {"measurement", "attribution", "provenance", "rights", "compliance", "consent"},
-    }
-    genny_items = items_by_lens.get("genny", [])
-    marti_items = items_by_lens.get("marti", [])
-    candidates: list[dict[str, str]] = []
-    seen_pairs: set[tuple[str, str]] = set()
-    for theme, terms in themes.items():
-        def theme_match(item: dict[str, str]) -> bool:
-            text = f"{item.get('title', '')} {item.get('summary', '')}".lower()
-            return sum(1 for term in terms if term in text) >= 2
-
-        genny = next((item for item in genny_items if theme_match(item)), None)
-        marti = next((item for item in marti_items if theme_match(item)), None)
-        if not genny or not marti:
+    for item in ordered_items:
+        key = item_key(item)
+        review_id = item.get("_review_id", "")
+        if not key:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "missing signal key")
             continue
-        pair = (item_key(genny), item_key(marti))
-        if pair in seen_pairs:
+        if key in seen:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "duplicate signal")
             continue
-        seen_pairs.add(pair)
-        candidates.append({
-            "theme": theme,
-            "genny_title": genny.get("title", "Genny signal"),
-            "genny_url": genny.get("url", ""),
-            "marti_title": marti.get("title", "Marti signal"),
-            "marti_url": marti.get("url", ""),
-        })
-    return candidates[:3]
+        tokens = topic_tokens(item.get("title", ""))
+        if any(is_near_duplicate_topic(tokens, existing) for existing in topic_token_sets):
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "cross-source near-duplicate signal")
+            continue
+        source_bucket = f"{item.get('source', 'Source')}:{source_domain(item.get('url', ''))}"
+        domain = source_domain(item.get("url", ""))
+        if source_counts.get(source_bucket, 0) >= MAX_PER_SOURCE:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "source concentration limit")
+            continue
+        if domain and domain_counts.get(domain, 0) >= MAX_PER_DOMAIN:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "domain concentration limit")
+            continue
+        topic = topic_cluster_key(item)
+        if topic_counts.get(topic, 0) >= MAX_PER_TOPIC_CLUSTER:
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "topic concentration limit")
+            continue
+        seen.add(key)
+        source_counts[source_bucket] = source_counts.get(source_bucket, 0) + 1
+        if domain:
+            domain_counts[domain] = domain_counts.get(domain, 0) + 1
+        topic_counts[topic] = topic_counts.get(topic, 0) + 1
+        topic_token_sets.append(tokens)
+        deduped.append(item)
+    return deduped
 
 
-def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool = False, lens: str = "genny") -> str:
+def compose(
+    mode: str,
+    per_vertical: int,
+    rss_limit: int,
+    include_manual: bool = False,
+    lens: str = "genny",
+    ledger_out: Path | None = None,
+) -> str:
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
     lenses = ["genny", "marti"] if lens == "unified" else [lens]
     data_by_lens = {name: load_sources(name) for name in lenses}
@@ -823,7 +1540,7 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
     ]
     current_phase = ""
     coverage_gaps: list[str] = []
-    items_by_lens: dict[str, list[dict[str, str]]] = {name: [] for name in lenses}
+    candidate_reviews: list[dict[str, Any]] = []
     for current_lens, vertical in vertical_rows:
         phase = phase_for_vertical(vertical, current_lens)
         sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
@@ -832,21 +1549,55 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
         for source in sources:
             try:
                 if source.get("rss"):
-                    candidates.extend(fetch_rss(source, vertical, rss_limit))
+                    candidates.extend(fetch_rss(
+                        source,
+                        vertical,
+                        rss_limit,
+                        reviews=candidate_reviews,
+                        lens=current_lens,
+                    ))
+                elif source.get("sitemap"):
+                    candidates.extend(fetch_sitemap(
+                        source,
+                        vertical,
+                        rss_limit,
+                        reviews=candidate_reviews,
+                        lens=current_lens,
+                    ))
                 elif include_manual:
-                    candidates.extend(fetch_manual_links(source, vertical, max(2, rss_limit // 2)))
+                    candidates.extend(fetch_manual_links(
+                        source,
+                        vertical,
+                        max(2, rss_limit // 2),
+                        reviews=candidate_reviews,
+                        lens=current_lens,
+                    ))
             except (urllib.error.URLError, ET.ParseError, TimeoutError) as exc:
                 errors.append(f"{source.get('name', 'Source')}: {exc}")
             except Exception as exc:
                 errors.append(f"{source.get('name', 'Source')}: {exc}")
-        picked = rank_items(candidates)
-        items_by_lens[current_lens].extend(picked[:per_vertical])
+        picked = rank_items(candidates, candidate_reviews)
+        for item in picked[:per_vertical]:
+            signal_ledger.update_review_status(
+                candidate_reviews,
+                item.get("_review_id", ""),
+                "published",
+                "published in brief",
+            )
         if not picked and not sources:
             continue
         if not picked:
             audit_sources = [s for s in sources if is_discovery_source(s)]
-            feed_names = ", ".join(s.get("name", "source") for s in audit_sources if s.get("rss")) or "none"
-            manual_names = ", ".join(s.get("name", "source") for s in audit_sources if not s.get("rss"))
+            feed_names = ", ".join(
+                s.get("name", "source")
+                for s in audit_sources
+                if s.get("rss") or s.get("sitemap")
+            ) or "none"
+            manual_names = ", ".join(
+                s.get("name", "source")
+                for s in audit_sources
+                if not s.get("rss") and not s.get("sitemap")
+            )
             if audit_sources:
                 if include_manual:
                     gap = f"{vertical}: checked feeds/pages but rejected homepage, product, generic marketing, stale, or weak-relevance links."
@@ -886,21 +1637,10 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
     if mode == "expanded" and "genny" in lenses:
         lines.extend(render_market_intelligence_section())
     if lens == "unified":
-        convergence = convergence_candidates(items_by_lens)
-        if convergence:
-            lines.extend([
-                "## GenLens",
-                "",
-                "_Convergence candidates connect one production signal with one distribution signal. They are prompts for editorial verification, not automatic causal claims._",
-                "",
-            ])
-            for item in convergence:
-                genny_link = f"[{item['genny_title']}]({item['genny_url']})" if item["genny_url"] else item["genny_title"]
-                marti_link = f"[{item['marti_title']}]({item['marti_url']})" if item["marti_url"] else item["marti_title"]
-                lines.append(f"- **Convergence candidate: {item['theme']}** — Genny: {genny_link}. Marti: {marti_link}. Verify the shared workflow or economic consequence before promotion. `convergence candidate`")
-            lines.append("")
-        else:
-            coverage_gaps.append("Unified: no convergence candidate met the minimum two-term overlap in both lenses. Do not manufacture a cross-lens claim.")
+        coverage_gaps.append(
+            "Unified: cross-lens candidates are generated in a separate convergence review artifact. "
+            "Only conclusions with an attributed human verification event may be appended to this briefing."
+        )
     if coverage_gaps:
         lines.extend([
             "## Source Coverage Notes",
@@ -911,6 +1651,13 @@ def compose(mode: str, per_vertical: int, rss_limit: int, include_manual: bool =
         for gap in coverage_gaps[:12]:
             lines.append(f"- {gap}")
         lines.append("")
+    if ledger_out is not None:
+        signal_ledger.write_signal_ledger(
+            ledger_out,
+            candidate_reviews,
+            run_lens=lens,
+            mode=mode,
+        )
     return "\n".join(lines).strip() + "\n"
 
 
@@ -979,10 +1726,20 @@ def main() -> int:
     parser.add_argument("--out", default=str(OUT_PATH))
     parser.add_argument("--per-vertical", type=int, default=5)
     parser.add_argument("--rss-limit", type=int, default=12)
+    parser.add_argument("--ledger-out", default="")
     parser.add_argument("--include-manual", action="store_true", help="Also crawl manual blog/news pages. Slower; use for audits, not normal cron.")
     args = parser.parse_args()
-    text = compose(args.mode, max(1, min(args.per_vertical, 10)), max(1, min(args.rss_limit, 20)), args.include_manual, args.lens)
     out = Path(args.out)
+    suffix = "" if args.lens == "genny" else f"_{args.lens}"
+    ledger_out = Path(args.ledger_out) if args.ledger_out else out.parent / f"signal_ledger{suffix}.json"
+    text = compose(
+        args.mode,
+        max(1, min(args.per_vertical, 10)),
+        max(1, min(args.rss_limit, 20)),
+        args.include_manual,
+        args.lens,
+        ledger_out,
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)
     print(str(out))

@@ -29,6 +29,8 @@ CAREER_RADAR_PATH = STATE_DIR / "career_radar.md"
 PREFLIGHT_PATH = STATE_DIR / "editorial_preflight.md"
 TOOL_CANDIDATES_PATH = DATA_DIR / "tool_candidates.json"
 SENT_HISTORY_PATH = STATE_DIR / "sent_brief_history.json"
+CONVERGENCE_REVIEWS_PATH = STATE_DIR / "convergence_reviews.json"
+MIN_VERIFIED_CONVERGENCE = 3
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -141,6 +143,37 @@ def record_sent(analysis: dict[str, object], resend: dict[str, object] | None = 
     SENT_HISTORY_PATH.write_text(json.dumps(history[-30:], indent=2, sort_keys=True) + "\n")
 
 
+def apply_unified_promotion_gate(
+    *,
+    lens: str,
+    send_ready: bool,
+    reason: str,
+    verified_count: int,
+    allow_unified_delivery: bool,
+) -> tuple[bool, str]:
+    if lens != "unified" or not send_ready:
+        return send_ready, reason
+    if verified_count < MIN_VERIFIED_CONVERGENCE:
+        return False, f"hold: human-verified convergence={verified_count}/{MIN_VERIFIED_CONVERGENCE}"
+    if not allow_unified_delivery:
+        return False, "hold: unified delivery requires explicit promotion approval"
+    return send_ready, reason
+
+
+def apply_marti_promotion_gate(
+    *,
+    lens: str,
+    send_ready: bool,
+    reason: str,
+    promotion: dict[str, object] | None,
+) -> tuple[bool, str]:
+    if lens not in {"marti", "unified"} or not send_ready:
+        return send_ready, reason
+    if not promotion or not bool(promotion.get("promoted")):
+        return False, str((promotion or {}).get("reason") or "hold: Marti promotion evidence unavailable")
+    return send_ready, reason
+
+
 def render_preflight(
     analysis: dict[str, object],
     send_ready: bool,
@@ -150,6 +183,11 @@ def render_preflight(
     tool_report_path: Path = TOOL_REPORT_PATH,
     role_radar_path: Path = ROLE_RADAR_PATH,
     career_radar_path: Path = CAREER_RADAR_PATH,
+    signal_ledger_path: Path | None = None,
+    decision_brief_path: Path | None = None,
+    convergence_path: Path | None = None,
+    convergence_brief_path: Path | None = None,
+    promotion_status: dict[str, object] | None = None,
 ) -> str:
     lines = [
         "# GenLens Editorial Preflight",
@@ -163,10 +201,16 @@ def render_preflight(
         f"- Linked cards: {analysis['linked_cards']}",
         f"- Verticals represented: {analysis['vertical_count']}",
         f"- Signal verticals represented: {analysis['signal_vertical_count']}",
-        "",
-        "## Verticals",
-        "",
     ]
+    if "verified_convergence_count" in analysis:
+        lines.append(f"- Human-verified convergence: {analysis.get('verified_convergence_count')}/{MIN_VERIFIED_CONVERGENCE}")
+    if promotion_status is not None:
+        lines.extend([
+            f"- Marti promotion ready: {bool(promotion_status.get('promoted'))}",
+            f"- Marti clean dated run streak: {promotion_status.get('clean_dated_run_streak', 0)}/{promotion_status.get('required_clean_runs', 3)}",
+            f"- Marti reviewed card occurrences: {promotion_status.get('reviewed_card_occurrences', 0)}/{promotion_status.get('review_target', 20)}",
+        ])
+    lines.extend(["", "## Verticals", ""])
     for vertical in analysis["verticals"]:
         lines.append(f"- {vertical}")
     lines.extend(["", "## Source Counts", ""])
@@ -198,6 +242,14 @@ def render_preflight(
         f"- Career radar: `{career_radar_path}`",
         f"- Role radar: `{role_radar_path}`",
     ])
+    if signal_ledger_path is not None:
+        lines.append(f"- Signal ledger: `{signal_ledger_path}`")
+    if decision_brief_path is not None:
+        lines.append(f"- Decision brief: `{decision_brief_path}`")
+    if convergence_path is not None:
+        lines.append(f"- Convergence candidates: `{convergence_path}`")
+    if convergence_brief_path is not None:
+        lines.append(f"- Convergence review brief: `{convergence_brief_path}`")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -213,9 +265,16 @@ def main() -> int:
     parser.add_argument("--send", action="store_true")
     parser.add_argument("--force-send", action="store_true")
     parser.add_argument("--allow-repeat", action="store_true")
+    parser.add_argument("--allow-unified-delivery", action="store_true")
+    parser.add_argument("--record-evaluation", action="store_true")
+    parser.add_argument("--evaluation-log", default="")
+    parser.add_argument("--evaluation-idempotency-key", default="")
     parser.add_argument("--to", default=os.environ.get("GENLENS_EMAIL_TO", "jj@damnjj.wtf"))
     parser.add_argument("--subject", default="GenLens updated intelligence briefing")
     args = parser.parse_args()
+
+    if args.record_evaluation and not args.evaluation_idempotency_key.strip():
+        parser.error("--record-evaluation requires --evaluation-idempotency-key")
 
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -227,7 +286,12 @@ def main() -> int:
     role_radar_path = ROLE_RADAR_PATH
     career_radar_path = CAREER_RADAR_PATH
     preflight_path = STATE_DIR / f"editorial_preflight{suffix}.md"
+    signal_ledger_path = STATE_DIR / f"signal_ledger{suffix}.json"
+    decision_brief_path = STATE_DIR / f"decision_brief{suffix}.md"
+    convergence_path = STATE_DIR / "convergence_candidates.json" if args.lens == "unified" else None
+    convergence_brief_path = STATE_DIR / "convergence_brief.md" if args.lens == "unified" else None
     tool_candidates_path = DATA_DIR / f"tool_candidates{suffix}.json"
+    promotion_log_path = Path(args.evaluation_log) if args.evaluation_log else STATE_DIR / "lens_evaluations.json"
     min_cards = args.min_cards if args.min_cards is not None else {"genny": 12, "marti": 6, "unified": 12}[args.lens]
     min_verticals = args.min_verticals if args.min_verticals is not None else {"genny": 5, "marti": 3, "unified": 6}[args.lens]
 
@@ -239,7 +303,25 @@ def main() -> int:
         "--per-vertical", str(args.per_vertical),
         "--rss-limit", str(args.rss_limit),
         "--out", str(brief_path),
+        "--ledger-out", str(signal_ledger_path),
     ])
+    run([
+        "python3", str(SCRIPT_DIR / "genlens_decision_brief.py"),
+        "--ledger", str(signal_ledger_path),
+        "--out", str(decision_brief_path),
+    ])
+    convergence_payload: dict[str, object] | None = None
+    if args.lens == "unified":
+        run([
+            "python3", str(SCRIPT_DIR / "genlens_convergence.py"),
+            "generate",
+            "--ledger", str(signal_ledger_path),
+            "--reviews", str(CONVERGENCE_REVIEWS_PATH),
+            "--out-json", str(convergence_path),
+            "--out-md", str(convergence_brief_path),
+            "--brief", str(brief_path),
+        ])
+        convergence_payload = json.loads(convergence_path.read_text())
     run([
         "python3", str(SCRIPT_DIR / "genlens_curate_tools.py"),
         "--brief", str(brief_path),
@@ -269,7 +351,58 @@ def main() -> int:
         elif new_link_count < args.min_new_links:
             send_ready = False
             reason = f"hold: only {new_link_count}/{args.min_new_links} new links versus recent sent briefings"
-    preflight_path.write_text(render_preflight(analysis, send_ready, reason, brief_path, audit_path, tool_report_path, role_radar_path, career_radar_path))
+    promotion_record: dict[str, object] | None = None
+    if args.record_evaluation:
+        promotion_cmd = [
+            "python3", str(SCRIPT_DIR / "genlens_promotion.py"), "record-run",
+            "--log", str(promotion_log_path),
+            "--ledger", str(signal_ledger_path),
+            "--brief", str(brief_path),
+            "--idempotency-key", args.evaluation_idempotency_key,
+            "--min-cards", str(min_cards),
+            "--min-verticals", str(min_verticals),
+            "--new-link-count", str(new_link_count),
+        ]
+        if exact_repeat:
+            promotion_cmd.append("--exact-repeat")
+        promotion_record = json.loads(run(promotion_cmd).stdout)
+    promotion_status: dict[str, object] | None = None
+    if args.lens in {"marti", "unified"}:
+        promotion_status = json.loads(run([
+            "python3", str(SCRIPT_DIR / "genlens_promotion.py"), "status",
+            "--log", str(promotion_log_path),
+            "--lens", "marti",
+        ]).stdout)
+        send_ready, reason = apply_marti_promotion_gate(
+            lens=args.lens,
+            send_ready=send_ready,
+            reason=reason,
+            promotion=promotion_status,
+        )
+    verified_convergence_count = int((convergence_payload or {}).get("verified_count", 0))
+    analysis["verified_convergence_count"] = verified_convergence_count
+    send_ready, reason = apply_unified_promotion_gate(
+        lens=args.lens,
+        send_ready=send_ready,
+        reason=reason,
+        verified_count=verified_convergence_count,
+        allow_unified_delivery=args.allow_unified_delivery,
+    )
+    preflight_path.write_text(render_preflight(
+        analysis=analysis,
+        send_ready=send_ready,
+        reason=reason,
+        brief_path=brief_path,
+        audit_path=audit_path,
+        tool_report_path=tool_report_path,
+        role_radar_path=role_radar_path,
+        career_radar_path=career_radar_path,
+        signal_ledger_path=signal_ledger_path,
+        decision_brief_path=decision_brief_path,
+        convergence_path=convergence_path,
+        convergence_brief_path=convergence_brief_path,
+        promotion_status=promotion_status,
+    ))
 
     result: dict[str, object] = {
         "ready": send_ready,
@@ -277,9 +410,25 @@ def main() -> int:
         "lens": args.lens,
         "brief": str(brief_path),
         "preflight": str(preflight_path),
+        "signal_ledger": str(signal_ledger_path),
+        "decision_brief": str(decision_brief_path),
         "analysis": analysis,
         "repeat": repeat,
     }
+    if promotion_status is not None or promotion_record is not None:
+        result["promotion"] = {
+            "log": str(promotion_log_path),
+            "record": promotion_record,
+            "status": promotion_status,
+        }
+    if convergence_path is not None and convergence_brief_path is not None:
+        result["convergence"] = {
+            "artifact": str(convergence_path),
+            "brief": str(convergence_brief_path),
+            "candidate_count": (convergence_payload or {}).get("candidate_count", 0),
+            "verified_count": (convergence_payload or {}).get("verified_count", 0),
+            "rejected_count": (convergence_payload or {}).get("rejected_count", 0),
+        }
     if args.send and (send_ready or args.force_send):
         send = run([
             "python3", str(SCRIPT_DIR / "genlens_send_email.py"),

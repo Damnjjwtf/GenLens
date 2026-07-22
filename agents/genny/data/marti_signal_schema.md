@@ -1,6 +1,8 @@
 # Marti Signal Schema
 
-Status: MVP operating schema
+Status: Implemented operating schema
+
+Last updated: July 21, 2026
 
 Marti tracks changes in marketing technology, distribution, measurement, and stack economics. A publishable item must support at least three of the fields below and must include a verifiable link.
 
@@ -38,3 +40,23 @@ Marti tracks changes in marketing technology, distribution, measurement, and sta
 - `hypothesis`: useful research lead; not publishable as fact
 
 Confidence and completeness are separate. A primary release note can be authoritative even when it does not establish a commercial outcome; that outcome remains a hypothesis until evidence supports it.
+
+## Decision-ready archive fields
+
+Marti signals are persisted in the versioned signal ledger. Each record adds:
+
+- a stable ID;
+- lens value `marti`;
+- a recommended decision: `test`, `adopt`, `avoid`, `migrate`, `brief`,
+  `budget`, or `watch`;
+- the confidence label above;
+- source type plus published and observed dates;
+- a mechanism, operator use case, impact, and exact evidence URL.
+
+Rejected candidates are retained with machine-readable reason codes. Published
+records may render an evidence-bound recommendation, but recommendations are
+not user decisions and do not enter the decision queue without an attributed
+human confirmation.
+
+For cross-lens output, `convergence` may replace `marti` only after a human
+verifies the shared mechanism, workflow, or economic consequence.
