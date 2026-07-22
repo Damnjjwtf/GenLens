@@ -76,14 +76,13 @@ Never read, print, commit, diff, or screenshot `/root/.hermes/profiles/genny/.en
 
 ## Phase A: Read-Only VPS Discovery
 
-Run this in the authenticated Spaceship web console at
-`root@hermes-gateway:~#`:
+SSH to `root@209.74.85.95 -p 22022` and run:
 
 ```bash
 free -h; echo; nproc; echo; df -h /; echo; ollama list
 ```
 
-Capture only the non-secret output. Also inspect, without printing secrets:
+Capture only the non-secret output. Also inspect (without printing secrets):
 
 ```bash
 systemctl cat hermes-gateway-genny.service
@@ -98,18 +97,53 @@ it.
 
 ### Model Choice Matrix
 
-| VPS result | Initial local model | Decision |
-| --- | --- | --- |
-| Under 6 GiB usable RAM | None | Do not run a local LLM. Use a hosted fallback only after approval. |
-| 6–11 GiB usable RAM | `qwen3:4b` | Best first CPU-only local test. |
-| 12–23 GiB usable RAM | `qwen3:8b` | Better instruction following, slower on CPU. |
-| 24+ GiB usable RAM | `qwen3:14b` | Evaluate only if latency is acceptable. |
+After Phase A, use this matrix to select the initial local model:
 
-Do not use a giant model on this VPS. It risks swapping, service instability,
-and a worse Discord experience. Ollama's local Qwen model sizes are part of the
-operational constraint, not a quality benchmark.
+| VPS RAM (usable) | Recommended Model | Rationale |
+|---|---|---|
+| Under 6 GiB | None (hosted fallback only) | CPU LLMs need ≥6 GiB headroom. Do not run local inference. |
+| 6–11 GiB | `qwen3:4b` | Best CPU-only first test. Fast, good instruction following. |
+| 12–23 GiB | `qwen3:8b` | Better quality and reasoning. Acceptable latency on modern CPU. |
+| 24+ GiB | `qwen3:14b` | Highest quality, but still CPU-bound on this VPS. Evaluate latency. |
 
-## Phase B: Install and Verify Ollama Only After Phase A
+**Do not use a giant model on this VPS.** It risks swapping, service instability,
+and a worse Discord experience. Ollama's explicit Qwen model sizes are part of
+the operational constraint, not a quality benchmark.
+
+### Phase A Output Template
+
+Create a file `agents/genny/PHASE_A_RESULTS.md` with this structure (no secrets):
+
+```markdown
+# Phase A Discovery Results
+Date: YYYY-MM-DD
+
+## System Resources
+- Total RAM: X GiB
+- Usable RAM: X GiB
+- CPU cores: N
+- Root disk free: X GiB
+
+## Ollama Status
+- Installed: yes|no
+- Running: yes|no
+- Models present: [list or "none"]
+
+## Hermes Configuration
+- Service status: active|inactive|error
+- Profile directory: exists|missing
+- State files: [list of signal_ledger, decision_queue, etc.]
+- Model provider variables: [LM_MODEL, LM_BASE_URL, etc. — no secrets]
+
+## Decision
+Recommended model: qwen3:4b | qwen3:8b | qwen3:14b | hosted-only
+Reasoning: [brief]
+
+Approved by: [human name]
+Proceed to Phase B: yes|no
+```
+
+## Phase B: Install and Verify Ollama Only After Phase A Approval
 
 If Phase A confirms the VPS can support the selected model:
 
