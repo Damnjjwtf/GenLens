@@ -291,6 +291,24 @@ class MartiPipelineTests(unittest.TestCase):
         self.assertFalse(rejected[0])
         self.assertEqual(rejected[2], "generic/how-to/category title")
 
+    def test_capabilities_and_limitations_comparison_is_not_a_change(self) -> None:
+        rejected = composer.quality_review(
+            "Stack Consolidation / Displacement",
+            {
+                "name": "Zapier Blog",
+                "source_type": "blog",
+                "priority": "high",
+                "watch_for": ["integration", "replacement", "stack"],
+            },
+            "MuleSoft integrations: Capabilities and limitations",
+            "API-based AI integrations through Salesforce's broader AI stack; typically developer-led.",
+            "https://zapier.com/blog/mulesoft-integrations",
+            dt.datetime.now(dt.timezone.utc).date().isoformat(),
+        )
+
+        self.assertFalse(rejected[0])
+        self.assertEqual(rejected[2], "generic/how-to/category title")
+
     def test_official_can_now_change_is_not_underweighted(self) -> None:
         accepted = composer.quality_review(
             "Lifecycle / Retention",

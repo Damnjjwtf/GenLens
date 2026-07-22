@@ -189,6 +189,11 @@ LOW_VALUE_TITLE_PATTERNS = re.compile(
     re.I,
 )
 
+STATIC_COMPARISON_TITLE_PATTERNS = re.compile(
+    r"\bcapabilities\s*(?:and|&)\s*limitations\b",
+    re.I,
+)
+
 WEAK_SOURCE_PATTERNS = re.compile(
     r"\b(quasa|bitcoin world|startup story|startup fortune|digital terminal|gigazine|futurum\s*group|ein\s*news|einpresswire|mezha)\b",
     re.I,
@@ -879,6 +884,8 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
             return False, 0, "untrusted news-search publisher"
     if UNCONFIRMED_SIGNAL_PATTERNS.search(text):
         return False, 0, "unconfirmed product claim"
+    if STATIC_COMPARISON_TITLE_PATTERNS.search(title):
+        return False, 0, "generic/how-to/category title"
     genny_required = GENNY_REQUIRED_PATTERNS.get(vertical)
     if genny_required:
         if len(strip_text(summary)) < 40:
