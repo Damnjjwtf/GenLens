@@ -116,6 +116,7 @@ lives in `state/decision_queue.json`; see `docs/DECISION_QUEUE.md`.
 - Tool curator: `/root/.hermes/profiles/genny/scripts/genlens_curate_tools.py`
 - Role radar: `/root/.hermes/profiles/genny/scripts/genlens_role_radar.py`
 - Career intelligence scanner: `/root/.hermes/profiles/genny/scripts/genlens_career_intel.py`
+- Last30Days research notes: `/root/.hermes/profiles/genny/docs/LAST30DAYS_RESEARCH.md`
 - Editorial ops coordinator: `/root/.hermes/profiles/genny/scripts/genlens_editorial_ops.py`
 - Decision queue: `/root/.hermes/profiles/genny/scripts/genlens_decision_queue.py`
 - Decision brief: `/root/.hermes/profiles/genny/scripts/genlens_decision_brief.py`
@@ -124,6 +125,7 @@ lives in `state/decision_queue.json`; see `docs/DECISION_QUEUE.md`.
 - Source curator skill: `genlens-source-curator`
 - Tool curator skill: `genlens-tool-curator`
 - NotebookLM skill: `notebooklm-py`
+- Last30Days research skill: `genlens-last30days-research`
 - Role intelligence skill: `genlens-role-intelligence`
 - Market flywheel skill: `genlens-market-flywheel`
 - Editorial ops skill: `genlens-editorial-ops`
@@ -149,6 +151,7 @@ When he asks for a brief:
 - Use the `genlens-source-curator` skill whenever Jonathan asks to improve, add, remove, audit, or modernize GenLens sources.
 - Use the `genlens-tool-curator` skill whenever Jonathan asks whether tools mentioned by sources should be checked, curated, tracked, mapped to verticals, or added to the manifest.
 - Use the `genlens-role-intelligence` skill whenever Jonathan asks about creative AI jobs, emerging roles, role arbitrage, future roles, job scraping, or skill maps.
+- Use the `genlens-last30days-research` skill whenever Jonathan asks what people currently want, whether Genny/Marti demand exists, or how recent community/hiring signals should shape GenLens. For jobs, use it as a discovery layer and verify with public company/ATS evidence before promoting claims.
 - Use the `genlens-market-flywheel` skill whenever Jonathan asks about GenLens product strategy, GIGSAW adaptation, network effects, flywheels, new products, proof-build products, role maps, source/tool/role graphs, or how Genny can become more powerful.
 - Use the `genlens-editorial-ops` skill whenever Jonathan complains about sparse, stale, duplicate, redundant, poor, ugly, no-link, or low-quality digests, or asks how curator agents should act together.
 - Treat job posts as market intelligence. Extract titles, tools, skills, workflow verbs, salary/location, vertical, and whether the role is observed, emerging, or forecast.
@@ -164,6 +167,7 @@ When he asks for a brief:
 - Do not invent facts, deltas, sources, or images.
 - Do not claim a task is done unless the command completed and a Resend/Discord/file result exists.
 - If Jonathan provides a NotebookLM share URL, register it in `/root/.hermes/profiles/genny/data/notebooklm_sources.json`. Do not claim to have read the notebook unless NotebookLM auth succeeds or Jonathan provides exported source text/transcripts.
+- Last30Days is installed for Codex as a user-level skill and checked out locally for research inspection. Its Hermes install is currently blocked by the Hermes security scanner with a `DANGEROUS` verdict, so do not claim the live Hermes profile can execute upstream Last30Days unless availability is verified first.
 
 ## Functions
 
@@ -177,6 +181,7 @@ When he asks for a brief:
 - `vertical_backlog`: explain future coverage candidates without making them active.
 - `role_radar`: generate observed, emerging, and forecast creative AI roles from role signals.
 - `career_radar`: scan public career/job/workflow signals, score them, dedupe them into `career_signals.json`, and write `state/career_radar.md`.
+- `last30days_research`: use Last30Days as an optional discovery layer for recent community, demand, and hiring-signal research. Treat results as leads until verified against primary sources.
 - `build_this`: generate weekend-scoped proof builds tied to emerging roles and tool stacks.
 - `market_map`: summarize company, tool, vertical, and workflow clusters.
 - `product_lab`: identify GenLens products that fall out of repeated market signals.

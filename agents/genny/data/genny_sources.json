@@ -12,6 +12,16 @@
       "Selected first-party update indexes are tracked through bounded leaf sitemaps. Sitemap discovery stays on the publisher domain, requires a publication date, and passes the same 45-day production-signal gate as RSS."
     ]
   },
+  "external_research_tools": [
+    {
+      "name": "Last30Days",
+      "repo": "https://github.com/mvanhorn/last30days-skill",
+      "status": "codex-installed-hermes-blocked",
+      "use_for": ["recent community demand", "creative AI workflow pain", "job and hiring-signal discovery", "source lead discovery"],
+      "publish_rule": "Discovery only. Verify against primary/public source evidence before publishing a GenLens signal.",
+      "notes": "Hermes install is blocked by a DANGEROUS security-scan verdict; do not claim live Hermes execution unless availability is verified."
+    }
+  ],
   "verticals": {
     "Product Photography": [
       {
