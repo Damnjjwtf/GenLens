@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://genlens.app/schemas/decision-queue-1.0.0.json",
+  "title": "GenLens Decision Queue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["queue_version", "generated_at", "items", "events"],
+  "properties": {
+    "queue_version": {"const": "1.0.0"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "items": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/item"}
+    },
+    "events": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/event"}
+    }
+  },
+  "$defs": {
+    "action": {
+      "enum": ["test", "adopt", "avoid", "migrate", "brief", "budget", "plan", "watch"]
+    },
+    "status": {
+      "enum": ["queued", "in_progress", "completed", "dismissed"]
+    },
+    "actor_type": {
+      "enum": ["user", "agent", "system"]
+    },
+    "channel": {
+      "enum": ["cli", "discord", "email", "web", "api", "other"]
+    },
+    "string_array": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "signal_id",
+        "title",
+        "canonical_url",
+        "lenses",
+        "verticals",
+        "status",
+        "current_action",
+        "created_at",
+        "updated_at",
+        "last_actor_id",
+        "last_note"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^dq_[a-f0-9]{20}$"},
+        "signal_id": {"type": "string", "pattern": "^sig_[a-f0-9]{20}$"},
+        "title": {"type": "string", "minLength": 1},
+        "canonical_url": {"type": "string"},
+        "lenses": {"$ref": "#/$defs/string_array"},
+        "verticals": {"$ref": "#/$defs/string_array"},
+        "status": {"$ref": "#/$defs/status"},
+        "current_action": {"$ref": "#/$defs/action"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "updated_at": {"type": "string", "format": "date-time"},
+        "last_actor_id": {"type": "string", "minLength": 1},
+        "last_note": {"type": "string", "minLength": 1}
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "event_type",
+        "item_id",
+        "signal_id",
+        "action",
+        "from_status",
+        "to_status",
+        "actor_id",
+        "actor_type",
+        "channel",
+        "note",
+        "occurred_at",
+        "qualifies_wvda",
+        "lenses",
+        "verticals"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^evt_[a-f0-9]{20}$"},
+        "event_type": {"enum": ["decision_action", "state_transition"]},
+        "item_id": {"type": "string", "pattern": "^dq_[a-f0-9]{20}$"},
+        "signal_id": {"type": "string", "pattern": "^sig_[a-f0-9]{20}$"},
+        "action": {
+          "oneOf": [
+            {"$ref": "#/$defs/action"},
+            {"type": "null"}
+          ]
+        },
+        "from_status": {
+          "oneOf": [
+            {"$ref": "#/$defs/status"},
+            {"type": "null"}
+          ]
+        },
+        "to_status": {"$ref": "#/$defs/status"},
+        "actor_id": {"type": "string", "minLength": 1},
+        "actor_type": {"$ref": "#/$defs/actor_type"},
+        "channel": {"$ref": "#/$defs/channel"},
+        "note": {"type": "string", "minLength": 1},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "qualifies_wvda": {"type": "boolean"},
+        "lenses": {"$ref": "#/$defs/string_array"},
+        "verticals": {"$ref": "#/$defs/string_array"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"event_type": {"const": "state_transition"}},
+            "required": ["event_type"]
+          },
+          "then": {
+            "properties": {
+              "action": {"type": "null"},
+              "qualifies_wvda": {"const": false}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"event_type": {"const": "decision_action"}},
+            "required": ["event_type"]
+          },
+          "then": {
+            "properties": {"action": {"$ref": "#/$defs/action"}}
+          }
+        }
+      ]
+    }
+  }
+}
