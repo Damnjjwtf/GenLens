@@ -30,22 +30,39 @@ See `GENLENS_CLAUDE_CODE_BRIEF.md` for full architecture,
 `GENLENS_FOR_CREATIVES_COMPLETE_SPEC.md` for product spec,
 and `TOOLS_MANIFEST.md` for canonical list of 130+ tools.
 
+The repo also contains `agents/genny/`: the Python-based Genny/Marti
+editorial agent (Hermes profile, deployed on a VPS, delivering Discord and
+email briefs). It has its own README, docs, tests, and governance gates.
+Start with `agents/genny/docs/GENNY_COLLABORATOR_PRD.md` before touching it,
+and never weaken its evidence, promotion, or human-review rules.
+
 ---
+
+## CANONICAL DIRECTION (read first)
+
+`agents/genny/docs/GENLENS_NORTH_STAR.md` (adopted 2026-07-20) is canonical
+for positioning and product hierarchy: GenLens is the intelligence system for
+the generative AI economy. Genny is the production-intelligence lens, Marti
+is the marketing-intelligence lens, and the north-star metric is Weekly
+Verified Decision Actions (WVDA). Where this file and the north star
+disagree, the north star wins.
+
+`SPINE.md` (repo root) is canonical for system-of-record and unification:
+Neon Postgres is the system of record, the VPS JSON ledgers are edge audit
+caches, and the two halves unify contract-first through a one-way ingestion
+bridge. It also holds the NOW / NEXT / PARKED focus list. Check it before
+starting any track; do not open a second track while one is in flight.
 
 ## CURRENT FOCUS
 
-Phase 2 in progress. The two new product surfaces being built are:
+Per SPINE.md: finish the security cleanup and model runtime Phases A/B
+(`agents/genny/docs/MODEL_RUNTIME_HANDOFF.md`), then build the spine
+ingestion bridge (Phases 1-3).
 
-1. **GenLens Score** — single 0-100 number per tool / workflow / template
-   that bundles speed gain, cost gain, quality, and adoption velocity.
-   Becomes the citable noun. Like a credit score for "should I adopt this?"
-
-2. **GenLens Index** — published weekly, like the S&P 500 but for AI
-   creative tools. "This week's biggest movers." Citable in industry press.
-
-Both are downstream of the existing scraper + signals table. They are
-synthesis + ranking layers on top of data we already collect (Dimensions
-5 and 10 in the spec: Cost & Time Delta, and Benchmark + Leaderboard).
+**Score and Index are live but frozen.** The crons keep running; do not
+invest in new Score/Index features until SPINE.md Phase 3 renders verified
+ledger cards on the web. Their design principles below remain valid for
+maintenance work.
 
 Do **not** build Arbitrage, Rate Card Generator, Score Decay, Personal
 Arbitrage Alerts, or the share-card growth loop yet. These are deferred.
