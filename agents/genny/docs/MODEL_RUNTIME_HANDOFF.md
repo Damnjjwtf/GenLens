@@ -178,6 +178,25 @@ Do not expose port `11434` to the Internet. Do not add a model token to Git.
 
 ## Phase C: Build the Provider-Neutral Contract in This Repo
 
+**Implemented 2026-07-23:** `scripts/genlens_model_health.py` with
+`tests/test_model_health.py` (16 tests: config defaults, loopback and https
+policy, timeout, 401 hinting, body/secret redaction, JSON output, exit codes).
+
+Usage on the VPS after Phase B:
+
+```bash
+GENLENS_MODEL_PROVIDER=anthropic \
+GENLENS_MODEL_BASE_URL=https://api.anthropic.com/v1 \
+GENLENS_MODEL_NAME=claude-haiku-4-5 \
+GENLENS_MODEL_API_KEY=... \
+python3 scripts/genlens_model_health.py --check --json
+```
+
+Exit code 0 means healthy. The API key is read from the environment for the
+probe only and never appears in any output.
+
+Original requirements (all met):
+
 Create a small, tested runtime adapter under `agents/genny/` only after Phase A
 confirms Hermes's configuration surface. The adapter should not replace Hermes;
 it should make operator configuration and verification legible.
