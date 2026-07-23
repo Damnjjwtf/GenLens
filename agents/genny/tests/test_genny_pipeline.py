@@ -426,5 +426,25 @@ class GennyPipelineTests(unittest.TestCase):
         self.assertEqual(lawsuit["recommended_action"], "brief")
 
 
+class RelativeAgeTests(unittest.TestCase):
+    TODAY = dt.date(2026, 7, 23)
+
+    def test_recent_dates_render_as_days(self) -> None:
+        self.assertEqual(composer.relative_age("2026-07-23", self.TODAY), "today")
+        self.assertEqual(composer.relative_age("2026-07-22", self.TODAY), "1d ago")
+        self.assertEqual(composer.relative_age("2026-07-20", self.TODAY), "3d ago")
+
+    def test_older_dates_collapse_to_weeks_and_months(self) -> None:
+        self.assertEqual(composer.relative_age("2026-07-10", self.TODAY), "1w ago")
+        self.assertEqual(composer.relative_age("2026-06-20", self.TODAY), "1mo ago")
+
+    def test_undated_items_are_flagged_not_assumed_fresh(self) -> None:
+        self.assertEqual(composer.relative_age("", self.TODAY), "date unverified")
+        self.assertEqual(composer.relative_age("not-a-date", self.TODAY), "date unverified")
+
+    def test_fresh_window_is_configurable_and_bounded_by_hard_cap(self) -> None:
+        self.assertLessEqual(composer.FRESH_WINDOW_DAYS, composer.MAX_ITEM_AGE_DAYS)
+
+
 if __name__ == "__main__":
     unittest.main()

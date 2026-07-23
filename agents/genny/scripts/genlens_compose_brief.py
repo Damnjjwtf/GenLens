@@ -218,6 +218,10 @@ ARTICLE_READS_PER_SOURCE = 1
 RSS_ARTICLE_READS_PER_SOURCE = 4
 SITEMAP_ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_SITEMAP_ARTICLE_READS", "8"))
 MAX_ITEM_AGE_DAYS = int(os.environ.get("GENLENS_MAX_ITEM_AGE_DAYS", "45"))
+# Outer eligibility cap (MAX_ITEM_AGE_DAYS) stays generous so still-relevant
+# multi-week signals (acquisitions, rulings) are not dropped. FRESH_DAYS is the
+# softer "this week" tier used only for the relative-age label shown on cards.
+FRESH_WINDOW_DAYS = int(os.environ.get("GENLENS_FRESH_DAYS", "7"))
 MAX_PER_SOURCE = int(os.environ.get("GENLENS_MAX_PER_SOURCE", "2"))
 MAX_PER_DOMAIN = int(os.environ.get("GENLENS_MAX_PER_DOMAIN", "2"))
 MAX_PER_TOPIC_CLUSTER = int(os.environ.get("GENLENS_MAX_PER_TOPIC_CLUSTER", "1"))
@@ -405,6 +409,30 @@ def parsed_iso_date(value: str) -> dt.date | None:
         return dt.date.fromisoformat(value[:10])
     except Exception:
         return None
+
+
+def relative_age(value: str, today: dt.date | None = None) -> str:
+    """Human-readable freshness label for a card date.
+
+    Returns 'date unverified' when no date parses, so undated items are flagged
+    rather than silently presented as current.
+    """
+    parsed = parsed_iso_date(value)
+    if not parsed:
+        return "date unverified"
+    today = today or dt.datetime.now(dt.timezone.utc).date()
+    age = (today - parsed).days
+    if age < 0:
+        return parsed.isoformat()
+    if age == 0:
+        return "today"
+    if age == 1:
+        return "1d ago"
+    if age < 7:
+        return f"{age}d ago"
+    if age < 30:
+        return f"{age // 7}w ago"
+    return f"{age // 30}mo ago"
 
 
 def child_text(node: ET.Element, names: tuple[str, ...]) -> str:
@@ -1625,10 +1653,14 @@ def compose(
         lines.append("")
         lines.append(f"_Sources checked: {len(sources)}. Candidate leads found: {len(picked)}._")
         lines.append("")
+        # Freshest first: dated items by date descending, undated items last so
+        # unverified-age leads never crowd out confirmed-recent signals.
+        picked.sort(
+            key=lambda row: parsed_iso_date(row.get("date", "")) or dt.date.min,
+            reverse=True,
+        )
         for item in picked[:per_vertical]:
-            chips = []
-            if item.get("date"):
-                chips.append(item["date"])
+            chips = [relative_age(item.get("date", ""))]
             chips.append(item.get("source", "Source"))
             chip_text = " ".join(f"`{chip}`" for chip in chips)
             summary = item.get("summary") or "Source item requires manual review for production impact."
