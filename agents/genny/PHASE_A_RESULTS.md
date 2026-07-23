@@ -25,9 +25,19 @@ were viewed or recorded.
   `/usr/local/bin/hermes -p genny gateway run --replace` as root with
   `WorkingDirectory=/root`.
 - Restart policy: on-failure, 3s.
-- Model/provider setting surface: **not yet verified.** `hermes --help` and
-  `hermes -p genny --help` output still needed before changing any model
-  configuration.
+- Model/provider setting surface: **verified 2026-07-23** from `hermes --help`
+  and `hermes -p genny --help`:
+  - Persistent model and provider live in `config.yaml` under `model.provider`
+    (per profile), edited via `hermes model` (interactive picker),
+    `hermes config set model <name>`, or `hermes config edit`.
+  - Per-invocation override: `-m/--model` (e.g. `anthropic/claude-sonnet-4.6`)
+    and `--provider`, or the `HERMES_INFERENCE_MODEL` env var.
+  - Hermes has a built-in **fallback chain**: `hermes fallback list|add|remove`.
+    This natively satisfies the handoff's "explicit, named fallback" rule; no
+    custom routing layer is needed on the Hermes side.
+  - Provider credentials load from the profile `.env`; the `LM_MODEL` variable
+    assumed earlier is NOT part of the documented surface. Use the
+    `config.yaml` / `hermes model` path instead.
 
 ## Decision (per the Model Choice Matrix)
 
