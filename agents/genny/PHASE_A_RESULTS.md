@@ -67,5 +67,28 @@ beside the gateway process.
    (no new install, no spend). Expect weak quality; treat as a plumbing test
    of the OpenAI-compatible boundary only, not a production choice.
 
-Approved by: pending
-Proceed to Phase B: no (blocked on option choice above)
+## Live Runtime Evidence (2026-07-23, Discord)
+
+Observed in a Discord DM with Genny (screenshot reviewed, no secrets):
+
+- Primary model request failed with **HTTP 401 (non-retryable)**: the primary
+  provider's credential is invalid or revoked, consistent with the security
+  cleanup that revoked the exposed keys.
+- Hermes then **fell back to `google/gemini-3.1-flash-lite` via OpenRouter**
+  and answered normally. Two implications:
+  1. The OpenRouter credential on the VPS is still live. The handoff's
+     security cleanup calls for revoking it unless OpenRouter is the chosen
+     route; it currently is not.
+  2. Genny is running production traffic on an unpinned free-tier fallback,
+     which violates locked decision #5 (fallback must be explicit, named,
+     and bounded). This strengthens the case for completing Phase B promptly.
+- NotebookLM MCP reported unauthenticated: expected, known constraint.
+
+Decision (2026-07-23): **Option 1, hosted provider.** Provider: Anthropic.
+Model: `claude-haiku-4-5` (upgrade path: `claude-sonnet-5` via one config
+change). Configure via `hermes -p genny model` on the VPS; key lives only in
+the VPS profile. Then set an explicit fallback chain via `hermes fallback`
+and revoke the OpenRouter key unless it is the named fallback.
+
+Approved by: Jonathan (chat, 2026-07-23)
+Proceed to Phase B: yes (Anthropic key setup on VPS pending)
