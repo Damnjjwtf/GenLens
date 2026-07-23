@@ -106,6 +106,13 @@ checklist passes or it is explicitly parked with a revisit trigger.
 2. Spine Phase 1: ingestion endpoint + `ledger_signals` table.
 3. Spine Phase 2: push script from the Genny side.
 4. Spine Phase 3: web renders verified cards.
+5. Role Radar web surface (`/roles`): public page rendering the career
+   intelligence layer (observed / emerging / 12-18-month forecast roles from
+   `agents/genny/data/role_signals.json` and the Career Radar pipeline, see
+   `agents/genny/docs/CAREER_INTELLIGENCE.md`). Rides the same ledger-to-Neon
+   bridge as Phase 3; do not build a separate pipeline for it. Trigger:
+   start only after Phase 3 ships. Marti's martech-displacement coverage
+   joins this surface only after her promotion gate passes.
 
 **PARKED (with revisit triggers, per the BACKLOG.md convention)**
 - Growth Agent social posting (X/LinkedIn): revisit when one delivery loop
