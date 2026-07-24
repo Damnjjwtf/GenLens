@@ -13,14 +13,13 @@ import json
 import os
 from collections import Counter, defaultdict
 from pathlib import Path
+import tempfile
 from typing import Any
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = Path(os.environ.get("GENLENS_DATA_DIR", "/root/.hermes/profiles/genny/data"))
-if not DATA_DIR.exists():
-    DATA_DIR = BASE_DIR / "data"
+DATA_DIR = Path(os.environ.get("GENLENS_DATA_DIR", str(BASE_DIR / "data")))
 
-OUT_PATH = Path(os.environ.get("GENLENS_ROLE_RADAR_OUT", "/root/.hermes/profiles/genny/state/genlens_role_radar.md"))
+OUT_PATH = Path(os.environ.get("GENLENS_ROLE_RADAR_OUT", str(BASE_DIR / "state" / "genlens_role_radar.md")))
 
 ROLE_SIGNALS_PATH = DATA_DIR / "role_signals.json"
 CAREER_SIGNALS_PATH = DATA_DIR / "career_signals.json"
@@ -34,18 +33,36 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def role_rows(data: dict[str, Any]) -> list[dict[str, Any]]:
     rows = data.get("roles", [])
-    return [row for row in rows if isinstance(row, dict)]
+    if not isinstance(rows, list):
+        raise ValueError("Role signal registry has an invalid roles contract")
+    evidence_source = str(data.get("source") or "Unspecified source")
+    evidence_tier = str(data.get("evidence_tier") or "unverified")
+    verification = str(data.get("verification_status") or "needs-verification")
+    normalized: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("Role signal registry contains a non-object role")
+        enriched = dict(row)
+        enriched.setdefault("evidence_source", evidence_source)
+        enriched.setdefault("evidence_tier", evidence_tier)
+        enriched.setdefault("verification_status", verification)
+        normalized.append(enriched)
+    return normalized
 
 
-def career_signal_rows() -> list[dict[str, Any]]:
-    if not CAREER_SIGNALS_PATH.exists():
+def career_signal_rows(path: Path = CAREER_SIGNALS_PATH) -> list[dict[str, Any]]:
+    if not path.exists():
         return []
-    try:
-        data = load_json(CAREER_SIGNALS_PATH)
-    except Exception:
-        return []
+    data = load_json(path)
     rows = data.get("signals", [])
-    return [row for row in rows if isinstance(row, dict) and row.get("accepted")]
+    if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+        raise ValueError(f"Career signal ledger has an invalid contract: {path}")
+    return [
+        row for row in rows
+        if row.get("accepted")
+        and row.get("active", True)
+        and row.get("date_status") not in {"stale", "future"}
+    ]
 
 
 def list_value(row: dict[str, Any], key: str) -> list[str]:
@@ -90,6 +107,9 @@ def render_roles(rows: list[dict[str, Any]]) -> list[str]:
         lines.append(f"### {role_name(row)}")
         lines.append("")
         lines.append(f"- Status: {status}")
+        lines.append(f"- Evidence tier: {row.get('evidence_tier', 'unverified')}")
+        lines.append(f"- Verification: {row.get('verification_status', 'needs-verification')}")
+        lines.append(f"- Evidence source: {row.get('evidence_source', 'Unspecified source')}")
         lines.append(f"- Verticals: {line_join(role_verticals(row))}")
         company = company_signal(row)
         if company:
@@ -125,6 +145,9 @@ def render_career_signals(rows: list[dict[str, Any]]) -> list[str]:
         lines.append(f"- Score: {row.get('score', 0)} / 100")
         lines.append(f"- Status: {row.get('status', 'market-demand')}")
         lines.append(f"- Source: {row.get('source', 'Unknown source')}")
+        lines.append(f"- Evidence tier: {row.get('evidence_tier', 'unknown')}")
+        lines.append(f"- Verification: {row.get('verification_status', 'needs-verification')}")
+        lines.append(f"- Posting date: {row.get('date') or 'Unspecified'}")
         lines.append(f"- Roles: {line_join(list_value(row, 'roles'), 'Unclassified')}")
         lines.append(f"- Tools: {line_join(list_value(row, 'tools'), 'None detected')}")
         lines.append(f"- Skills: {line_join(list_value(row, 'skills'), 'None detected')}")
@@ -268,6 +291,24 @@ def render_header(mode: str) -> list[str]:
     ]
 
 
+def atomic_write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        delete=False,
+    ) as handle:
+        handle.write(text)
+        temporary = Path(handle.name)
+    try:
+        os.replace(temporary, path)
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["all", "roles", "builds", "map", "products"], default="all")
@@ -290,8 +331,7 @@ def main() -> int:
         lines.extend(render_products())
 
     out = Path(args.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("\n".join(lines).rstrip() + "\n")
+    atomic_write_text(out, "\n".join(lines).rstrip() + "\n")
     print(out)
     return 0
 

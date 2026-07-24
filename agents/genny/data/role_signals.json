@@ -1,6 +1,8 @@
 {
   "updated": "2026-07-21",
   "source": "User-provided transcript about generative AI creative jobs, including roles at Adobe, Sphere, Paramount, Lightricks, Amazon, Netflix, Epic Games, and Netflix Games. Source-channel refinements added from the user's NotebookLM Source 5 summary.",
+  "evidence_tier": "primary-pasted",
+  "verification_status": "verified-pasted-source; direct posting URLs still required for independent re-verification",
   "source_channels": [
     "X/social screenshots as discovery hints",
     "public company career pages as primary observed-job evidence",

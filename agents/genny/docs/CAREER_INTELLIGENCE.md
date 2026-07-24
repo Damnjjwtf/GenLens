@@ -56,8 +56,16 @@ For every accepted job signal, preserve:
 - raw search/RSS URL when the item came through Google News;
 - publisher/source URL when present;
 - source domain.
+- configured and effective evidence tiers;
+- verification status;
+- posting date separately from first-seen and last-seen timestamps.
 
 Prefer direct ATS/company URLs in summaries. If only a wrapped search URL is available, treat it as a lead that needs verification before salary/location/tool facts become claims.
+
+Google News results from an ATS-targeted query remain secondary verification
+leads until the wrapper resolves to a specific public posting. A publisher
+homepage is never substituted for a job URL. Only a specific public company/ATS
+posting or attributed pasted source can produce an `observed` live signal.
 
 ## Refinement Loop
 
@@ -82,6 +90,18 @@ Use it this way:
 - If only the ATS homepage/domain is available, label the signal `lead-needs-direct-url`.
 - Only mark salary, location, and tool-stack claims as verified after the direct posting or pasted job text is available.
 - The scanner checks public company career pages from the watchlist and promotes matching public links through the normal scoring pipeline.
+- Company pages blocked by robots, access controls, or dynamic rendering are routed to a public ATS fallback instead of being labeled broken.
+- Search leads and verified direct postings are counted separately in `Job Source Quality`.
+
+## Reliability Contract
+
+- Default job freshness is 60 days. Older and implausibly future-dated postings are retained for audit but cannot remain accepted.
+- Company-page discovery records the scan time as `first_seen_at`/`last_seen_at`; it never invents that date as the posting date.
+- Tracking parameters and fragments do not create duplicate signal IDs.
+- A fresh scan replaces legacy scoring for the same canonical posting while preserving observation history.
+- Existing malformed ledgers fail closed instead of being silently overwritten.
+- Career JSON and Markdown artifacts are written atomically.
+- Local runs use the checked-out Genny data/state directories unless deployment paths are explicitly provided.
 
 ## Scripts
 
