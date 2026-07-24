@@ -178,6 +178,17 @@ conformance tooling → certification. **Role Radar (NEXT item 5) is rung two** 
 public, dated, resolvable forecasts are how the authority for later rungs gets
 earned. This is why Role Radar is load-bearing, not a detour.
 
+Conformance is a **cross-cutting dimension, not a vertical** — production
+domains are verticals; regulation is a constraint on all of them. Elevated
+Dimension 6 (Legal & Ethical) into first-class tracked streams, split by object
+per the two-audit-surface model: Genny's `Conformance / Provenance / Rights`
+group (production-side: C2PA, likeness, claim substantiation) and Marti's
+`Disclosure / Compliance / Trust` group (distribution-side: FTC ad-truth,
+platform disclosure, deployer obligations). This is the intelligence-first step
+toward North Star B (be the best *source* on conformance before building any
+conformance *tooling*); it adds sources only, no product surface, no schema
+change, no liability. Done 2026-07-24 in the source registries.
+
 Timing note: EU AI Act Art. 50 deployer obligations are in force 2026-08-02.
 Any conformance product now is a **remediation** sale (brands discover exposure
 after the deadline), not a preparation sale. Different go-to-market.

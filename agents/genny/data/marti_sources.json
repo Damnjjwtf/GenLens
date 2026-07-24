@@ -1,12 +1,17 @@
 {
   "source_registry": "Marti marketing technology and distribution sources",
-  "updated": "2026-07-21",
+  "updated": "2026-07-24",
   "external_research_tools": [
     {
       "name": "Last30Days",
       "repo": "https://github.com/mvanhorn/last30days-skill",
       "status": "codex-installed-hermes-blocked",
-      "use_for": ["recent marketing-technology demand", "operator pain", "agentic marketing hiring signals", "source lead discovery"],
+      "use_for": [
+        "recent marketing-technology demand",
+        "operator pain",
+        "agentic marketing hiring signals",
+        "source lead discovery"
+      ],
       "publish_rule": "Discovery only. Verify against primary/public source evidence before publishing a Marti signal.",
       "notes": "Hermes install is blocked by a DANGEROUS security-scan verdict; do not claim live Hermes execution unless availability is verified."
     }
@@ -20,7 +25,13 @@
         "source_type": "blog",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["AI agent", "workflow automation", "marketing automation", "orchestration", "MCP"]
+        "watch_for": [
+          "AI agent",
+          "workflow automation",
+          "marketing automation",
+          "orchestration",
+          "MCP"
+        ]
       },
       {
         "name": "n8n Releases",
@@ -29,7 +40,13 @@
         "source_type": "github_releases",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["agent", "workflow", "AI", "integration", "automation"]
+        "watch_for": [
+          "agent",
+          "workflow",
+          "AI",
+          "integration",
+          "automation"
+        ]
       },
       {
         "name": "HubSpot Product Blog",
@@ -38,7 +55,13 @@
         "source_type": "release_notes",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["Breeze", "agent", "automation", "marketing hub", "workflow"]
+        "watch_for": [
+          "Breeze",
+          "agent",
+          "automation",
+          "marketing hub",
+          "workflow"
+        ]
       },
       {
         "name": "TikTok Agentic Marketing News Search",
@@ -47,10 +70,23 @@
         "source_type": "news_search",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["Agentic Hub", "AI agent", "MCP", "ad workflow", "campaign management", "automation"],
-        "required_terms": ["agent"],
-        "trusted_domains": ["tiktok.com"],
-        "primary_domains": ["tiktok.com"]
+        "watch_for": [
+          "Agentic Hub",
+          "AI agent",
+          "MCP",
+          "ad workflow",
+          "campaign management",
+          "automation"
+        ],
+        "required_terms": [
+          "agent"
+        ],
+        "trusted_domains": [
+          "tiktok.com"
+        ],
+        "primary_domains": [
+          "tiktok.com"
+        ]
       }
     ],
     "Paid Media / Creative Performance": [
@@ -61,7 +97,13 @@
         "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["Google Ads", "Performance Max", "creative", "measurement", "campaign"]
+        "watch_for": [
+          "Google Ads",
+          "Performance Max",
+          "creative",
+          "measurement",
+          "campaign"
+        ]
       },
       {
         "name": "Meta Ads News Search",
@@ -70,9 +112,21 @@
         "source_type": "news_search",
         "priority": "medium",
         "cadence": "daily",
-        "watch_for": ["Meta Ads", "Advantage+", "creative", "campaign", "measurement"],
-        "trusted_domains": ["facebook.com", "meta.com"],
-        "primary_domains": ["facebook.com", "meta.com"]
+        "watch_for": [
+          "Meta Ads",
+          "Advantage+",
+          "creative",
+          "campaign",
+          "measurement"
+        ],
+        "trusted_domains": [
+          "facebook.com",
+          "meta.com"
+        ],
+        "primary_domains": [
+          "facebook.com",
+          "meta.com"
+        ]
       }
     ],
     "Stack Consolidation / Displacement": [
@@ -83,7 +137,13 @@
         "source_type": "blog",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["shutdown", "migration", "replacement", "automation platform", "pricing"]
+        "watch_for": [
+          "shutdown",
+          "migration",
+          "replacement",
+          "automation platform",
+          "pricing"
+        ]
       },
       {
         "name": "PostHog Releases",
@@ -92,7 +152,13 @@
         "source_type": "github_releases",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["analytics", "product", "data", "workflow", "pricing"]
+        "watch_for": [
+          "analytics",
+          "product",
+          "data",
+          "workflow",
+          "pricing"
+        ]
       },
       {
         "name": "RudderStack Releases",
@@ -101,7 +167,13 @@
         "source_type": "github_releases",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["CDP", "warehouse", "integration", "identity", "data"]
+        "watch_for": [
+          "CDP",
+          "warehouse",
+          "integration",
+          "identity",
+          "data"
+        ]
       },
       {
         "name": "Mautic Releases",
@@ -110,7 +182,13 @@
         "source_type": "github_releases",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["marketing automation", "campaign", "email", "open source", "integration"]
+        "watch_for": [
+          "marketing automation",
+          "campaign",
+          "email",
+          "open source",
+          "integration"
+        ]
       }
     ],
     "Lifecycle / Retention": [
@@ -121,7 +199,13 @@
         "source_type": "release_notes",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["CRM", "lifecycle", "email", "segmentation", "automation"]
+        "watch_for": [
+          "CRM",
+          "lifecycle",
+          "email",
+          "segmentation",
+          "automation"
+        ]
       },
       {
         "name": "Salesforce News",
@@ -130,7 +214,13 @@
         "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["Marketing Cloud", "Agentforce", "Data Cloud", "personalization", "CRM"]
+        "watch_for": [
+          "Marketing Cloud",
+          "Agentforce",
+          "Data Cloud",
+          "personalization",
+          "CRM"
+        ]
       }
     ],
     "Measurement / Attribution": [
@@ -141,7 +231,13 @@
         "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["measurement", "attribution", "conversion", "incrementality", "analytics"]
+        "watch_for": [
+          "measurement",
+          "attribution",
+          "conversion",
+          "incrementality",
+          "analytics"
+        ]
       },
       {
         "name": "PostHog Releases",
@@ -150,7 +246,13 @@
         "source_type": "github_releases",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["analytics", "experiments", "attribution", "session replay", "data"]
+        "watch_for": [
+          "analytics",
+          "experiments",
+          "attribution",
+          "session replay",
+          "data"
+        ]
       }
     ],
     "Commerce / Conversion": [
@@ -161,9 +263,19 @@
         "source_type": "news_search",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["checkout", "conversion", "Shopify", "merchandising", "storefront"],
-        "trusted_domains": ["shopify.com"],
-        "primary_domains": ["shopify.com"]
+        "watch_for": [
+          "checkout",
+          "conversion",
+          "Shopify",
+          "merchandising",
+          "storefront"
+        ],
+        "trusted_domains": [
+          "shopify.com"
+        ],
+        "primary_domains": [
+          "shopify.com"
+        ]
       },
       {
         "name": "Google Ads and Commerce",
@@ -172,7 +284,13 @@
         "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["commerce", "shopping", "merchant", "conversion", "retail"]
+        "watch_for": [
+          "commerce",
+          "shopping",
+          "merchant",
+          "conversion",
+          "retail"
+        ]
       }
     ],
     "SEO / AEO / Content Systems": [
@@ -183,7 +301,13 @@
         "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["AI Overviews", "structured data", "search", "citation", "content"]
+        "watch_for": [
+          "AI Overviews",
+          "structured data",
+          "search",
+          "citation",
+          "content"
+        ]
       }
     ],
     "Sales / Marketing Convergence": [
@@ -194,7 +318,13 @@
         "source_type": "release_notes",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["sales hub", "marketing hub", "CRM", "agent", "pipeline"]
+        "watch_for": [
+          "sales hub",
+          "marketing hub",
+          "CRM",
+          "agent",
+          "pipeline"
+        ]
       }
     ],
     "Marketing Data / Identity": [
@@ -205,7 +335,13 @@
         "source_type": "blog",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["customer data", "identity", "CDP", "warehouse", "data governance"]
+        "watch_for": [
+          "customer data",
+          "identity",
+          "CDP",
+          "warehouse",
+          "data governance"
+        ]
       },
       {
         "name": "RudderStack Releases",
@@ -214,7 +350,113 @@
         "source_type": "github_releases",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["identity", "warehouse", "CDP", "consent", "data governance"]
+        "watch_for": [
+          "identity",
+          "warehouse",
+          "CDP",
+          "consent",
+          "data governance"
+        ]
+      }
+    ],
+    "Disclosure / Compliance / Trust": [
+      {
+        "name": "FTC Business Guidance Blog",
+        "url": "https://www.ftc.gov/business-guidance/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": [
+          "endorsement guides",
+          "deceptive AI",
+          "disclosure",
+          "substantiation",
+          "enforcement"
+        ]
+      },
+      {
+        "name": "EU AI Act deployer obligations (European Commission)",
+        "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "deployer duty",
+          "labelling",
+          "marking",
+          "ad transparency",
+          "Article 50"
+        ]
+      },
+      {
+        "name": "IAB",
+        "url": "https://www.iab.com/insights/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "ad transparency",
+          "AI standards",
+          "disclosure",
+          "brand safety",
+          "measurement"
+        ]
+      },
+      {
+        "name": "Association of National Advertisers (ANA)",
+        "url": "https://www.ana.net/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "brand compliance",
+          "AI guidelines",
+          "disclosure",
+          "industry standard",
+          "governance"
+        ]
+      },
+      {
+        "name": "BBB National Programs (NAD)",
+        "url": "https://bbbprograms.org/media-center",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "ad truth",
+          "self-regulation",
+          "AI claim",
+          "substantiation",
+          "challenge decision"
+        ]
+      },
+      {
+        "name": "TikTok Newsroom",
+        "url": "https://newsroom.tiktok.com/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "daily",
+        "watch_for": [
+          "AI content label",
+          "C2PA",
+          "disclosure policy",
+          "synthetic media",
+          "transparency"
+        ]
+      },
+      {
+        "name": "Meta Transparency Center",
+        "url": "https://transparency.meta.com/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI Info label",
+          "C2PA",
+          "ad policy",
+          "disclosure",
+          "content credential"
+        ]
       }
     ]
   },

@@ -2,14 +2,15 @@
   "source_registry": {
     "name": "GenLens creative production intelligence sources",
     "owner": "Genny",
-    "updated": "2026-07-21",
+    "updated": "2026-07-24",
     "notes": [
       "This is Genny's source of truth for external monitoring.",
       "The GenLens digest endpoint is optional and currently treated as an unhealthy upstream until TLS is fixed.",
       "Manual sources require source-backed summarization; do not infer product claims from the source name alone.",
       "Expanded-mode candidate verticals are on deck for robust briefs; daily default remains active GenLens verticals unless requested.",
       "ComfyUI is tracked through GitHub Atom feeds; fal and Figma Weave are tracked through official/manual pages plus curated news-search feeds because no reliable official RSS feed was found.",
-      "Selected first-party update indexes are tracked through bounded leaf sitemaps. Sitemap discovery stays on the publisher domain, requires a publication date, and passes the same 45-day production-signal gate as RSS."
+      "Selected first-party update indexes are tracked through bounded leaf sitemaps. Sitemap discovery stays on the publisher domain, requires a publication date, and passes the same 45-day production-signal gate as RSS.",
+      "Conformance / Provenance / Rights tracks production-side compliance (C2PA, EU AI Act Article 50, likeness and rights) as a cross-cutting stream, not a production vertical."
     ]
   },
   "external_research_tools": [
@@ -17,7 +18,12 @@
       "name": "Last30Days",
       "repo": "https://github.com/mvanhorn/last30days-skill",
       "status": "codex-installed-hermes-blocked",
-      "use_for": ["recent community demand", "creative AI workflow pain", "job and hiring-signal discovery", "source lead discovery"],
+      "use_for": [
+        "recent community demand",
+        "creative AI workflow pain",
+        "job and hiring-signal discovery",
+        "source lead discovery"
+      ],
       "publish_rule": "Discovery only. Verify against primary/public source evidence before publishing a GenLens signal.",
       "notes": "Hermes install is blocked by a DANGEROUS security-scan verdict; do not claim live Hermes execution unless availability is verified."
     }
@@ -1396,6 +1402,105 @@
           "NPC AI",
           "engine workflow",
           "real-time pipelines"
+        ]
+      }
+    ],
+    "Conformance / Provenance / Rights": [
+      {
+        "name": "C2PA (Coalition for Content Provenance and Authenticity)",
+        "url": "https://c2pa.org/",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "spec release",
+          "Content Credentials",
+          "conformance programme",
+          "trust list",
+          "provenance"
+        ]
+      },
+      {
+        "name": "Content Authenticity Initiative",
+        "url": "https://contentauthenticity.org/blog",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "Content Credentials",
+          "provenance",
+          "verify",
+          "tool adoption",
+          "manifest"
+        ]
+      },
+      {
+        "name": "EU AI Act (European Commission Digital Strategy)",
+        "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+        "rss": "",
+        "priority": "high",
+        "cadence": "weekly",
+        "watch_for": [
+          "Article 50",
+          "transparency obligation",
+          "code of practice",
+          "implementing guidance",
+          "labelling"
+        ]
+      },
+      {
+        "name": "US Copyright Office AI",
+        "url": "https://www.copyright.gov/ai/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "AI authorship",
+          "registration guidance",
+          "training data",
+          "likeness",
+          "policy report"
+        ]
+      },
+      {
+        "name": "SAG-AFTRA News",
+        "url": "https://www.sagaftra.org/news",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "digital replica",
+          "AI likeness",
+          "consent",
+          "performer rights",
+          "synthetic performer"
+        ]
+      },
+      {
+        "name": "Partnership on AI",
+        "url": "https://partnershiponai.org/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "synthetic media framework",
+          "responsible practices",
+          "disclosure",
+          "provenance"
+        ]
+      },
+      {
+        "name": "Truepic",
+        "url": "https://truepic.com/blog/",
+        "rss": "",
+        "priority": "medium",
+        "cadence": "weekly",
+        "watch_for": [
+          "provenance signing",
+          "C2PA",
+          "authenticity",
+          "camera capture",
+          "verification"
         ]
       }
     ]
