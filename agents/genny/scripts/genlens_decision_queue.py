@@ -30,9 +30,9 @@ ACTION_STATUS = {
 }
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-PROFILE_DIR = Path(os.environ.get("GENLENS_PROFILE_DIR", "/root/.hermes/profiles/genny"))
-if not PROFILE_DIR.exists():
-    PROFILE_DIR = BASE_DIR
+# Default to the checkout that owns this script. A deployed Hermes profile can
+# opt in explicitly through GENLENS_PROFILE_DIR.
+PROFILE_DIR = Path(os.environ.get("GENLENS_PROFILE_DIR", str(BASE_DIR)))
 DEFAULT_QUEUE_PATH = PROFILE_DIR / "state" / "decision_queue.json"
 DEFAULT_LEDGER_PATH = PROFILE_DIR / "state" / "signal_ledger.json"
 

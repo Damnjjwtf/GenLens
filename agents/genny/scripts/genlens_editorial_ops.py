@@ -14,9 +14,10 @@ import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-PROFILE_DIR = Path(os.environ.get("GENLENS_PROFILE_DIR", "/root/.hermes/profiles/genny"))
-if not PROFILE_DIR.exists():
-    PROFILE_DIR = BASE_DIR
+# Run against the checkout that owns this script unless a deployment explicitly
+# supplies its profile directory. This prevents local runs from silently using
+# a separately installed Hermes profile when one happens to exist on the host.
+PROFILE_DIR = Path(os.environ.get("GENLENS_PROFILE_DIR", str(BASE_DIR)))
 STATE_DIR = PROFILE_DIR / "state"
 DATA_DIR = PROFILE_DIR / "data"
 SCRIPT_DIR = PROFILE_DIR / "scripts"

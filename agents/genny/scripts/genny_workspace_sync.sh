@@ -32,7 +32,13 @@ if ! "$GIT_BIN" --version >/dev/null 2>&1; then
 fi
 
 git_cmd() {
-  "$GIT_BIN" "${GIT_OPTIONS[@]}" "$@"
+  # Bash 3 treats an empty array expansion as unset under `set -u`.
+  # Avoid expanding it unless the fallback credential option is configured.
+  if [[ ${#GIT_OPTIONS[@]} -gt 0 ]]; then
+    "$GIT_BIN" "${GIT_OPTIONS[@]}" "$@"
+  else
+    "$GIT_BIN" "$@"
+  fi
 }
 
 action="${1:-status}"

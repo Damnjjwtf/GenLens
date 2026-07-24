@@ -19,7 +19,10 @@ import genlens_promotion as promotion
 import genlens_signal_ledger as signal_ledger
 
 
-PROFILE_DIR = Path(os.environ.get("GENLENS_PROFILE_DIR", "/root/.hermes/profiles/genny"))
+BASE_DIR = Path(__file__).resolve().parents[1]
+# Default to the checkout that owns this script. A deployed Hermes profile can
+# opt in explicitly through GENLENS_PROFILE_DIR.
+PROFILE_DIR = Path(os.environ.get("GENLENS_PROFILE_DIR", str(BASE_DIR)))
 DEFAULT_LEDGER = PROFILE_DIR / "state" / "signal_ledger_marti.json"
 DEFAULT_PROMOTION_LOG = PROFILE_DIR / "state" / "lens_evaluations.json"
 DEFAULT_HISTORY = PROFILE_DIR / "state" / "discord_delivery_history.json"
