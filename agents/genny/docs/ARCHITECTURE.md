@@ -39,6 +39,10 @@ signal IDs; see `docs/DECISION_QUEUE.md`.
 Genny–Marti candidate pairs. Candidate generation and human review are separate
 from the decision queue; see `docs/CONVERGENCE.md`.
 
+`data/genlens_promotion_log.schema.json` is the versioned contract for dated
+lens evaluations and attributed accepted-card reviews; see
+`docs/PROMOTION_GOVERNANCE.md`.
+
 `data/genlens_tools_manifest.md` is the canonical tool taxonomy.
 
 `data/genlens_vertical_backlog.md` tracks verticals that are on deck but not part of default daily coverage.
@@ -65,6 +69,20 @@ Runtime ledgers live at `state/signal_ledger.json`,
 `state/signal_ledger_marti.json`, and `state/signal_ledger_unified.json`. They are
 preserved across deployment and excluded from Git.
 
+### Storage Boundary
+
+The Hermes profile is an edge runtime, not the long-term product database.
+Append-only JSON files under `state/` remain the durable local cache and audit
+trail for a single Genny deployment. The GenLens web platform uses **Neon
+Postgres** as its planned hosted system of record for users, signals, attributed
+reviews, convergence decisions, and decision actions.
+
+There is no implicit dual-write today. A future ingestion service must validate
+the same versioned schemas, preserve stable signal and event IDs, and use
+idempotency keys before copying runtime records into Postgres. Until that
+service exists, local state remains authoritative for the VPS run that produced
+it and must never be discarded during deployment.
+
 `scripts/genlens_decision_brief.py` reads the validated current-run ledger and
 renders evidence-bound operator recommendations into lens-specific
 `state/decision_brief*.md` artifacts. It never writes queue events or claims
@@ -81,6 +99,11 @@ decision events automatically.
 Marti records in a validated unified ledger. It creates cross-lens hypotheses
 from shared structured dimensions, maintains append-only attributed review
 events, and appends only human-verified conclusions to a unified brief.
+
+`scripts/genlens_promotion.py` records append-only issue evidence and human card
+reviews, validates idempotency and chronology, and reports Marti promotion
+status. The editorial send path fails closed when Marti evidence is absent or
+incomplete; unified delivery additionally requires Marti promotion.
 
 `scripts/genlens_send_email.py` sends visual Resend emails. It contains the GenLens briefing email template.
 

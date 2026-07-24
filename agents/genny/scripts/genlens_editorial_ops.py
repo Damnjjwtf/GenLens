@@ -160,6 +160,20 @@ def apply_unified_promotion_gate(
     return send_ready, reason
 
 
+def apply_marti_promotion_gate(
+    *,
+    lens: str,
+    send_ready: bool,
+    reason: str,
+    promotion: dict[str, object] | None,
+) -> tuple[bool, str]:
+    if lens not in {"marti", "unified"} or not send_ready:
+        return send_ready, reason
+    if not promotion or not bool(promotion.get("promoted")):
+        return False, str((promotion or {}).get("reason") or "hold: Marti promotion evidence unavailable")
+    return send_ready, reason
+
+
 def render_preflight(
     analysis: dict[str, object],
     send_ready: bool,
@@ -173,6 +187,7 @@ def render_preflight(
     decision_brief_path: Path | None = None,
     convergence_path: Path | None = None,
     convergence_brief_path: Path | None = None,
+    promotion_status: dict[str, object] | None = None,
 ) -> str:
     lines = [
         "# GenLens Editorial Preflight",
@@ -189,6 +204,12 @@ def render_preflight(
     ]
     if "verified_convergence_count" in analysis:
         lines.append(f"- Human-verified convergence: {analysis.get('verified_convergence_count')}/{MIN_VERIFIED_CONVERGENCE}")
+    if promotion_status is not None:
+        lines.extend([
+            f"- Marti promotion ready: {bool(promotion_status.get('promoted'))}",
+            f"- Marti clean dated run streak: {promotion_status.get('clean_dated_run_streak', 0)}/{promotion_status.get('required_clean_runs', 3)}",
+            f"- Marti reviewed card occurrences: {promotion_status.get('reviewed_card_occurrences', 0)}/{promotion_status.get('review_target', 20)}",
+        ])
     lines.extend(["", "## Verticals", ""])
     for vertical in analysis["verticals"]:
         lines.append(f"- {vertical}")
@@ -245,9 +266,15 @@ def main() -> int:
     parser.add_argument("--force-send", action="store_true")
     parser.add_argument("--allow-repeat", action="store_true")
     parser.add_argument("--allow-unified-delivery", action="store_true")
+    parser.add_argument("--record-evaluation", action="store_true")
+    parser.add_argument("--evaluation-log", default="")
+    parser.add_argument("--evaluation-idempotency-key", default="")
     parser.add_argument("--to", default=os.environ.get("GENLENS_EMAIL_TO", "jj@damnjj.wtf"))
     parser.add_argument("--subject", default="GenLens updated intelligence briefing")
     args = parser.parse_args()
+
+    if args.record_evaluation and not args.evaluation_idempotency_key.strip():
+        parser.error("--record-evaluation requires --evaluation-idempotency-key")
 
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -264,6 +291,7 @@ def main() -> int:
     convergence_path = STATE_DIR / "convergence_candidates.json" if args.lens == "unified" else None
     convergence_brief_path = STATE_DIR / "convergence_brief.md" if args.lens == "unified" else None
     tool_candidates_path = DATA_DIR / f"tool_candidates{suffix}.json"
+    promotion_log_path = Path(args.evaluation_log) if args.evaluation_log else STATE_DIR / "lens_evaluations.json"
     min_cards = args.min_cards if args.min_cards is not None else {"genny": 12, "marti": 6, "unified": 12}[args.lens]
     min_verticals = args.min_verticals if args.min_verticals is not None else {"genny": 5, "marti": 3, "unified": 6}[args.lens]
 
@@ -316,6 +344,41 @@ def main() -> int:
     analysis["exact_repeat"] = exact_repeat
     send_ready = linked_cards >= min_cards and signal_vertical_count >= min_verticals and duplicate_count == 0
     reason = "passed editorial gate" if send_ready else f"needs curation: linked_cards={linked_cards}/{min_cards}, signal_verticals={signal_vertical_count}/{min_verticals}, duplicate_titles={duplicate_count}"
+    if send_ready and not args.allow_repeat and not args.force_send:
+        if exact_repeat:
+            send_ready = False
+            reason = "hold: exact URL set was already sent recently"
+        elif new_link_count < args.min_new_links:
+            send_ready = False
+            reason = f"hold: only {new_link_count}/{args.min_new_links} new links versus recent sent briefings"
+    promotion_record: dict[str, object] | None = None
+    if args.record_evaluation:
+        promotion_cmd = [
+            "python3", str(SCRIPT_DIR / "genlens_promotion.py"), "record-run",
+            "--log", str(promotion_log_path),
+            "--ledger", str(signal_ledger_path),
+            "--brief", str(brief_path),
+            "--idempotency-key", args.evaluation_idempotency_key,
+            "--min-cards", str(min_cards),
+            "--min-verticals", str(min_verticals),
+            "--new-link-count", str(new_link_count),
+        ]
+        if exact_repeat:
+            promotion_cmd.append("--exact-repeat")
+        promotion_record = json.loads(run(promotion_cmd).stdout)
+    promotion_status: dict[str, object] | None = None
+    if args.lens in {"marti", "unified"}:
+        promotion_status = json.loads(run([
+            "python3", str(SCRIPT_DIR / "genlens_promotion.py"), "status",
+            "--log", str(promotion_log_path),
+            "--lens", "marti",
+        ]).stdout)
+        send_ready, reason = apply_marti_promotion_gate(
+            lens=args.lens,
+            send_ready=send_ready,
+            reason=reason,
+            promotion=promotion_status,
+        )
     verified_convergence_count = int((convergence_payload or {}).get("verified_count", 0))
     analysis["verified_convergence_count"] = verified_convergence_count
     send_ready, reason = apply_unified_promotion_gate(
@@ -325,13 +388,6 @@ def main() -> int:
         verified_count=verified_convergence_count,
         allow_unified_delivery=args.allow_unified_delivery,
     )
-    if send_ready and not args.allow_repeat and not args.force_send:
-        if exact_repeat:
-            send_ready = False
-            reason = "hold: exact URL set was already sent recently"
-        elif new_link_count < args.min_new_links:
-            send_ready = False
-            reason = f"hold: only {new_link_count}/{args.min_new_links} new links versus recent sent briefings"
     preflight_path.write_text(render_preflight(
         analysis=analysis,
         send_ready=send_ready,
@@ -345,6 +401,7 @@ def main() -> int:
         decision_brief_path=decision_brief_path,
         convergence_path=convergence_path,
         convergence_brief_path=convergence_brief_path,
+        promotion_status=promotion_status,
     ))
 
     result: dict[str, object] = {
@@ -358,6 +415,12 @@ def main() -> int:
         "analysis": analysis,
         "repeat": repeat,
     }
+    if promotion_status is not None or promotion_record is not None:
+        result["promotion"] = {
+            "log": str(promotion_log_path),
+            "record": promotion_record,
+            "status": promotion_status,
+        }
     if convergence_path is not None and convergence_brief_path is not None:
         result["convergence"] = {
             "artifact": str(convergence_path),

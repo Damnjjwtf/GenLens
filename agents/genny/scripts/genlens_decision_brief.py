@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import collections
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,12 @@ ACTION_ORDER = {
     "plan": 6,
     "watch": 7,
 }
+
+MEASURED_IMPACT_PATTERN = re.compile(
+    r"(?=.*\b(?:roi|roas|cac|cpm|conversion|retention|revenue|cost|time|hours?|days?|lift|increase|decrease|reduction|savings?)\b)"
+    r"(?=.*(?:\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|x|hours?|days?|weeks?|months?)\b))",
+    re.I,
+)
 
 
 def load_ledger(path: Path) -> dict[str, Any]:
@@ -61,6 +68,77 @@ def evidence_link(record: dict[str, Any]) -> str:
     published_at = str(evidence.get("published_at") or "")
     label = f"{source}, {published_at}" if published_at else source
     return f"[{label}]({url})" if url else label
+
+
+def operator_next_step(record: dict[str, Any]) -> str:
+    action = str(record.get("recommended_action") or "watch")
+    vertical = str(next(iter(record.get("verticals", [])), "the affected workflow"))
+    if action == "migrate":
+        return (
+            "Inventory affected workflows, owners, exports, integrations, and the shutdown deadline; "
+            "then run a recovery and feature-parity check against replacement options."
+        )
+    if action == "budget":
+        return (
+            "Model the change against current volume, markets, margins, and contract terms; compare present "
+            "and proposed total cost before changing a budget."
+        )
+    if action == "brief":
+        return (
+            "Map the change to active campaigns, assets, and review controls; confirm rollout scope and assign "
+            "an owner to update the operating checklist."
+        )
+    if action == "test":
+        if vertical == "Agentic Marketing Workflows":
+            return (
+                "Run one least-privilege sandbox workflow with human approval on every external action; measure "
+                "operator time, task accuracy, error recovery, and approval escapes."
+            )
+        if vertical == "Paid Media / Creative Performance":
+            return (
+                "Choose one representative campaign, freeze its baseline, and test the new control with capped "
+                "spend while measuring reach, frequency, cost, and operator effort."
+            )
+        if vertical == "Lifecycle / Retention":
+            return (
+                "Test one non-production segmentation or identity task on a representative sample; verify "
+                "accuracy, auditability, permissions, and reversibility."
+            )
+        if vertical == "SEO / AEO / Content Systems":
+            return (
+                "Enable the capability on one bounded property and compare reporting coverage, latency, and "
+                "decision usefulness with the existing baseline."
+            )
+        return (
+            f"Run one bounded {vertical} workflow against a recorded baseline; measure quality, time, cost, "
+            "permissions, and reversibility."
+        )
+    return (
+        "Set a follow-up trigger—general availability, applicable pricing, independent operator evidence, or a "
+        "second authoritative source—and assign a review date."
+    )
+
+
+def decision_condition(record: dict[str, Any]) -> str:
+    action = str(record.get("recommended_action") or "watch")
+    if action == "migrate":
+        return "Approve a cutover only after export recovery, critical integration parity, security review, owner, and rollback plan are verified."
+    if action == "budget":
+        return "Change budget only when the terms apply to the account and the modeled economics clear an owner-defined threshold."
+    if action == "brief":
+        return "Change operating guidance only after the effective date, affected inventory, and required control are confirmed."
+    if action == "test":
+        return "Adopt only if a predefined metric improves without breaching cost, quality, permission, or reversibility guardrails."
+    return "Take no implementation action until the named follow-up trigger occurs."
+
+
+def evidence_boundary(record: dict[str, Any]) -> str:
+    text = f"{record.get('title') or ''} {record.get('summary') or ''}"
+    if MEASURED_IMPACT_PATTERN.search(text):
+        return "The source includes a measured outcome; verify its denominator, time window, cohort, and applicability before using it as a forecast."
+    if record.get("confidence") == "primary-source":
+        return "The primary source verifies the change, not local ROI, cost, or performance impact; quantify those in the bounded next step."
+    return "This is single-source evidence; corroborate the change and quantify local impact before any irreversible action."
 
 
 def render_decision_brief(payload: dict[str, Any], limit: int = 12) -> str:
@@ -121,6 +199,9 @@ def render_decision_brief(payload: dict[str, Any], limit: int = 12) -> str:
             f"- Mechanism: {record.get('mechanism') or 'Not yet established'}",
             f"- Operator use case: {record.get('use_case') or 'Not yet established'}",
             f"- Expected impact: {record.get('impact') or 'Not yet established'}",
+            f"- Operator next step: {operator_next_step(record)}",
+            f"- Decision condition: {decision_condition(record)}",
+            f"- Evidence boundary: {evidence_boundary(record)}",
             f"- Confidence: `{record.get('confidence')}`",
             f"- Evidence: {evidence_link(record)}",
             f"- Confirmation needed: a named user must explicitly choose `{action}` (or another supported action) with an attribution note.",

@@ -1,5 +1,6 @@
 {
   "source_registry": "Marti marketing technology and distribution sources",
+  "updated": "2026-07-21",
   "verticals": {
     "Agentic Marketing Workflows": [
       {
@@ -28,6 +29,18 @@
         "priority": "high",
         "cadence": "daily",
         "watch_for": ["Breeze", "agent", "automation", "marketing hub", "workflow"]
+      },
+      {
+        "name": "TikTok Agentic Marketing News Search",
+        "url": "https://ads.tiktok.com/business/en/blog",
+        "rss": "https://news.google.com/rss/search?q=site%3Aads.tiktok.com%2Fbusiness+TikTok+ads+creative+campaign+agent&hl=en-US&gl=US&ceid=US%3Aen",
+        "source_type": "news_search",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["Agentic Hub", "AI agent", "MCP", "ad workflow", "campaign management", "automation"],
+        "required_terms": ["agent"],
+        "trusted_domains": ["tiktok.com"],
+        "primary_domains": ["tiktok.com"]
       }
     ],
     "Paid Media / Creative Performance": [
@@ -47,16 +60,9 @@
         "source_type": "news_search",
         "priority": "medium",
         "cadence": "daily",
-        "watch_for": ["Meta Ads", "Advantage+", "creative", "campaign", "measurement"]
-      },
-      {
-        "name": "TikTok Ads News Search",
-        "url": "https://ads.tiktok.com/business/en/blog",
-        "rss": "https://news.google.com/rss/search?q=site%3Aads.tiktok.com%2Fbusiness+TikTok+ads+creative+campaign&hl=en-US&gl=US&ceid=US%3Aen",
-        "source_type": "news_search",
-        "priority": "medium",
-        "cadence": "daily",
-        "watch_for": ["TikTok Ads", "creative", "campaign", "automation", "measurement"]
+        "watch_for": ["Meta Ads", "Advantage+", "creative", "campaign", "measurement"],
+        "trusted_domains": ["facebook.com", "meta.com"],
+        "primary_domains": ["facebook.com", "meta.com"]
       }
     ],
     "Stack Consolidation / Displacement": [
@@ -112,7 +118,7 @@
         "url": "https://www.salesforce.com/news/",
         "rss": "https://www.salesforce.com/news/feed/",
         "source_type": "official_updates",
-        "priority": "medium",
+        "priority": "high",
         "cadence": "daily",
         "watch_for": ["Marketing Cloud", "Agentforce", "Data Cloud", "personalization", "CRM"]
       }
@@ -145,7 +151,9 @@
         "source_type": "news_search",
         "priority": "high",
         "cadence": "daily",
-        "watch_for": ["checkout", "conversion", "Shopify", "merchandising", "storefront"]
+        "watch_for": ["checkout", "conversion", "Shopify", "merchandising", "storefront"],
+        "trusted_domains": ["shopify.com"],
+        "primary_domains": ["shopify.com"]
       },
       {
         "name": "Google Ads and Commerce",
@@ -162,7 +170,7 @@
         "name": "Google Search Central",
         "url": "https://developers.google.com/search/blog",
         "rss": "https://feeds.feedburner.com/blogspot/amDG",
-        "source_type": "news",
+        "source_type": "official_updates",
         "priority": "high",
         "cadence": "daily",
         "watch_for": ["AI Overviews", "structured data", "search", "citation", "content"]

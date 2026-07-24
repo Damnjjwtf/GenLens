@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://genlens.app/schemas/promotion-log-1.0.0.json",
+  "title": "GenLens Lens Promotion Evidence Log",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["log_version", "generated_at", "runs", "reviews"],
+  "properties": {
+    "log_version": {"const": "1.0.0"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "runs": {"type": "array", "items": {"$ref": "#/$defs/run"}},
+    "reviews": {"type": "array", "items": {"$ref": "#/$defs/review"}}
+  },
+  "$defs": {
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "idempotency_key", "lens", "evaluation_date", "recorded_at",
+        "ledger_observed_at", "brief_fingerprint", "url_fingerprint",
+        "signal_ids", "linked_cards", "signal_vertical_count",
+        "duplicate_titles", "primary_or_authoritative_cards",
+        "source_authority_ratio", "exact_repeat", "new_link_count",
+        "min_cards", "min_verticals", "min_authority_ratio",
+        "issue_gate_passed", "recorded_by"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^evalrun_[a-f0-9]{20}$"},
+        "idempotency_key": {"type": "string", "minLength": 1},
+        "lens": {"enum": ["genny", "marti", "unified"]},
+        "evaluation_date": {"type": "string", "format": "date"},
+        "recorded_at": {"type": "string", "format": "date-time"},
+        "ledger_observed_at": {"type": "string", "format": "date-time"},
+        "brief_fingerprint": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "url_fingerprint": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "signal_ids": {"type": "array", "items": {"type": "string", "pattern": "^sig_[a-f0-9]{20}$"}},
+        "linked_cards": {"type": "integer", "minimum": 0},
+        "signal_vertical_count": {"type": "integer", "minimum": 0},
+        "duplicate_titles": {"type": "integer", "minimum": 0},
+        "primary_or_authoritative_cards": {"type": "integer", "minimum": 0},
+        "source_authority_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "exact_repeat": {"type": "boolean"},
+        "new_link_count": {"type": "integer", "minimum": 0},
+        "min_cards": {"type": "integer", "minimum": 1},
+        "min_verticals": {"type": "integer", "minimum": 1},
+        "min_authority_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "issue_gate_passed": {"type": "boolean"},
+        "recorded_by": {"type": "string", "minLength": 1}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "idempotency_key", "run_id", "signal_id", "verdict",
+        "issue_type", "actor_id", "channel", "note", "occurred_at"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^evalrev_[a-f0-9]{20}$"},
+        "idempotency_key": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "pattern": "^evalrun_[a-f0-9]{20}$"},
+        "signal_id": {"type": "string", "pattern": "^sig_[a-f0-9]{20}$"},
+        "verdict": {"enum": ["accepted", "false_positive"]},
+        "issue_type": {"oneOf": [{"enum": ["layer", "relevance", "source", "evidence", "duplicate", "other"]}, {"type": "null"}]},
+        "actor_id": {"type": "string", "minLength": 1},
+        "channel": {"enum": ["cli", "discord", "email", "web", "api", "other"]},
+        "note": {"type": "string", "minLength": 1},
+        "occurred_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

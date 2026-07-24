@@ -22,6 +22,10 @@ For the canonical product hierarchy, positioning, north-star metric, and
 milestones, see [`docs/GENLENS_NORTH_STAR.md`](docs/GENLENS_NORTH_STAR.md).
 For Marti's current evidence and promotion gate, see
 [`docs/MARTI_MVP_EVALUATION.md`](docs/MARTI_MVP_EVALUATION.md).
+For the enforced run-history and accepted-card review gate, see
+[`docs/PROMOTION_GOVERNANCE.md`](docs/PROMOTION_GOVERNANCE.md).
+For the dedicated promotion-gated Marti Discord channel, see
+[`docs/MARTI_DISCORD_FEED.md`](docs/MARTI_DISCORD_FEED.md).
 For Genny's production-specific admission, publisher-trust, and live evaluation
 evidence, see [`docs/GENNY_QUALITY_GATE.md`](docs/GENNY_QUALITY_GATE.md).
 For stable signal IDs, accepted/rejected review history, and runtime artifacts,
@@ -188,6 +192,10 @@ Required for email:
 
 - `RESEND_API_KEY`
 - `GENLENS_EMAIL_FROM`
+
+Optional for the dedicated Marti Discord feed:
+
+- `MARTI_DISCORD_WEBHOOK_URL`
 
 Optional for Hermes/OpenRouter:
 

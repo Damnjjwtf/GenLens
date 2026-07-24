@@ -27,6 +27,34 @@ class MartiPipelineTests(unittest.TestCase):
         data = composer.load_sources("marti")
         self.assertEqual(set(composer.MARTI_ACTIVE_LAYERS), set(data["verticals"]) & set(composer.MARTI_ACTIVE_LAYERS))
 
+    def test_every_marti_news_search_has_an_explicit_trust_boundary(self) -> None:
+        data = composer.load_sources("marti")
+        sources = [
+            source
+            for layer_sources in data["verticals"].values()
+            for source in layer_sources
+            if source.get("source_type") == "news_search"
+        ]
+
+        self.assertGreater(len(sources), 0)
+        for source in sources:
+            with self.subTest(source=source["name"]):
+                self.assertGreater(len(source.get("trusted_domains", [])), 0)
+                self.assertGreater(len(source.get("primary_domains", [])), 0)
+                self.assertTrue(set(source["primary_domains"]) <= set(source["trusted_domains"]))
+
+    def test_agentic_marketing_has_a_bounded_first_party_discovery_source(self) -> None:
+        data = composer.load_sources("marti")
+        sources = data["verticals"]["Agentic Marketing Workflows"]
+        tiktok = next(source for source in sources if source["name"] == "TikTok Agentic Marketing News Search")
+
+        self.assertEqual(tiktok["required_terms"], ["agent"])
+        self.assertEqual(tiktok["primary_domains"], ["tiktok.com"])
+        self.assertNotIn(
+            "TikTok Ads News Search",
+            {source["name"] for source in data["verticals"]["Paid Media / Creative Performance"]},
+        )
+
     def test_recent_window_rejects_old_items(self) -> None:
         today = dt.datetime.now(dt.timezone.utc).date()
         self.assertTrue(composer.likely_recent("Current release", today.isoformat()))
@@ -71,6 +99,37 @@ class MartiPipelineTests(unittest.TestCase):
         self.assertEqual(held_for_evidence, (False, "hold: human-verified convergence=2/3"))
         self.assertEqual(held_for_approval, (False, "hold: unified delivery requires explicit promotion approval"))
         self.assertEqual(promoted, (True, "passed editorial gate"))
+
+    def test_marti_and_unified_delivery_require_independent_marti_promotion(self) -> None:
+        held = editorial_ops.apply_marti_promotion_gate(
+            lens="marti",
+            send_ready=True,
+            reason="passed editorial gate",
+            promotion={"promoted": False, "reason": "hold: Marti clean dated run streak=1/3"},
+        )
+        unified_held = editorial_ops.apply_marti_promotion_gate(
+            lens="unified",
+            send_ready=True,
+            reason="passed editorial gate",
+            promotion=None,
+        )
+        ready = editorial_ops.apply_marti_promotion_gate(
+            lens="marti",
+            send_ready=True,
+            reason="passed editorial gate",
+            promotion={"promoted": True, "reason": "passed Marti promotion gate"},
+        )
+        genny_unchanged = editorial_ops.apply_marti_promotion_gate(
+            lens="genny",
+            send_ready=True,
+            reason="passed editorial gate",
+            promotion=None,
+        )
+
+        self.assertEqual(held, (False, "hold: Marti clean dated run streak=1/3"))
+        self.assertEqual(unified_held, (False, "hold: Marti promotion evidence unavailable"))
+        self.assertEqual(ready, (True, "passed editorial gate"))
+        self.assertEqual(genny_unchanged, (True, "passed editorial gate"))
 
     def test_housekeeping_does_not_become_marti_card(self) -> None:
         markdown = """# Marti Briefing
@@ -213,6 +272,60 @@ class MartiPipelineTests(unittest.TestCase):
         )
         self.assertFalse(rejected[0])
         self.assertIn("false-positive", rejected[2])
+
+    def test_static_guide_is_not_a_stack_displacement_change(self) -> None:
+        rejected = composer.quality_review(
+            "Stack Consolidation / Displacement",
+            {
+                "name": "Zapier Blog",
+                "source_type": "blog",
+                "priority": "high",
+                "watch_for": ["open source", "replacement", "stack"],
+            },
+            "Web scraping: A comprehensive guide",
+            "This overview introduces open source scraping libraries and common workflow patterns.",
+            "https://zapier.com/blog/web-scraping",
+            dt.datetime.now(dt.timezone.utc).date().isoformat(),
+        )
+
+        self.assertFalse(rejected[0])
+        self.assertEqual(rejected[2], "generic/how-to/category title")
+
+    def test_capabilities_and_limitations_comparison_is_not_a_change(self) -> None:
+        rejected = composer.quality_review(
+            "Stack Consolidation / Displacement",
+            {
+                "name": "Zapier Blog",
+                "source_type": "blog",
+                "priority": "high",
+                "watch_for": ["integration", "replacement", "stack"],
+            },
+            "MuleSoft integrations: Capabilities and limitations",
+            "API-based AI integrations through Salesforce's broader AI stack; typically developer-led.",
+            "https://zapier.com/blog/mulesoft-integrations",
+            dt.datetime.now(dt.timezone.utc).date().isoformat(),
+        )
+
+        self.assertFalse(rejected[0])
+        self.assertEqual(rejected[2], "generic/how-to/category title")
+
+    def test_official_can_now_change_is_not_underweighted(self) -> None:
+        accepted = composer.quality_review(
+            "Lifecycle / Retention",
+            {
+                "name": "Salesforce News",
+                "url": "https://www.salesforce.com/news/",
+                "source_type": "official_updates",
+                "priority": "medium",
+                "watch_for": ["segmentation", "identity", "CRM"],
+            },
+            "Slackbot Can Now Do Anything Salesforce Can. Just Ask.",
+            "Slackbot can now update segmentation logic and verify identity data directly in a CRM conversation.",
+            "https://www.salesforce.com/news/linked-content/slackbot-can-now-do-anything-salesforce-can-just-ask/",
+            dt.datetime.now(dt.timezone.utc).date().isoformat(),
+        )
+
+        self.assertTrue(accepted[0], accepted[2])
 
     def test_static_identity_explainer_is_not_a_marti_change_signal(self) -> None:
         accepted, _score, reason = composer.quality_review(
