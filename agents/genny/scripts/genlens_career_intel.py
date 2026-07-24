@@ -215,6 +215,15 @@ def is_google_news_url(url: str) -> bool:
     return "news.google." in parsed.netloc
 
 
+def verified_ssl_context() -> ssl.SSLContext:
+    """Use an explicit or packaged CA bundle without disabling TLS checks."""
+    explicit_bundle = os.environ.get("GENLENS_CA_BUNDLE", "").strip()
+    if explicit_bundle:
+        return ssl.create_default_context(cafile=explicit_bundle)
+    import certifi
+    return ssl.create_default_context(cafile=certifi.where())
+
+
 def resolved_google_news_url(url: str, publisher_url: str = "") -> str:
     parsed = urllib.parse.urlparse(url)
     if not is_google_news_url(url):
@@ -231,7 +240,7 @@ def resolved_google_news_url(url: str, publisher_url: str = "") -> str:
 
 def fetch_rss(url: str, limit: int) -> list[dict[str, str]]:
     req = urllib.request.Request(url, headers={"User-Agent": "GenLensCareerIntel/1.0"})
-    ctx = ssl.create_default_context()
+    ctx = verified_ssl_context()
     with urllib.request.urlopen(req, timeout=18, context=ctx) as response:
         body = response.read(1_500_000)
     root = ET.fromstring(body)
@@ -260,7 +269,7 @@ def fetch_rss(url: str, limit: int) -> list[dict[str, str]]:
 
 def fetch_html(url: str) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": "GenLensCareerIntel/1.0"})
-    ctx = ssl.create_default_context()
+    ctx = verified_ssl_context()
     with urllib.request.urlopen(req, timeout=HTML_FETCH_TIMEOUT_SECONDS, context=ctx) as response:
         return response.read(1_500_000).decode("utf-8", errors="replace")
 

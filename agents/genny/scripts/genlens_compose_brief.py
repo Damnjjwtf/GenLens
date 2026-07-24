@@ -25,16 +25,13 @@ from typing import Any
 import genlens_signal_ledger as signal_ledger
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-SOURCE_PATH = Path(os.environ.get("GENLENS_SOURCE_PATH", "/root/.hermes/profiles/genny/data/genny_sources.json"))
-if not SOURCE_PATH.exists():
-    SOURCE_PATH = BASE_DIR / "data" / "genny_sources.json"
-MARTI_SOURCE_PATH = Path(os.environ.get("MARTI_SOURCE_PATH", "/root/.hermes/profiles/genny/data/marti_sources.json"))
-if not MARTI_SOURCE_PATH.exists():
-    MARTI_SOURCE_PATH = BASE_DIR / "data" / "marti_sources.json"
-OUT_PATH = Path(os.environ.get("GENLENS_BRIEF_OUT", "/root/.hermes/profiles/genny/state/latest_brief.md"))
-ROLE_SIGNALS_PATH = Path(os.environ.get("GENLENS_ROLE_SIGNALS_PATH", "/root/.hermes/profiles/genny/data/role_signals.json"))
-if not ROLE_SIGNALS_PATH.exists():
-    ROLE_SIGNALS_PATH = BASE_DIR / "data" / "role_signals.json"
+# Use the source registry that ships with this checkout unless a deployment
+# explicitly points at a live profile. A mounted VPS profile must not override
+# local development runs merely because it happens to exist on the host.
+SOURCE_PATH = Path(os.environ.get("GENLENS_SOURCE_PATH", str(BASE_DIR / "data" / "genny_sources.json")))
+MARTI_SOURCE_PATH = Path(os.environ.get("MARTI_SOURCE_PATH", str(BASE_DIR / "data" / "marti_sources.json")))
+OUT_PATH = Path(os.environ.get("GENLENS_BRIEF_OUT", str(BASE_DIR / "state" / "latest_brief.md")))
+ROLE_SIGNALS_PATH = Path(os.environ.get("GENLENS_ROLE_SIGNALS_PATH", str(BASE_DIR / "data" / "role_signals.json")))
 
 PHASE_1_VERTICALS = [
     "Product Photography",
