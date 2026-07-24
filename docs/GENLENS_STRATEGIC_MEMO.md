@@ -85,12 +85,12 @@ Beyond human-to-human live sessions, the axes worth keeping open:
 | Axis | Description | Note |
 |---|---|---|
 | **Async multiplayer** | Sessions as durable resumable objects, not chat threads | Most valuable for a solo operator — solves "I'm the only person in the room" |
-| **Cross-client** | One instance, N brands; pattern shared, inputs private | Mirrors VibeCopywriter's corpus-first logic: learn craft, not voice |
+| **Cross-client** | One instance, N brands; pattern shared, inputs private | Corpus-first logic: learn the craft/pattern, not any one brand's voice |
 | **Agent-to-agent** | Genny and Marti disagree; human arbitrates rather than operates | Cheapest to prototype, most differentiated |
 | **Subject-in-session** | Client watches the born asset get born, steers live | Kills the revision cycle. Highest commercial value in Vertical One |
 | **Spectator** | Sessions public by default; work itself is the content | Restructures the newsletter as byproduct, not product |
-| **Forking** | Branch someone's session, run a different direction | Are.na / git model. Fits "sexy via concept, not polish" better than live cursors |
-| **Adversarial** | A seat whose job is to attack the output | Instinct already present in llm-council and the Halloween Story red-teaming work |
+| **Forking** | Branch someone's session, run a different direction | Git-style branch/fork model. Fits "sexy via concept, not polish" better than live cursors |
+| **Adversarial** | A seat whose job is to attack the output | Adversarial-review instinct; cheap to prototype, most differentiated |
 
 ### 1.4 The Kate thread — demand signal from outside
 
@@ -123,11 +123,11 @@ It's that **the operator model scales when the agents are shared.**
 The chain that followed:
 
 1. Genny's forecasts are claims with resolution dates → claims are inherently multiplayer
-   (people stake positions and get proven right or wrong). This is fandom.market's
-   belief-pricing engine wearing a career-tools costume.
+   (people stake positions and get proven right or wrong). Underneath, that is a
+   belief-pricing mechanic wearing a career-tools costume.
 2. **Nomenclature is the cheapest multiplayer wedge.** JJ coined CIE. Kate's real question
    is "what do I call the thing I should become." Naming is low-stakes, high-participation,
-   and whoever holds the canonical list becomes infrastructure. Gizmo-to-Gremlin.
+   and whoever holds the canonical list becomes infrastructure.
 3. Certification closes the loop: forecast a role → community argues name and skill stack →
    someone builds the assessment → job board hires against it.
 
@@ -388,39 +388,30 @@ that made it multiplayer. Worth sitting with.
 
 ---
 
-## 5. Adjacent-system collisions to resolve
+## 5. GenLens-internal design tensions to resolve
 
-### 5.1 GIGSAW
+Two structural questions surfaced. Both are GenLens-internal; any collisions with
+separate efforts are handled outside this document.
 
-GIGSAW reads job descriptions as **lagging indicators** (Intelligence Arbitrage). Genny's
-proposed career radar forecasts **leading indicators**. These are the same engine pointed in
-opposite directions.
+### 5.1 Career radar: leading vs lagging indicators
 
-There may be one system being built twice. The multiplayer framing argues for merging:
-GIGSAW is single-player job search; GenLens-with-forecasts is the multiplayer labor market.
+Reading job descriptions that already exist is a **lagging** indicator. Genny's proposed
+career radar forecasts **leading** indicators — roles before the postings appear. Same
+engine, opposite directions. Decide whether GenLens does one, the other, or both under one
+model. **Unresolved. Flagged for a dedicated session.**
 
-**Unresolved. Flagged for a dedicated session.**
+### 5.2 Forecasts as a belief-pricing mechanic
 
-### 5.2 fandom.market
+Genny's forecasts are claims with resolution dates. Claims people stake positions on and get
+proven right or wrong about are a belief-pricing mechanic in career-tools clothing. Low
+near-term priority; do not let it shape the near-term schema. Noted for orientation only.
 
-Genny's forecasts are claims with resolution dates. Claims that people stake positions on and
-get proven right or wrong about are a belief-pricing mechanic — fandom.market's core, in
-career-tools clothing.
+### 5.3 Shared agent sessions as the primary UX
 
-The wedge logic is identical to the booked Gizmo-to-Gremlin framing: *"You start where the
-stakes are low and the behavior is fun… That's the wedge. But the underlying infrastructure
-you're building is a belief pricing engine."*
-
-**Note:** fandom.market is JJ's long-term north star and is deliberately not telegraphed to
-external contacts. Handle accordingly in anything client- or community-facing.
-
-### 5.3 JELI
-
-JELI is multi-agent, multi-human, live narrative co-creation. GenLens-as-shared-session is
-multi-agent, multi-human, live commercial production. **Same thesis: shared agent sessions
-where handoff between participants is the primary UX.**
-
-Open question: is GenLens a separate build, or the commercial vertical that funds JELI?
+GenLens-as-shared-session is multi-agent, multi-human, live commercial production, where the
+**handoff between participants is the primary UX** rather than a single operator's console.
+This is the same shape as North Star A and is captured by the Phase 1 door-open guardrail;
+no separate build is implied here.
 
 ---
 
@@ -432,14 +423,14 @@ Open question: is GenLens a separate build, or the commercial vertical that fund
 2. What does the actual GenLens PRD say about session/asset data model? This memo is written
    from conversation, not source.
 3. Is Adobe extending Creative Cloud content credentials into conformance reporting?
-4. Is GenLens a product, a portfolio piece, or lead-gen for VibeCopywriter? Different answers
-   → different sequencing.
+4. Is GenLens a standalone product, a portfolio piece, or lead-gen for another effort?
+   Different answers → different sequencing.
 
 **Important:**
 
 5. Are Vertical One prospects currently feeling Article 50 pain, or is it still abstract to them?
 6. Does GenLens have enough audience for any community mechanic yet? Subscriber count unknown.
-7. GIGSAW: merge or separate?
+7. Career radar: does GenLens forecast leading indicators, index lagging ones, or both?
 8. Is Kate a collaborator, a customer, or a friend being polite? Changes whether the thread
    is validation.
 9. Does JJ want to do compliance work? It's slow and political.

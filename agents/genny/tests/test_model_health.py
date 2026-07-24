@@ -215,6 +215,40 @@ class RedactionAndOutputTests(unittest.TestCase):
         doc = health.build_health_document(config, [], None)
         self.assertNotIn(SECRET, json.dumps(doc))
 
+    def test_reuses_provider_key_when_adapter_var_absent(self) -> None:
+        config = health.load_config(
+            {
+                "GENLENS_MODEL_PROVIDER": "anthropic",
+                "GENLENS_MODEL_BASE_URL": "https://api.anthropic.com/v1",
+                "GENLENS_MODEL_NAME": "claude-haiku-4-5",
+                "ANTHROPIC_API_KEY": SECRET,
+            }
+        )
+        self.assertEqual(config.api_key, SECRET)
+        self.assertEqual(config.api_key_source, "ANTHROPIC_API_KEY")
+        doc = health.build_health_document(config, [], None)
+        self.assertEqual(doc["api_key_source"], "ANTHROPIC_API_KEY")
+        self.assertNotIn(SECRET, json.dumps(doc))
+
+    def test_adapter_var_takes_precedence_over_provider_key(self) -> None:
+        config = health.load_config(
+            {
+                "GENLENS_MODEL_PROVIDER": "anthropic",
+                "GENLENS_MODEL_NAME": "claude-haiku-4-5",
+                "GENLENS_MODEL_API_KEY": "adapter-key",
+                "ANTHROPIC_API_KEY": "hermes-key",
+            }
+        )
+        self.assertEqual(config.api_key, "adapter-key")
+        self.assertEqual(config.api_key_source, health.ENV_API_KEY)
+
+    def test_local_provider_ignores_hosted_provider_keys(self) -> None:
+        config = health.load_config(
+            {**env(), "ANTHROPIC_API_KEY": SECRET}
+        )
+        self.assertEqual(config.api_key, "")
+        self.assertIsNone(config.api_key_source or None)
+
     def test_no_check_skips_probe_and_reports_config_only(self) -> None:
         buffer = io.StringIO()
         with redirect_stdout(buffer):

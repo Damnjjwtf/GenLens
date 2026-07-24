@@ -130,6 +130,11 @@ checklist passes or it is explicitly parked with a revisit trigger.
 - Career radar expansion, NotebookLM automation, new verticals: unchanged
   BACKLOG.md triggers.
 - Creator leaderboard: still hard-blocked by GAPS #0 (opt-out mechanism).
+- Conversational gate bypass (known limitation): a live Discord DM can sidestep
+  the batch composer's admission gate and let the model narrate unverified
+  specifics. Documented in `agents/genny/docs/GENNY_QUALITY_GATE.md`. Revisit
+  when Genny gets meaningful DM traffic; fix is to route conversational "what's
+  new" through the composer or answer only from accepted ledger cards.
 
 ## Strategic Orientation (NOT scheduled, NOT committed)
 
@@ -178,8 +183,8 @@ Any conformance product now is a **remediation** sale (brands discover exposure
 after the deadline), not a preparation sale. Different go-to-market.
 
 Still open before any B commitment: does JJ want slow/political compliance work;
-liability exposure of any verification claim (needs counsel); whether GIGSAW
-and Genny's career radar are one engine built twice.
+liability exposure of any verification claim (needs counsel); whether the career
+radar forecasts leading indicators, indexes lagging ones, or both.
 
 ## Governance
 
