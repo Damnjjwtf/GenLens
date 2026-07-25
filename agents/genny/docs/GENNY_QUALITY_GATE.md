@@ -118,3 +118,27 @@ This gate repairs admission quality; it does not prove Genny's ongoing source
 coverage target. Scheduled delivery still requires the normal preflight and
 human review. Lowering the card or vertical threshold to make a sparse issue
 pass would violate the GenLens north star.
+
+## Conversational Path Caveat (known limitation)
+
+The admission contract above governs the **batch composer**
+(`genlens_compose_brief.py`): every card it emits is source-grounded, dedup'd,
+recency-checked, and written from article excerpts, not model prose.
+
+A live Discord DM does **not** pass through that contract. When the composer
+scripts stall or the operator asks a free-form question, the model may narrate
+a briefing directly from whatever it gathered. That prose can round a vague
+signal into a confident-sounding specific (a dollar figure, a version number)
+that no ledger card would support. This is the exact failure mode the north
+star names: model output must not create a fact.
+
+Operating rules until this is closed:
+
+- Treat the composed brief artifact (`state/latest_brief.md` and the signal
+  ledger) as the source of truth, not free-form DM prose.
+- Do not cite a specific number, name, or date from a conversational reply
+  unless it resolves to a ledger card with an evidence URL.
+- Preferred fix (not yet built): route conversational "what's new" requests
+  through the composer so DM answers inherit the same gate, or have the agent
+  answer only from already-accepted ledger cards and label anything else as
+  unverified. Tracked in SPINE.md.

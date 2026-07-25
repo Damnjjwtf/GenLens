@@ -60,6 +60,13 @@ diverge into two competing sources of truth.
   (`GENLENS_INGEST_TOKEN`), never in the repo.
 - New Neon table `ledger_signals` (separate from the scraper's `signals`
   table) so verified agent records and raw scraped signals never blur.
+- **Door-open guardrail (see Strategic Orientation below):** make the
+  ingested unit a record that carries an `actor_id` and a stable, resolvable
+  record ID, not just a flat signal row. The decision queue already stamps
+  `actor_id`; carry that through ingestion. This is the one cheap decision now
+  that avoids a rewrite if GenLens later grows toward multiplayer sessions or
+  a per-asset conformance record. Do not build sessions or asset records yet;
+  only avoid a schema that hard-codes a single operator and single record type.
 
 ### Phase 2: Push script on the Genny side
 - `agents/genny/scripts/genlens_push_ledger.py`: reads the validated local
@@ -123,6 +130,72 @@ checklist passes or it is explicitly parked with a revisit trigger.
 - Career radar expansion, NotebookLM automation, new verticals: unchanged
   BACKLOG.md triggers.
 - Creator leaderboard: still hard-blocked by GAPS #0 (opt-out mechanism).
+- Conversational gate bypass (known limitation): a live Discord DM can sidestep
+  the batch composer's admission gate and let the model narrate unverified
+  specifics. Documented in `agents/genny/docs/GENNY_QUALITY_GATE.md`. Revisit
+  when Genny gets meaningful DM traffic; fix is to route conversational "what's
+  new" through the composer or answer only from accepted ledger cards.
+
+## Strategic Orientation (NOT scheduled, NOT committed)
+
+Source: `docs/GENLENS_STRATEGIC_MEMO.md` (JJ, 2026-07-24). Two north stars held
+as orientation only. Nothing here is on the NOW/NEXT list; this section exists
+so architectural decisions keep two doors open, per that memo's own framing.
+
+**North Star A: multiplayer growth axis.** Do not hard-code a single operator.
+Test: would adding a second participant require a data-model change? If no,
+ship and stop. Do NOT build presence, cursors, or live collaboration. Already
+satisfied in code: `actor_id` on decision-queue actions; lenses as separate
+role-registries (Genny/Marti/unified), not modes; the convergence engine
+(`genlens_convergence.py`) already models agent-to-agent disagreement with a
+human arbitrating. Gap: state is signal-scoped, not session-scoped — addressed
+by the Phase 1 door-open guardrail above, not by building sessions now.
+
+**North Star B: conformance layer for gen-AI production (the "Vanta" pattern).**
+Grow into the operational conformance layer on top of C2PA + EU AI Act Art. 50 +
+FTC ad-truth, not a rival standard. The unowned wedge is **claim
+substantiation**: C2PA proves an image was generated but cannot prove it
+accurately depicts the product — FTC territory, sitting exactly on Vertical One
+(product photography).
+
+Competitive scan (2026-07-24, re-verify before acting):
+- **Category is open.** "Vanta" is security/GRC (SOC2/ISO), ~$300M ARR, not in
+  content provenance. No incumbent occupies operational conformance on top of
+  C2PA for creative assets.
+- **Adobe has a confirmed structural gap.** Adobe CAI writes Content Credentials
+  at authorship but provides no immutable log or public verification API — a
+  named compliance gap regulators flag when it's used alone. Adobe occupies
+  authorship, not audit/reporting. Mirrors AICPA-writes-SOC2 / Vanta-reports.
+- **Gap 1 is genuinely unowned.** FTC ad-truth applies now (Section 5;
+  Endorsement Guides updated 03/2026); platforms are bolting on disclosure
+  (Etsy 01/2026, Amazon A+ metadata). What exists is generation-side tooling and
+  law-firm explainers, not a tool that verifies an AI product image depicts the
+  real product.
+
+Authority ladder (must be earned in order or it reads as a solo operator
+LARPing a standards body): glossary → forecasts with a public track record →
+conformance tooling → certification. **Role Radar (NEXT item 5) is rung two** —
+public, dated, resolvable forecasts are how the authority for later rungs gets
+earned. This is why Role Radar is load-bearing, not a detour.
+
+Conformance is a **cross-cutting dimension, not a vertical** — production
+domains are verticals; regulation is a constraint on all of them. Elevated
+Dimension 6 (Legal & Ethical) into first-class tracked streams, split by object
+per the two-audit-surface model: Genny's `Conformance / Provenance / Rights`
+group (production-side: C2PA, likeness, claim substantiation) and Marti's
+`Disclosure / Compliance / Trust` group (distribution-side: FTC ad-truth,
+platform disclosure, deployer obligations). This is the intelligence-first step
+toward North Star B (be the best *source* on conformance before building any
+conformance *tooling*); it adds sources only, no product surface, no schema
+change, no liability. Done 2026-07-24 in the source registries.
+
+Timing note: EU AI Act Art. 50 deployer obligations are in force 2026-08-02.
+Any conformance product now is a **remediation** sale (brands discover exposure
+after the deadline), not a preparation sale. Different go-to-market.
+
+Still open before any B commitment: does JJ want slow/political compliance work;
+liability exposure of any verification claim (needs counsel); whether the career
+radar forecasts leading indicators, indexes lagging ones, or both.
 
 ## Governance
 

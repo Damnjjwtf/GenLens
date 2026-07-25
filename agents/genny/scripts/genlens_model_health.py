@@ -37,6 +37,17 @@ DEFAULT_PROVIDER = "ollama"
 DEFAULT_BASE_URL = "http://127.0.0.1:11434/v1"
 DEFAULT_TIMEOUT_SECONDS = 15.0
 
+# When GENLENS_MODEL_API_KEY is unset, fall back to the standard provider env
+# var that Hermes already loads from the profile .env. Avoids storing a second
+# copy of the same secret just to run the health check.
+PROVIDER_KEY_ENV = {
+    "anthropic": "ANTHROPIC_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "gemini": "GEMINI_API_KEY",
+    "google": "GEMINI_API_KEY",
+}
+
 LOCAL_PROVIDERS = {"ollama", "vllm", "local"}
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
@@ -51,6 +62,7 @@ class ModelConfig:
     timeout_seconds: float
     fallback_provider: str
     api_key: str
+    api_key_source: str
     errors: list[str]
 
 
@@ -61,7 +73,17 @@ def load_config(env: Mapping[str, str]) -> ModelConfig:
     base_url = env.get(ENV_BASE_URL, DEFAULT_BASE_URL).strip().rstrip("/")
     model = env.get(ENV_MODEL, "").strip()
     fallback = env.get(ENV_FALLBACK, "none").strip().lower() or "none"
+
+    # Prefer the adapter's own key var; otherwise reuse the provider key Hermes
+    # already stores in the profile .env, so the secret lives in exactly one place.
     api_key = env.get(ENV_API_KEY, "").strip()
+    api_key_source = ENV_API_KEY if api_key else ""
+    if not api_key:
+        fallback_var = PROVIDER_KEY_ENV.get(provider, "")
+        if fallback_var:
+            api_key = env.get(fallback_var, "").strip()
+            if api_key:
+                api_key_source = fallback_var
 
     if not model:
         errors.append(f"{ENV_MODEL} is not set; the runtime has no model configured")
@@ -88,6 +110,7 @@ def load_config(env: Mapping[str, str]) -> ModelConfig:
         timeout_seconds=timeout_seconds,
         fallback_provider=fallback,
         api_key=api_key,
+        api_key_source=api_key_source,
         errors=errors,
     )
 
@@ -246,6 +269,7 @@ def build_health_document(
         "timeout_seconds": config.timeout_seconds,
         "fallback_provider": config.fallback_provider,
         "api_key_configured": bool(config.api_key),
+        "api_key_source": config.api_key_source or None,
         "config_errors": list(config.errors),
         "endpoint_issues": list(endpoint_issues),
         "probe": probe,
@@ -259,7 +283,8 @@ def render_text(doc: dict[str, Any]) -> str:
         f"host: {doc['base_url_host']}",
         f"model: {doc['model'] or '(not set)'}",
         f"fallback: {doc['fallback_provider']}",
-        f"api key configured: {'yes' if doc['api_key_configured'] else 'no'}",
+        f"api key configured: {'yes' if doc['api_key_configured'] else 'no'}"
+        + (f" (from {doc['api_key_source']})" if doc.get("api_key_source") else ""),
     ]
     for issue in doc["config_errors"]:
         lines.append(f"config error: {issue}")
