@@ -7,6 +7,7 @@ by vertical, and writes a briefing file that the Resend template can render.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import datetime as dt
 import email.utils
 import hashlib
@@ -227,6 +228,7 @@ MAX_PER_TOPIC_CLUSTER = int(os.environ.get("GENLENS_MAX_PER_TOPIC_CLUSTER", "1")
 RSS_FETCH_TIMEOUT = int(os.environ.get("GENLENS_RSS_FETCH_TIMEOUT", "7"))
 SITEMAP_FETCH_TIMEOUT = int(os.environ.get("GENLENS_SITEMAP_FETCH_TIMEOUT", "8"))
 MANUAL_FETCH_TIMEOUT = int(os.environ.get("GENLENS_MANUAL_FETCH_TIMEOUT", "6"))
+MAX_FEED_WORKERS = int(os.environ.get("GENLENS_MAX_FEED_WORKERS", "8"))
 GOOGLE_NEWS_BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute"
 
 MARTI_REQUIRED_PATTERNS = {
@@ -1449,6 +1451,78 @@ def fetch_manual_links(
     return out
 
 
+def fetch_feed_source(
+    source: dict[str, Any],
+    vertical: str,
+    limit: int,
+    lens: str,
+) -> tuple[list[dict[str, str]], list[dict[str, Any]], str]:
+    """Fetch one feed in isolation so slow sources cannot serialize the run."""
+    reviews: list[dict[str, Any]] = []
+    try:
+        if source.get("rss"):
+            items = fetch_rss(source, vertical, limit, reviews=reviews, lens=lens)
+        else:
+            items = fetch_sitemap(source, vertical, limit, reviews=reviews, lens=lens)
+        return items, reviews, ""
+    except (urllib.error.URLError, ET.ParseError, TimeoutError) as exc:
+        return [], reviews, f"{source.get('name', 'Source')}: {exc}"
+    except Exception as exc:
+        return [], reviews, f"{source.get('name', 'Source')}: {exc}"
+
+
+def collect_feed_candidates(
+    vertical_rows: list[tuple[str, str]],
+    data_by_lens: dict[str, Any],
+    rss_limit: int,
+    lens: str,
+    source_budget_per_vertical: int = 0,
+    max_workers: int = MAX_FEED_WORKERS,
+) -> dict[tuple[str, str], tuple[list[dict[str, str]], list[dict[str, Any]], list[str], int]]:
+    """Collect bounded feed/sitemap work concurrently, preserving source budgets."""
+    jobs: list[tuple[tuple[str, str], dict[str, Any]]] = []
+    feed_counts: dict[tuple[str, str], int] = {}
+    priority_rank = {"high": 0, "medium": 1, "low": 2}
+    for current_lens, vertical in vertical_rows:
+        sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
+        feed_sources = sorted(
+            (source for source in sources if source.get("rss") or source.get("sitemap")),
+            key=lambda row: (
+                priority_rank.get(str(row.get("priority") or "medium"), 1),
+                str(row.get("name") or ""),
+            ),
+        )
+        if source_budget_per_vertical > 0:
+            feed_sources = feed_sources[:source_budget_per_vertical]
+        key = (current_lens, vertical)
+        feed_counts[key] = len(feed_sources)
+        jobs.extend((key, source) for source in feed_sources)
+
+    collected = {
+        key: ([], [], [], feed_counts.get(key, 0))
+        for key in {(current_lens, vertical) for current_lens, vertical in vertical_rows}
+    }
+    if not jobs:
+        return collected
+
+    worker_count = max(1, min(max_workers, len(jobs)))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
+        future_map = {
+            executor.submit(fetch_feed_source, source, key[1], rss_limit, key[0]): (key, source)
+            for key, source in jobs
+        }
+        for future in concurrent.futures.as_completed(future_map):
+            key, _source = future_map[future]
+            items, reviews, error = future.result()
+            candidates, candidate_reviews, errors, count = collected[key]
+            candidates.extend(items)
+            candidate_reviews.extend(reviews)
+            if error:
+                errors.append(error)
+            collected[key] = (candidates, candidate_reviews, errors, count)
+    return collected
+
+
 def relevance_score(vertical: str, source: dict[str, Any], title: str, summary: str) -> int:
     text = " ".join([
         title,
@@ -1573,6 +1647,8 @@ def compose(
     include_manual: bool = False,
     lens: str = "genny",
     ledger_out: Path | None = None,
+    source_budget_per_vertical: int = 0,
+    max_workers: int = MAX_FEED_WORKERS,
 ) -> str:
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
     lenses = ["genny", "marti"] if lens == "unified" else [lens]
@@ -1608,6 +1684,14 @@ def compose(
     coverage_gaps: list[str] = []
     published_cards: list[dict[str, str]] = []
     candidate_reviews: list[dict[str, Any]] = []
+    feed_results = collect_feed_candidates(
+        vertical_rows,
+        data_by_lens,
+        rss_limit,
+        lens,
+        source_budget_per_vertical=source_budget_per_vertical,
+        max_workers=max_workers,
+    )
     for current_lens, vertical in vertical_rows:
         phase = phase_for_vertical(vertical, current_lens)
         sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
@@ -1619,28 +1703,13 @@ def compose(
             for source in sources
             if not source.get("rss") and not source.get("sitemap") and is_discovery_source(source)
         ]
-        for source in feed_sources:
-            try:
-                if source.get("rss"):
-                    candidates.extend(fetch_rss(
-                        source,
-                        vertical,
-                        rss_limit,
-                        reviews=candidate_reviews,
-                        lens=current_lens,
-                    ))
-                else:
-                    candidates.extend(fetch_sitemap(
-                        source,
-                        vertical,
-                        rss_limit,
-                        reviews=candidate_reviews,
-                        lens=current_lens,
-                    ))
-            except (urllib.error.URLError, ET.ParseError, TimeoutError) as exc:
-                errors.append(f"{source.get('name', 'Source')}: {exc}")
-            except Exception as exc:
-                errors.append(f"{source.get('name', 'Source')}: {exc}")
+        fetched, fetched_reviews, fetch_errors, fetched_count = feed_results.get(
+            (current_lens, vertical),
+            ([], [], [], 0),
+        )
+        candidates.extend(fetched)
+        candidate_reviews.extend(fetched_reviews)
+        errors.extend(fetch_errors)
         picked = rank_items(candidates, candidate_reviews)
         if include_manual and len(picked) < per_vertical and manual_sources:
             priority_rank = {"high": 0, "medium": 1, "low": 2}
@@ -1703,7 +1772,8 @@ def compose(
             current_phase = phase
         lines.append(f"## {vertical}")
         lines.append("")
-        lines.append(f"_Sources checked: {len(sources)}. Candidate leads found: {len(picked)}._")
+        source_label = fetched_count if source_budget_per_vertical > 0 else len(feed_sources)
+        lines.append(f"_Sources checked: {source_label} feeds. Candidate leads found: {len(picked)}._")
         lines.append("")
         # Freshest first: dated items by date descending, undated items last so
         # unverified-age leads never crowd out confirmed-recent signals.
@@ -1841,6 +1911,8 @@ def main() -> int:
     parser.add_argument("--per-vertical", type=int, default=5)
     parser.add_argument("--rss-limit", type=int, default=12)
     parser.add_argument("--ledger-out", default="")
+    parser.add_argument("--source-budget-per-vertical", type=int, default=0)
+    parser.add_argument("--max-feed-workers", type=int, default=MAX_FEED_WORKERS)
     parser.add_argument("--include-manual", action="store_true", help="Also crawl manual blog/news pages. Slower; use for audits, not normal cron.")
     args = parser.parse_args()
     out = Path(args.out)
@@ -1853,6 +1925,8 @@ def main() -> int:
         args.include_manual,
         args.lens,
         ledger_out,
+        max(0, args.source_budget_per_vertical),
+        max(1, args.max_feed_workers),
     )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)

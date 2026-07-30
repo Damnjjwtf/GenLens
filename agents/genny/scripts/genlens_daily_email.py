@@ -16,8 +16,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = BASE_DIR / "scripts"
 STATE_DIR = BASE_DIR / "state"
-def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, check=True, text=True, capture_output=True)
+def run(cmd: list[str], timeout: float | None = None) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, check=True, text=True, capture_output=True, timeout=timeout)
 
 
 def main() -> int:
@@ -45,7 +45,7 @@ def main() -> int:
         os.environ.get("GENLENS_EMAIL_TO", "jj@damnjj.wtf"),
         "--subject",
         f"{edition} daily briefing - {today}",
-    ])
+    ], timeout=float(os.environ.get("GENLENS_DAILY_TIMEOUT", "105")))
 
     output = ops.stdout.strip()
     print(f"{edition} daily email job completed for {today}.")
@@ -64,3 +64,6 @@ if __name__ == "__main__":
         if exc.stderr:
             print(exc.stderr, file=sys.stderr)
         raise SystemExit(exc.returncode)
+    except subprocess.TimeoutExpired as exc:
+        print(f"Intelligence daily email job timed out: {' '.join(exc.cmd)}", file=sys.stderr)
+        raise SystemExit(124)

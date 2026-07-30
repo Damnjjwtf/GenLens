@@ -34,8 +34,8 @@ CONVERGENCE_REVIEWS_PATH = STATE_DIR / "convergence_reviews.json"
 MIN_VERIFIED_CONVERGENCE = 3
 
 
-def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, check=True, text=True, capture_output=True)
+def run(cmd: list[str], timeout: float | None = None) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, check=True, text=True, capture_output=True, timeout=timeout)
 
 
 def import_email_parser():
@@ -299,7 +299,7 @@ def main() -> int:
 
     if not args.fast:
         run(["python3", str(SCRIPT_DIR / "genlens_audit_sources.py"), "--lens", args.lens, "--limit", "8", "--out", str(audit_path)])
-    run([
+    compose_cmd = [
         "python3", str(SCRIPT_DIR / "genlens_compose_brief.py"),
         "--mode", args.mode,
         "--lens", args.lens,
@@ -307,12 +307,20 @@ def main() -> int:
         "--rss-limit", str(args.rss_limit),
         "--out", str(brief_path),
         "--ledger-out", str(signal_ledger_path),
-    ])
+    ]
+    compose_timeout = None
+    if args.fast:
+        compose_cmd.extend([
+            "--source-budget-per-vertical", os.environ.get("GENLENS_FAST_SOURCE_BUDGET", "4"),
+            "--max-feed-workers", os.environ.get("GENLENS_FAST_FEED_WORKERS", "8"),
+        ])
+        compose_timeout = float(os.environ.get("GENLENS_FAST_COMPOSE_TIMEOUT", "75"))
+    run(compose_cmd, timeout=compose_timeout)
     run([
         "python3", str(SCRIPT_DIR / "genlens_decision_brief.py"),
         "--ledger", str(signal_ledger_path),
         "--out", str(decision_brief_path),
-    ])
+    ], timeout=float(os.environ.get("GENLENS_FAST_DECISION_TIMEOUT", "15")) if args.fast else None)
     convergence_payload: dict[str, object] | None = None
     if args.lens == "unified":
         run([
@@ -461,3 +469,6 @@ if __name__ == "__main__":
         if exc.stderr:
             print(exc.stderr, file=sys.stderr)
         raise SystemExit(exc.returncode)
+    except subprocess.TimeoutExpired as exc:
+        print(f"GenLens editorial job timed out while running: {' '.join(exc.cmd)}", file=sys.stderr)
+        raise SystemExit(124)
