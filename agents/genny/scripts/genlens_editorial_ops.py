@@ -457,7 +457,10 @@ def main() -> int:
             result["resend_stdout"] = send.stdout.strip()
         record_sent(analysis, resend_result, brief_path)
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 0 if send_ready or not args.send else 2
+    # A curation hold is an expected editorial outcome, not an operational
+    # failure. Returning non-zero here makes Hermes report a healthy hold as a
+    # failed cron job and obscures the actual preflight reason.
+    return 0
 
 
 if __name__ == "__main__":
