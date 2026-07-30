@@ -213,8 +213,8 @@ TITLE_DATE_PATTERN = re.compile(
     re.I,
 )
 ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_MANUAL_ARTICLE_READS", "1"))
-RSS_ARTICLE_READS_PER_SOURCE = 4
-SITEMAP_ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_SITEMAP_ARTICLE_READS", "8"))
+RSS_ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_RSS_ARTICLE_READS", "1"))
+SITEMAP_ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_SITEMAP_ARTICLE_READS", "3"))
 MAX_MANUAL_SOURCES_PER_VERTICAL = int(os.environ.get("GENLENS_MANUAL_SOURCES_PER_VERTICAL", "2"))
 MAX_ITEM_AGE_DAYS = int(os.environ.get("GENLENS_MAX_ITEM_AGE_DAYS", "45"))
 # Outer eligibility cap (MAX_ITEM_AGE_DAYS) stays generous so still-relevant
@@ -224,6 +224,9 @@ FRESH_WINDOW_DAYS = int(os.environ.get("GENLENS_FRESH_DAYS", "7"))
 MAX_PER_SOURCE = int(os.environ.get("GENLENS_MAX_PER_SOURCE", "2"))
 MAX_PER_DOMAIN = int(os.environ.get("GENLENS_MAX_PER_DOMAIN", "2"))
 MAX_PER_TOPIC_CLUSTER = int(os.environ.get("GENLENS_MAX_PER_TOPIC_CLUSTER", "1"))
+RSS_FETCH_TIMEOUT = int(os.environ.get("GENLENS_RSS_FETCH_TIMEOUT", "7"))
+SITEMAP_FETCH_TIMEOUT = int(os.environ.get("GENLENS_SITEMAP_FETCH_TIMEOUT", "8"))
+MANUAL_FETCH_TIMEOUT = int(os.environ.get("GENLENS_MANUAL_FETCH_TIMEOUT", "6"))
 GOOGLE_NEWS_BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute"
 
 MARTI_REQUIRED_PATTERNS = {
@@ -1091,7 +1094,7 @@ def fetch_rss(
         return []
     req = urllib.request.Request(rss, headers={"User-Agent": "GennyBriefComposer/1.0"})
     ctx = verified_ssl_context()
-    with urllib.request.urlopen(req, timeout=15, context=ctx) as response:
+    with urllib.request.urlopen(req, timeout=RSS_FETCH_TIMEOUT, context=ctx) as response:
         body = response.read(1_500_000)
     root = ET.fromstring(body)
     nodes = [n for n in root.iter() if n.tag.split("}", 1)[-1].lower() in {"item", "entry"}]
@@ -1259,7 +1262,7 @@ def fetch_sitemap(
         return []
     req = urllib.request.Request(sitemap, headers={"User-Agent": "GennyBriefComposer/1.0"})
     ctx = verified_ssl_context()
-    with urllib.request.urlopen(req, timeout=20, context=ctx) as response:
+    with urllib.request.urlopen(req, timeout=SITEMAP_FETCH_TIMEOUT, context=ctx) as response:
         body = response.read(3_500_000)
     rows = parse_sitemap_rows(body, source)
     out: list[dict[str, str]] = []
@@ -1349,7 +1352,7 @@ def fetch_manual_links(
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "GennyBriefComposer/1.0"})
         ctx = verified_ssl_context()
-        with urllib.request.urlopen(req, timeout=12, context=ctx) as response:
+        with urllib.request.urlopen(req, timeout=MANUAL_FETCH_TIMEOUT, context=ctx) as response:
             ctype = response.headers.get("content-type", "")
             if "html" not in ctype:
                 return []

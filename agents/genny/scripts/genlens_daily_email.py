@@ -35,6 +35,7 @@ def main() -> int:
         args.mode,
         "--lens",
         args.lens,
+        "--fast",
         "--per-vertical",
         "5",
         "--rss-limit",

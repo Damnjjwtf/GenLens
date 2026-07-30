@@ -267,6 +267,7 @@ def main() -> int:
     parser.add_argument("--force-send", action="store_true")
     parser.add_argument("--allow-repeat", action="store_true")
     parser.add_argument("--allow-unified-delivery", action="store_true")
+    parser.add_argument("--fast", action="store_true", help="Skip deep audit/tool/career sidecars for cron-safe daily delivery.")
     parser.add_argument("--record-evaluation", action="store_true")
     parser.add_argument("--evaluation-log", default="")
     parser.add_argument("--evaluation-idempotency-key", default="")
@@ -296,7 +297,8 @@ def main() -> int:
     min_cards = args.min_cards if args.min_cards is not None else {"genny": 12, "marti": 6, "unified": 12}[args.lens]
     min_verticals = args.min_verticals if args.min_verticals is not None else {"genny": 5, "marti": 3, "unified": 6}[args.lens]
 
-    run(["python3", str(SCRIPT_DIR / "genlens_audit_sources.py"), "--lens", args.lens, "--limit", "8", "--out", str(audit_path)])
+    if not args.fast:
+        run(["python3", str(SCRIPT_DIR / "genlens_audit_sources.py"), "--lens", args.lens, "--limit", "8", "--out", str(audit_path)])
     run([
         "python3", str(SCRIPT_DIR / "genlens_compose_brief.py"),
         "--mode", args.mode,
@@ -323,13 +325,14 @@ def main() -> int:
             "--brief", str(brief_path),
         ])
         convergence_payload = json.loads(convergence_path.read_text())
-    run([
-        "python3", str(SCRIPT_DIR / "genlens_curate_tools.py"),
-        "--brief", str(brief_path),
-        "--out", str(tool_candidates_path),
-        "--markdown", str(tool_report_path),
-    ])
-    if args.lens in {"genny", "unified"}:
+    if not args.fast:
+        run([
+            "python3", str(SCRIPT_DIR / "genlens_curate_tools.py"),
+            "--brief", str(brief_path),
+            "--out", str(tool_candidates_path),
+            "--markdown", str(tool_report_path),
+        ])
+    if args.lens in {"genny", "unified"} and not args.fast:
         run(["python3", str(SCRIPT_DIR / "genlens_career_intel.py"), "--limit", "8", "--out-md", str(career_radar_path)])
         run(["python3", str(SCRIPT_DIR / "genlens_role_radar.py"), "--mode", "all", "--out", str(role_radar_path)])
 
