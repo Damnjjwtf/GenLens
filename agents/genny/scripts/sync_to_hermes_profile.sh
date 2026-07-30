@@ -4,6 +4,7 @@ set -euo pipefail
 REPO_ARCHIVE_URL="${REPO_ARCHIVE_URL:-https://github.com/Damnjjwtf/GenLens/archive/refs/heads/main.tar.gz}"
 PROFILE_DIR="${PROFILE_DIR:-/root/.hermes/profiles/genny}"
 SERVICE_NAME="${SERVICE_NAME:-hermes-gateway-genny.service}"
+PYTHON_BIN="${PYTHON_BIN:-/usr/local/lib/hermes-agent/venv/bin/python3}"
 REPO_DIR=""
 RESTART_SERVICE=1
 DRY_RUN=0
@@ -162,7 +163,10 @@ run chmod +x "$PROFILE_DIR/scripts/sync_to_hermes_profile.sh"
 
 if [[ "$DRY_RUN" -eq 0 ]]; then
   log "Checking Python syntax"
-  python3 - <<PY
+  if [[ ! -x "$PYTHON_BIN" ]]; then
+    PYTHON_BIN="$(command -v python3)"
+  fi
+  "$PYTHON_BIN" - <<PY
 from pathlib import Path
 import ast
 for path in Path("$PROFILE_DIR/scripts").glob("*.py"):
@@ -173,7 +177,7 @@ fi
 
 if [[ "$DRY_RUN" -eq 0 && -s "$PROFILE_DIR/requirements.txt" ]]; then
   log "Installing Python requirements"
-  python3 -m pip install -r "$PROFILE_DIR/requirements.txt"
+  "$PYTHON_BIN" -m pip install -r "$PROFILE_DIR/requirements.txt"
 fi
 
 if [[ "$RESTART_SERVICE" -eq 1 ]]; then
