@@ -45,7 +45,7 @@ def main() -> int:
         os.environ.get("GENLENS_EMAIL_TO", "jj@damnjj.wtf"),
         "--subject",
         f"{edition} daily briefing - {today}",
-    ], timeout=float(os.environ.get("GENLENS_DAILY_TIMEOUT", "105")))
+    ], timeout=float(os.environ.get("GENLENS_DAILY_TIMEOUT", "210")))
 
     output = ops.stdout.strip()
     print(f"{edition} daily email job completed for {today}.")
