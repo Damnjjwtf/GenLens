@@ -313,13 +313,14 @@ def main() -> int:
         # Budget of 4 starved daily yield: it scanned only 4 sources per vertical,
         # mostly feedless marquee pages, so the run held below the 12-card gate.
         # 8 gathers enough candidates to clear the gate honestly; timeouts get
-        # matching headroom so the wider scan is not truncated. The quality gate
-        # is unchanged: this raises yield, it does not lower the bar.
+        # The wider scan still has to fit Hermes' hard 120-second cron ceiling;
+        # the quality gate is unchanged and the daily wrapper retains room for
+        # decisioning and delivery after composition.
         compose_cmd.extend([
             "--source-budget-per-vertical", os.environ.get("GENLENS_FAST_SOURCE_BUDGET", "8"),
             "--max-feed-workers", os.environ.get("GENLENS_FAST_FEED_WORKERS", "8"),
         ])
-        compose_timeout = float(os.environ.get("GENLENS_FAST_COMPOSE_TIMEOUT", "150"))
+        compose_timeout = float(os.environ.get("GENLENS_FAST_COMPOSE_TIMEOUT", "75"))
     run(compose_cmd, timeout=compose_timeout)
     run([
         "python3", str(SCRIPT_DIR / "genlens_decision_brief.py"),
