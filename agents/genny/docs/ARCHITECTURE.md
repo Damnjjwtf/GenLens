@@ -105,6 +105,18 @@ reviews, validates idempotency and chronology, and reports Marti promotion
 status. The editorial send path fails closed when Marti evidence is absent or
 incomplete; unified delivery additionally requires Marti promotion.
 
+`scripts/genlens_synthesize.py` adds a grounded editorial layer on top of the
+deterministic brief. After the composer produces gated, source-backed cards, it
+asks the runtime model (Haiku by default) to write a short lead and ranked
+"Top signals" section using ONLY those cards, referenced inline as [C1], [C2].
+It is a raw-HTTP stdlib call to the Anthropic Messages API, keyed from
+`ANTHROPIC_API_KEY` (or `GENLENS_MODEL_API_KEY`). It fails open: any missing
+key, `GENLENS_SYNTHESIS=0`, network error, timeout, or refusal returns nothing
+and the deterministic brief ships unchanged as the audit artifact. The model
+may rank, connect, and rephrase verified cards; it must not introduce a fact
+not in a card. Enable on the VPS with `GENLENS_SYNTHESIS=1` in the profile
+`.env` (default on when a key is present); disable with `GENLENS_SYNTHESIS=0`.
+
 `scripts/genlens_send_email.py` sends visual Resend emails. It contains the GenLens briefing email template.
 
 `scripts/genlens_digest.py` tries the GenLens API first. If the API fails, it falls back to the local source watcher.

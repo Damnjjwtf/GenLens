@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 import genlens_signal_ledger as signal_ledger
+import genlens_synthesize as synthesize
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 # Use the source registry that ships with this checkout unless a deployment
@@ -1572,6 +1573,7 @@ def compose(
     ]
     current_phase = ""
     coverage_gaps: list[str] = []
+    published_cards: list[dict[str, str]] = []
     candidate_reviews: list[dict[str, Any]] = []
     for current_lens, vertical in vertical_rows:
         phase = phase_for_vertical(vertical, current_lens)
@@ -1666,6 +1668,13 @@ def compose(
             linked_title = f"[{title}]({url})" if url else f"**{title}**"
             source_link = f" [Source]({url})" if url else ""
             lines.append(f"- **{linked_title}** — {summary} {chip_text}{source_link}".strip())
+            published_cards.append({
+                "vertical": vertical,
+                "date": item.get("date", ""),
+                "source": item.get("source", ""),
+                "title": title,
+                "summary": item.get("summary", ""),
+            })
         if len(picked) > per_vertical:
             overflow = ", ".join(item["title"] for item in picked[per_vertical:per_vertical + 4])
             coverage_gaps.append(f"{vertical}: more leads available for review after the published set: {overflow}.")
@@ -1694,6 +1703,22 @@ def compose(
             run_lens=lens,
             mode=mode,
         )
+
+    # Grounded editorial synthesis over the published (gated) cards. Returns None
+    # on any failure, in which case the deterministic brief above ships as-is.
+    synthesized = synthesize.synthesize_brief(published_cards)
+    if synthesized:
+        section = ["## This Week", "", synthesized, "",
+                   "_Editor synthesis, grounded in the verified cards below._", ""]
+        anchor = next(
+            (i for i, line in enumerate(lines) if line == "## Briefing Standard"),
+            None,
+        )
+        if anchor is not None:
+            lines[anchor:anchor] = section
+        else:
+            lines.extend(section)
+
     return "\n".join(lines).strip() + "\n"
 
 
