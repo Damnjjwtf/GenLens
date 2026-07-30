@@ -303,7 +303,6 @@ def main() -> int:
         "--lens", args.lens,
         "--per-vertical", str(args.per_vertical),
         "--rss-limit", str(args.rss_limit),
-        "--include-manual",
         "--out", str(brief_path),
         "--ledger-out", str(signal_ledger_path),
     ])
