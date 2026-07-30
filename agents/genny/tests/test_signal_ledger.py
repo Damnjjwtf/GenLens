@@ -367,11 +367,13 @@ class SignalLedgerTests(unittest.TestCase):
 
             data = json.loads(path.read_text())
             self.assertIn("Runway launches an AI video workflow API", markdown)
-            self.assertEqual(data["latest_run"]["counts"]["published"], 1)
-            self.assertEqual(data["records"][0]["status"], "published")
-            self.assertEqual(data["records"][0]["reviews"][0]["quality_reason_code"], "publishable")
-            self.assertEqual(data["records"][0]["reviews"][0]["reason_code"], "published-in-brief")
-            self.assertEqual(markdown, without_ledger)
+        self.assertEqual(data["latest_run"]["counts"]["published"], 1)
+        self.assertEqual(data["records"][0]["status"], "published")
+        self.assertEqual(data["records"][0]["reviews"][0]["title"], "Runway launches an AI video workflow API")
+        self.assertEqual(data["records"][0]["reviews"][0]["url"], "https://example.com/blog/runway-video-api")
+        self.assertEqual(data["records"][0]["reviews"][0]["quality_reason_code"], "publishable")
+        self.assertEqual(data["records"][0]["reviews"][0]["reason_code"], "published-in-brief")
+        self.assertEqual(markdown, without_ledger)
 
     def test_preflight_preserves_career_and_signal_ledger_artifacts(self) -> None:
         markdown = editorial_ops.render_preflight(

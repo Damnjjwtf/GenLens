@@ -212,7 +212,7 @@ TITLE_DATE_PATTERN = re.compile(
     r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(20\d{2})\b",
     re.I,
 )
-ARTICLE_READS_PER_SOURCE = 1
+ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_MANUAL_ARTICLE_READS", "2"))
 RSS_ARTICLE_READS_PER_SOURCE = 4
 SITEMAP_ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_SITEMAP_ARTICLE_READS", "8"))
 MAX_ITEM_AGE_DAYS = int(os.environ.get("GENLENS_MAX_ITEM_AGE_DAYS", "45"))
@@ -600,6 +600,35 @@ def is_briefable_url(url: str) -> bool:
     return bool(BRIEFABLE_URL_PATTERNS.search(url))
 
 
+def is_source_scoped_article_url(source: dict[str, Any], url: str) -> bool:
+    """Allow configured feeds/manual pages to surface non-standard article URLs.
+
+    Several useful publishers do not put articles under `/blog/`, `/news/`, or
+    dated paths. The source registry is the trust boundary: if a candidate URL is
+    on the same publisher domain as the configured source/feed, and it is not a
+    landing/category/noise URL, it can enter the semantic quality gate.
+    """
+    if not url or SKIP_URL_PATTERNS.search(url):
+        return False
+    parsed = urllib.parse.urlparse(url)
+    path = parsed.path or "/"
+    if LANDING_PAGE_PATTERNS.search(path) or CATEGORY_URL_PATTERNS.search(path):
+        return False
+    candidate_host = source_domain(url)
+    source_hosts = {
+        source_domain(str(source.get("url") or "")),
+        source_domain(str(source.get("rss") or "")),
+        source_domain(str(source.get("sitemap") or "")),
+    }
+    source_hosts.discard("")
+    if not candidate_host or not any(
+        candidate_host == host or candidate_host.endswith(f".{host}")
+        for host in source_hosts
+    ):
+        return False
+    return bool(re.search(r"/[a-z0-9][a-z0-9/_-]{8,}", path, re.I))
+
+
 def likely_recent(title: str, date: str = "") -> bool:
     current_year = dt.datetime.now(dt.timezone.utc).year
     parsed = parsed_iso_date(date)
@@ -893,7 +922,7 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
         or is_google_news_url(str(source.get("rss") or ""))
         or "news search" in str(source.get("name") or "").lower()
     )
-    if not is_briefable_url(url) and not is_news_search:
+    if not (is_briefable_url(url) or is_source_scoped_article_url(source, url)) and not is_news_search:
         return False, 0, "rejected-url"
     text = f"{title} {summary}"
     source_context = " ".join(
@@ -1356,7 +1385,7 @@ def fetch_manual_links(
                 reason="generic/how-to/category title",
             )
             continue
-        if not is_briefable_url(href):
+        if not (is_briefable_url(href) or is_source_scoped_article_url(source, href)):
             append_candidate_review(
                 reviews,
                 lens=lens,

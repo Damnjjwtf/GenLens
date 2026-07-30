@@ -193,6 +193,26 @@ class GennyPipelineTests(unittest.TestCase):
         self.assertTrue(generative[0], generative[2])
         self.assertTrue(unity_generator[0], unity_generator[2])
 
+    def test_source_scoped_feed_urls_can_enter_quality_gate(self) -> None:
+        source = {
+            **self.official_source,
+            "name": "Adweek AI",
+            "url": "https://www.adweek.com/category/artificial-intelligence/",
+            "rss": "https://www.adweek.com/feed/",
+            "priority": "high",
+            "watch_for": ["campaign", "creative", "AI", "workflow"],
+        }
+
+        accepted, _score, reason = self.review(
+            "Advertising / Brand Content",
+            "Agency launches AI campaign creative workflow for ad variants",
+            "The new generative AI advertising workflow creates brand-safe campaign creative assets for paid media teams.",
+            source=source,
+            url="https://www.adweek.com/brand-marketing/agency-launches-ai-campaign-workflow/",
+        )
+
+        self.assertTrue(accepted, reason)
+
     def test_broad_ai_infrastructure_is_not_a_digital_human_signal(self) -> None:
         accepted, _score, reason = self.review(
             "Digital Humans",

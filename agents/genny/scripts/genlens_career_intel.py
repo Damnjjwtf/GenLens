@@ -270,8 +270,11 @@ def verified_ssl_context() -> ssl.SSLContext:
     explicit_bundle = os.environ.get("GENLENS_CA_BUNDLE", "").strip()
     if explicit_bundle:
         return ssl.create_default_context(cafile=explicit_bundle)
-    import certifi
-    return ssl.create_default_context(cafile=certifi.where())
+    try:
+        import certifi  # type: ignore[import-not-found]
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
 
 
 def resolved_google_news_url(url: str, publisher_url: str = "") -> str:
