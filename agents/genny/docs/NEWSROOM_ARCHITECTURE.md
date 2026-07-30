@@ -141,6 +141,81 @@ as the durable audit cache per `SPINE.md`; SQLite is the operational working
 set, not a replacement system of record. The web product's system of record
 remains Neon (SPINE.md).
 
+## 9. Reddit community intelligence layer
+
+Reddit is a **core input, but as community intelligence, not unquestioned
+news**. It sits inside Tier 4 (discovery) with extra structure. The value split:
+
+- Official sources tell Genny what launched.
+- Trade publications explain what changed.
+- Reddit reveals what broke, what professionals actually use, what workflows
+  are emerging, and what people are asking for.
+
+Powered by the existing Last30Days checkout, which already has Reddit RSS /
+listing discovery, subreddit targeting, relevance scoring, and comment
+enrichment (`last30days-skill/.../lib/reddit_keyless.py`). Last30Days powers the
+Reddit Scout; it is never the final editor.
+
+### Lanes
+
+1. **Targeted subreddit watchlists**, curated per vertical: AI image and
+   ComfyUI workflows; VFX, filmmaking, motion design, 3D; digital humans, voice,
+   mocap; game development and Unreal; product photography and ecommerce;
+   freelance and creative-technology careers.
+2. **Keyword discovery:** `tool + workflow`, `tool + broken`, `tool +
+   production`, `AI pipeline`, `creative technologist`, `ComfyUI + client`,
+   `AI filmmaking + commercial`, `generative artist + job`.
+3. **Comment intelligence:** the title is often weak; the signal is in the
+   comments ("I tried this on a real production", "this breaks when", "the
+   workaround is", "our studio replaced", "I was hired to").
+4. **Community trend detection:** when multiple unrelated threads discuss the
+   same tool, failure, workflow, or job title, Genny emits a `community_signal`
+   that is NOT treated as verified fact until an official or independent source
+   confirms it.
+
+### Signal types
+
+`workflow_proof`, `pain_point`, `tool_adoption`, `emerging_role`,
+`pricing_complaint`, `rights_or_policy_concern`, `rumor`, `request_for_tool`.
+Only the first five normally enter editorial review. `rumor` stays in a watch
+queue; `request_for_tool` and `pricing_complaint` feed the source/product
+feedback loop.
+
+### Feedback loop into the source system
+
+- If Reddit repeatedly discusses a tool absent from the manifest, Genny
+  proposes: add it to the watchlist, find its official changelog, find
+  independent coverage, identify the vertical, track future releases and job
+  mentions.
+- If Reddit repeatedly complains a source is stale or promotional, that source
+  loses priority automatically (feeds section 6 health scoring).
+
+### Guardrail (non-negotiable)
+
+Reddit can prove people are experiencing a workflow, pain point, or adoption
+pattern. It CANNOT independently prove a company's product claim, salary
+number, benchmark, or legal position. Those require verification against an
+official or authoritative source. Reddit's Data API terms require proper
+OAuth/access and impose usage restrictions, including possible separate
+agreements for commercial or high-volume use; the keyless RSS/listing path is
+discovery-grade, not a licensed data pipeline.
+
+### Roles (extend section 7)
+
+- **Reddit Scout:** discovers posts, subreddits, comment threads.
+- **Reddit Extractor:** saves permalink, date, subreddit, score, comments,
+  relevant excerpts.
+- **Community Clusterer:** groups repeated discussions into one trend.
+- **Source Verifier:** finds the official or trade source behind the claim.
+- **Genny Editor:** uses Reddit only when it adds workflow evidence or market
+  context, never as sole proof of a claim.
+
+Reddit refreshes every few hours into the cache (section 2); the daily email
+reads cached, already-ranked community signals, so Reddit rate limits never
+break the 8am job. `community_signal` rows live in `candidates` with
+`source_tier = 4` and a `signal_type`; unconfirmed rumors and watch-queue items
+are held, not published.
+
 ## Rollout (sequenced)
 
 1. Reclassify the registry: tag every source with a tier; remove homepage URLs

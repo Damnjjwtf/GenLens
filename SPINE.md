@@ -126,9 +126,11 @@ checklist passes or it is explicitly parked with a revisit trigger.
    four source tiers, a 3-6h refresh layer that caches verified candidates so
    the daily email reads cache instead of crawling, a verifier with negative
    memory, two-key publication, fixed per-vertical editorial slots, source
-   health scoring, and a SQLite operational store (`sources`, `source_runs`,
-   `candidates`, `signal_reviews`, `story_clusters`, `deliveries`,
-   `rejections`). Build order avoids collisions with the live compose/daily
+   health scoring, a Reddit community-intelligence layer (Tier 4 discovery with
+   `community_signal` types, comment intelligence, and a source-feedback loop;
+   proves adoption/pain, never a product/salary/legal claim), and a SQLite
+   operational store (`sources`, `source_runs`, `candidates`, `signal_reviews`,
+   `story_clusters`, `deliveries`, `rejections`). Build order avoids collisions with the live compose/daily
    path: isolated modules (store, verifier, health scorer) built standalone;
    integration and registry reclassification coordinated. Feed-URL additions
    done on the VPS where network can verify them. SQLite is the operational
