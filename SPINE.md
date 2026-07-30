@@ -121,6 +121,20 @@ checklist passes or it is explicitly parked with a revisit trigger.
    start only after Phase 3 ships. Marti's martech-displacement coverage
    joins this surface only after her promotion gate passes.
 
+**NEXT (Genny track, in flight in a parallel Codex session, coordinate)**
+6. Genny newsroom rebuild (`agents/genny/docs/NEWSROOM_ARCHITECTURE.md`):
+   four source tiers, a 3-6h refresh layer that caches verified candidates so
+   the daily email reads cache instead of crawling, a verifier with negative
+   memory, two-key publication, fixed per-vertical editorial slots, source
+   health scoring, and a SQLite operational store (`sources`, `source_runs`,
+   `candidates`, `signal_reviews`, `story_clusters`, `deliveries`,
+   `rejections`). Build order avoids collisions with the live compose/daily
+   path: isolated modules (store, verifier, health scorer) built standalone;
+   integration and registry reclassification coordinated. Feed-URL additions
+   done on the VPS where network can verify them. SQLite is the operational
+   working set; the JSON ledger stays the audit cache and Neon stays the
+   system of record.
+
 **PARKED (with revisit triggers, per the BACKLOG.md convention)**
 - Growth Agent social posting (X/LinkedIn): revisit when one delivery loop
   shows repeatable WVDA proxy evidence.
