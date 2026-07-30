@@ -212,9 +212,10 @@ TITLE_DATE_PATTERN = re.compile(
     r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(20\d{2})\b",
     re.I,
 )
-ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_MANUAL_ARTICLE_READS", "2"))
+ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_MANUAL_ARTICLE_READS", "1"))
 RSS_ARTICLE_READS_PER_SOURCE = 4
 SITEMAP_ARTICLE_READS_PER_SOURCE = int(os.environ.get("GENLENS_SITEMAP_ARTICLE_READS", "8"))
+MAX_MANUAL_SOURCES_PER_VERTICAL = int(os.environ.get("GENLENS_MANUAL_SOURCES_PER_VERTICAL", "2"))
 MAX_ITEM_AGE_DAYS = int(os.environ.get("GENLENS_MAX_ITEM_AGE_DAYS", "45"))
 # Outer eligibility cap (MAX_ITEM_AGE_DAYS) stays generous so still-relevant
 # multi-week signals (acquisitions, rulings) are not dropped. FRESH_DAYS is the
@@ -1609,7 +1610,13 @@ def compose(
         sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
         candidates: list[dict[str, str]] = []
         errors: list[str] = []
-        for source in sources:
+        feed_sources = [source for source in sources if source.get("rss") or source.get("sitemap")]
+        manual_sources = [
+            source
+            for source in sources
+            if not source.get("rss") and not source.get("sitemap") and is_discovery_source(source)
+        ]
+        for source in feed_sources:
             try:
                 if source.get("rss"):
                     candidates.extend(fetch_rss(
@@ -1619,19 +1626,11 @@ def compose(
                         reviews=candidate_reviews,
                         lens=current_lens,
                     ))
-                elif source.get("sitemap"):
+                else:
                     candidates.extend(fetch_sitemap(
                         source,
                         vertical,
                         rss_limit,
-                        reviews=candidate_reviews,
-                        lens=current_lens,
-                    ))
-                elif include_manual:
-                    candidates.extend(fetch_manual_links(
-                        source,
-                        vertical,
-                        max(2, rss_limit // 2),
                         reviews=candidate_reviews,
                         lens=current_lens,
                     ))
@@ -1640,6 +1639,28 @@ def compose(
             except Exception as exc:
                 errors.append(f"{source.get('name', 'Source')}: {exc}")
         picked = rank_items(candidates, candidate_reviews)
+        if include_manual and len(picked) < per_vertical and manual_sources:
+            priority_rank = {"high": 0, "medium": 1, "low": 2}
+            for source in sorted(
+                manual_sources,
+                key=lambda row: (
+                    priority_rank.get(str(row.get("priority") or "medium"), 1),
+                    str(row.get("name") or ""),
+                ),
+            )[:MAX_MANUAL_SOURCES_PER_VERTICAL]:
+                try:
+                    candidates.extend(fetch_manual_links(
+                        source,
+                        vertical,
+                        max(2, rss_limit // 2),
+                        reviews=candidate_reviews,
+                        lens=current_lens,
+                    ))
+                except (urllib.error.URLError, ET.ParseError, TimeoutError) as exc:
+                    errors.append(f"{source.get('name', 'Source')}: {exc}")
+                except Exception as exc:
+                    errors.append(f"{source.get('name', 'Source')}: {exc}")
+            picked = rank_items(candidates, candidate_reviews)
         for item in picked[:per_vertical]:
             signal_ledger.update_review_status(
                 candidate_reviews,
