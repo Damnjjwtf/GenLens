@@ -11,6 +11,37 @@ cp .env.example .env
 
 Fill in `.env`.
 
+## Exa Semantic Discovery
+
+Exa is an optional discovery lane for finding recent articles that configured
+RSS feeds miss. It is not an authority layer and its results do not bypass the
+GenLens quality gate. Keep the key only in the Hermes profile environment:
+
+```dotenv
+EXA_API_KEY=...
+GENLENS_EXA_ENABLED=1
+GENLENS_EXA_MODE=missing
+GENLENS_EXA_MAX_QUERIES=4
+```
+
+`missing` searches only verticals without qualified feed candidates. Use
+`all` only for a deliberate source audit because it makes one Exa request per
+selected vertical. A direct test run is:
+
+```bash
+GENLENS_EXA_ENABLED=1 \
+GENLENS_EXA_MODE=missing \
+python3 scripts/genlens_compose_brief.py \
+  --mode expanded --lens genny --per-vertical 5 --rss-limit 12 \
+  --include-exa --exa-max-queries 4 \
+  --out state/exa_test_brief.md --ledger-out state/exa_test_ledger.json
+```
+
+The test reports candidates and rejections in the ledger. Homepages, generic
+roundups, undated results, weak highlights, stale items, and Reddit results
+without corroboration remain out of the briefing. Do not paste the Exa key
+into GitHub, this repository, Discord, or chat.
+
 ## Hermes Profile Setup
 
 Create or update a Hermes profile named `genny`, then copy:

@@ -25,6 +25,7 @@ from typing import Any
 
 import genlens_signal_ledger as signal_ledger
 import genlens_synthesize as synthesize
+import genlens_exa_search as exa_search
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 # Use the source registry that ships with this checkout unless a deployment
@@ -229,6 +230,9 @@ RSS_FETCH_TIMEOUT = int(os.environ.get("GENLENS_RSS_FETCH_TIMEOUT", "7"))
 SITEMAP_FETCH_TIMEOUT = int(os.environ.get("GENLENS_SITEMAP_FETCH_TIMEOUT", "8"))
 MANUAL_FETCH_TIMEOUT = int(os.environ.get("GENLENS_MANUAL_FETCH_TIMEOUT", "6"))
 MAX_FEED_WORKERS = int(os.environ.get("GENLENS_MAX_FEED_WORKERS", "8"))
+EXA_FETCH_TIMEOUT = int(os.environ.get("GENLENS_EXA_TIMEOUT", "12"))
+EXA_RESULTS_PER_QUERY = int(os.environ.get("GENLENS_EXA_RESULTS", "6"))
+EXA_MAX_QUERIES = int(os.environ.get("GENLENS_EXA_MAX_QUERIES", "4"))
 GOOGLE_NEWS_BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute"
 
 MARTI_REQUIRED_PATTERNS = {
@@ -606,6 +610,20 @@ def is_briefable_url(url: str) -> bool:
     return bool(BRIEFABLE_URL_PATTERNS.search(url))
 
 
+def is_exa_candidate_url(url: str) -> bool:
+    """Allow Exa discovery to use unfamiliar article URL shapes safely."""
+    if not url or SKIP_URL_PATTERNS.search(url):
+        return False
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return False
+    path = parsed.path or "/"
+    if LANDING_PAGE_PATTERNS.search(path) or CATEGORY_URL_PATTERNS.search(path):
+        return False
+    segments = [segment for segment in path.strip("/").split("/") if segment]
+    return bool(segments and max(len(segment) for segment in segments) >= 8)
+
+
 def is_source_scoped_article_url(source: dict[str, Any], url: str) -> bool:
     """Allow configured feeds/manual pages to surface non-standard article URLs.
 
@@ -928,8 +946,16 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
         or is_google_news_url(str(source.get("rss") or ""))
         or "news search" in str(source.get("name") or "").lower()
     )
-    if not (is_briefable_url(url) or is_source_scoped_article_url(source, url)) and not is_news_search:
+    is_exa_search = source.get("source_type") == "exa_search"
+    if not (is_briefable_url(url) or is_source_scoped_article_url(source, url)) and not is_news_search and not (is_exa_search and is_exa_candidate_url(url)):
         return False, 0, "rejected-url"
+    if is_exa_search:
+        if not date:
+            return False, 0, "missing Exa publication date"
+        if len(strip_text(summary)) < 80:
+            return False, 0, "missing substantive Exa highlight"
+        if source_domain(url) in {"reddit.com", "old.reddit.com", "www.reddit.com"}:
+            return False, 0, "community discovery requires corroboration"
     text = f"{title} {summary}"
     source_context = " ".join(
         str(value or "")
@@ -1523,6 +1549,145 @@ def collect_feed_candidates(
     return collected
 
 
+def exa_source(vertical: str, lens: str, watch_for: list[str]) -> dict[str, Any]:
+    return {
+        "name": "Exa semantic discovery",
+        "url": "https://exa.ai/docs/reference/search",
+        "source_type": "exa_search",
+        "priority": "medium",
+        "watch_for": watch_for,
+        "lens": lens,
+        "vertical": vertical,
+    }
+
+
+def fetch_exa_source(
+    source: dict[str, Any],
+    vertical: str,
+    lens: str,
+    limit: int,
+    max_age_days: int,
+    search_type: str,
+    include_domains: list[str],
+    exclude_domains: list[str],
+) -> tuple[list[dict[str, str]], list[dict[str, Any]], str]:
+    reviews: list[dict[str, Any]] = []
+    try:
+        rows = exa_search.search(
+            exa_search.build_query(vertical, list(source.get("watch_for", [])), lens),
+            result_limit=limit,
+            max_age_days=max_age_days,
+            search_type=search_type,
+            include_domains=include_domains,
+            exclude_domains=exclude_domains,
+            timeout=EXA_FETCH_TIMEOUT,
+        )
+    except exa_search.ExaSearchError as exc:
+        return [], reviews, str(exc)
+
+    out: list[dict[str, str]] = []
+    for row in rows:
+        title = row.get("title", "")
+        summary = row.get("summary", "")
+        url = row.get("url", "")
+        date = row.get("date", "")
+        passed, score, reason = quality_review(vertical, source, title, summary, url, date)
+        review_id = append_candidate_review(
+            reviews,
+            lens=lens,
+            vertical=vertical,
+            source=source,
+            title=title,
+            summary=summary,
+            url=url,
+            date=date,
+            status="qualified" if passed else "rejected",
+            score=score,
+            reason=reason,
+            source_name=str(source.get("name") or "Exa semantic discovery"),
+        )
+        if not passed or relevance_score(vertical, source, title, summary) <= 0:
+            if passed:
+                signal_ledger.update_review_status(reviews, review_id, "rejected", "missing vertical relevance")
+            continue
+        out.append({
+            "title": title,
+            "url": url,
+            "date": date,
+            "summary": truncate_text(summary, 260),
+            "source": str(source.get("name") or "Exa semantic discovery"),
+            "priority": str(source.get("priority") or "medium"),
+            "score": str(score),
+            "review": reason,
+            "_review_id": review_id,
+        })
+        if len(out) >= min(limit, MAX_PER_SOURCE):
+            break
+    return out, reviews, ""
+
+
+def collect_exa_candidates(
+    vertical_rows: list[tuple[str, str]],
+    data_by_lens: dict[str, Any],
+    feed_results: dict[tuple[str, str], tuple[list[dict[str, str]], list[dict[str, Any]], list[str], int]],
+    lens: str,
+    mode: str = "missing",
+    max_queries: int = EXA_MAX_QUERIES,
+    max_workers: int = MAX_FEED_WORKERS,
+) -> dict[tuple[str, str], tuple[list[dict[str, str]], list[dict[str, Any]], list[str], int]]:
+    """Run a bounded semantic discovery pass, normally only for coverage gaps."""
+    keys = {(current_lens, vertical) for current_lens, vertical in vertical_rows}
+    collected = {key: ([], [], [], 0) for key in keys}
+    if not os.environ.get("EXA_API_KEY", "").strip() or max_queries <= 0:
+        return collected
+
+    jobs: list[tuple[tuple[str, str], dict[str, Any]]] = []
+    for key in vertical_rows:
+        current_lens, vertical = key
+        feed_items = feed_results.get(key, ([], [], [], 0))[0]
+        if mode != "all" and feed_items:
+            continue
+        sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
+        watch_for: list[str] = []
+        for source in sources:
+            for term in source.get("watch_for", []):
+                if str(term).strip() and str(term) not in watch_for:
+                    watch_for.append(str(term))
+        jobs.append((key, exa_source(vertical, current_lens, watch_for)))
+    jobs = jobs[:max_queries]
+    if not jobs:
+        return collected
+
+    def csv_env(name: str) -> list[str]:
+        return [value.strip() for value in os.environ.get(name, "").split(",") if value.strip()]
+
+    include_domains = csv_env("GENLENS_EXA_INCLUDE_DOMAINS")
+    exclude_domains = csv_env("GENLENS_EXA_EXCLUDE_DOMAINS")
+    search_type = os.environ.get("GENLENS_EXA_SEARCH_TYPE", "auto").strip() or "auto"
+    max_age_days = int(os.environ.get("GENLENS_EXA_MAX_AGE_DAYS", str(MAX_ITEM_AGE_DAYS)))
+    worker_count = max(1, min(max_workers, len(jobs)))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
+        future_map = {
+            executor.submit(
+                fetch_exa_source,
+                source,
+                key[1],
+                key[0],
+                EXA_RESULTS_PER_QUERY,
+                max_age_days,
+                search_type,
+                include_domains,
+                exclude_domains,
+            ): key
+            for key, source in jobs
+        }
+        for future in concurrent.futures.as_completed(future_map):
+            key = future_map[future]
+            items, reviews, error = future.result()
+            collected[key] = (items, reviews, [error] if error else [], 1)
+    return collected
+
+
 def relevance_score(vertical: str, source: dict[str, Any], title: str, summary: str) -> int:
     text = " ".join([
         title,
@@ -1649,6 +1814,9 @@ def compose(
     ledger_out: Path | None = None,
     source_budget_per_vertical: int = 0,
     max_workers: int = MAX_FEED_WORKERS,
+    include_exa: bool = False,
+    exa_mode: str = "missing",
+    exa_max_queries: int = EXA_MAX_QUERIES,
 ) -> str:
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
     lenses = ["genny", "marti"] if lens == "unified" else [lens]
@@ -1692,6 +1860,15 @@ def compose(
         source_budget_per_vertical=source_budget_per_vertical,
         max_workers=max_workers,
     )
+    exa_results = collect_exa_candidates(
+        vertical_rows,
+        data_by_lens,
+        feed_results,
+        lens,
+        mode=exa_mode,
+        max_queries=exa_max_queries,
+        max_workers=max_workers,
+    ) if include_exa else {}
     for current_lens, vertical in vertical_rows:
         phase = phase_for_vertical(vertical, current_lens)
         sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
@@ -1710,6 +1887,13 @@ def compose(
         candidates.extend(fetched)
         candidate_reviews.extend(fetched_reviews)
         errors.extend(fetch_errors)
+        exa_fetched, exa_reviews, exa_errors, exa_count = exa_results.get(
+            (current_lens, vertical),
+            ([], [], [], 0),
+        )
+        candidates.extend(exa_fetched)
+        candidate_reviews.extend(exa_reviews)
+        errors.extend(f"Exa: {error}" for error in exa_errors)
         picked = rank_items(candidates, candidate_reviews)
         if include_manual and len(picked) < per_vertical and manual_sources:
             priority_rank = {"high": 0, "medium": 1, "low": 2}
@@ -1773,7 +1957,8 @@ def compose(
         lines.append(f"## {vertical}")
         lines.append("")
         source_label = fetched_count if source_budget_per_vertical > 0 else len(feed_sources)
-        lines.append(f"_Sources checked: {source_label} feeds. Candidate leads found: {len(picked)}._")
+        exa_label = f" Exa queries: {exa_count}." if exa_count else ""
+        lines.append(f"_Sources checked: {source_label} feeds.{exa_label} Candidate leads found: {len(picked)}._")
         lines.append("")
         # Freshest first: dated items by date descending, undated items last so
         # unverified-age leads never crowd out confirmed-recent signals.
@@ -1914,6 +2099,9 @@ def main() -> int:
     parser.add_argument("--source-budget-per-vertical", type=int, default=0)
     parser.add_argument("--max-feed-workers", type=int, default=MAX_FEED_WORKERS)
     parser.add_argument("--include-manual", action="store_true", help="Also crawl manual blog/news pages. Slower; use for audits, not normal cron.")
+    parser.add_argument("--include-exa", action="store_true", help="Use Exa as a bounded semantic discovery provider; requires EXA_API_KEY.")
+    parser.add_argument("--exa-mode", choices=["missing", "all"], default=os.environ.get("GENLENS_EXA_MODE", "missing"))
+    parser.add_argument("--exa-max-queries", type=int, default=EXA_MAX_QUERIES)
     args = parser.parse_args()
     out = Path(args.out)
     suffix = "" if args.lens == "genny" else f"_{args.lens}"
@@ -1927,6 +2115,9 @@ def main() -> int:
         ledger_out,
         max(0, args.source_budget_per_vertical),
         max(1, args.max_feed_workers),
+        args.include_exa or os.environ.get("GENLENS_EXA_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"},
+        args.exa_mode,
+        max(0, min(args.exa_max_queries, 20)),
     )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)

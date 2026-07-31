@@ -308,6 +308,12 @@ def main() -> int:
         "--out", str(brief_path),
         "--ledger-out", str(signal_ledger_path),
     ]
+    if os.environ.get("GENLENS_EXA_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}:
+        compose_cmd.extend([
+            "--include-exa",
+            "--exa-mode", os.environ.get("GENLENS_EXA_MODE", "missing"),
+            "--exa-max-queries", os.environ.get("GENLENS_EXA_MAX_QUERIES", "4"),
+        ])
     compose_timeout = None
     if args.fast:
         # Budget of 4 starved daily yield: it scanned only 4 sources per vertical,
