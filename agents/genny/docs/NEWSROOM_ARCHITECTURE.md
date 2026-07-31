@@ -61,6 +61,28 @@ The 8am email must NOT crawl the internet. A separate refresh job runs every
 The daily email reads only **verified cached candidates**, so delivery is fast
 and predictable. Apify is the fallback for feedless sites, not the backbone.
 
+### Exa as the discovery + content engine (adopted 2026-07-24)
+
+Exa (exa.ai) is a neural search API that returns clean article text instead of
+raw HTML, priced pay-per-request (roughly $7 per 1,000 searches with contents
+for the first results bundled in; cheap at Genny's volume). It directly attacks
+the feedless-scraping problem: instead of scraping 58 feedless homepages, the
+refresh job asks Exa semantic queries and gets back dated, clean article
+content. Use it two ways:
+
+- **Scout / discovery:** semantic and keyword queries ("AI filmmaking release",
+  "ComfyUI production workflow", "generative artist hired") surface fresh
+  articles the registry never listed. Feeds the source-proposal loop (section 6).
+- **Harvester / content extraction:** Exa `contents` returns clean text for a
+  known URL, replacing slow HTML scraping and reducing Apify dependence to the
+  genuinely un-fetchable long tail.
+
+Key lives only in the VPS profile `.env` as `EXA_API_KEY` (or
+`GENLENS_EXA_API_KEY`), never in the repo. Exa is discovery-and-extraction
+grade: results still pass the full verifier (section 3) and the two-key rule
+(section 4) before publishing. It is a faster, cleaner intake, not a bypass of
+the gate.
+
 ## 3. Verification (the admission contract, per candidate)
 
 Every candidate must answer:
@@ -220,7 +242,8 @@ are held, not published.
 
 1. Reclassify the registry: tag every source with a tier; remove homepage URLs
    from daily intake (keep them for audit only).
-2. Add 10 to 15 high-quality RSS/Atom sources across the active verticals.
+2. Add 10 to 15 high-quality RSS/Atom sources across the active verticals, and
+   wire Exa as the discovery + content engine for the feedless long tail.
 3. Add a newsletter inbox and newsletter parser.
 4. Add Apify only for the remaining high-value feedless sources.
 5. Build the verifier queue and the negative-memory rejection store.
