@@ -1,6 +1,6 @@
 # Browser Use Integration Plan
 
-Status: design approved, implementation not yet enabled in production.
+Status: implemented as an opt-in coverage-gap worker; not enabled in production until the VPS smoke test passes.
 
 Reference checkout: `../browser-use`
 
@@ -169,18 +169,54 @@ Promote Browser Use to a regular daily fallback only after two weeks of metrics:
 - cost per accepted signal;
 - browser failure and block rate.
 
-## First Implementation Slice
+## Implemented First Slice
 
-The first code change should be small:
+`agents/genny/scripts/genlens_browser_research.py` is a standalone worker. It
+is deliberately imported only by a dedicated Browser Use interpreter and emits
+structured JSON. The composer invokes it through `collect_browser_candidates()`
+only for a vertical with no qualified RSS/sitemap or Exa candidates.
 
-1. Add the dedicated Browser Use virtual-environment setup and health check.
-2. Add a read-only `genlens_browser_research.py` wrapper.
-3. Support one public dynamic-source task with structured JSON output.
-4. Add unit tests for allowlists, timeouts, missing dates, and blocked actions.
-5. Run a manual smoke test against one official source.
+The worker currently supports `dynamic-source`, `career`, and `community` task
+types, but the scheduled fallback defaults to `dynamic-source`. Career and
+community results remain opt-in until their corroboration rules are exercised.
+Every accepted result must have a same-domain article URL, an ISO publication
+date, and an evidence excerpt of at least 80 characters. Browser results are
+then sent through the normal vertical relevance, freshness, dedupe, and ledger
+rules. A browser task can never publish directly.
 
-Only after that works should we add career and Reddit task templates, then wire
-the worker into Exa/RSS coverage gaps.
+Run the pure worker checks with:
+
+```bash
+python3 -m unittest agents/genny/tests/test_browser_research.py
+```
+
+The composer fallback is opt-in and bounded:
+
+```bash
+GENLENS_BROWSER_ENABLED=1 \
+GENLENS_BROWSER_USE_PYTHON=/root/.hermes/profiles/genny/.venv-browser-use/bin/python \
+GENLENS_BROWSER_LLM_PROVIDER=openrouter \
+GENLENS_BROWSER_LLM_MODEL=openai/gpt-4o-mini \
+GENLENS_BROWSER_MAX_TASKS=1 \
+python3 scripts/genlens_compose_brief.py \
+  --mode expanded --lens genny --include-browser \
+  --browser-max-tasks 1 --browser-max-steps 10 --browser-timeout 60 \
+  --out state/browser_test_brief.md --ledger-out state/browser_test_ledger.json
+```
+
+The Browser Use virtual environment must be separate from Hermes:
+
+```bash
+uv venv --python 3.11 /root/.hermes/profiles/genny/.venv-browser-use
+uv pip install --python /root/.hermes/profiles/genny/.venv-browser-use/bin/python \
+  /path/to/browser-use
+/root/.hermes/profiles/genny/.venv-browser-use/bin/playwright install chromium
+```
+
+The model key belongs only in the Hermes profile environment. Do not copy the
+Browser Use checkout into the profile's runtime or commit any key. The default
+scheduled path remains feed-first and Exa-second; Browser Use is the expensive,
+read-only last resort for dynamic source pages.
 
 ## Recommendation
 

@@ -16,6 +16,9 @@ import json
 import re
 import ssl
 import os
+import subprocess
+import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -233,6 +236,9 @@ MAX_FEED_WORKERS = int(os.environ.get("GENLENS_MAX_FEED_WORKERS", "8"))
 EXA_FETCH_TIMEOUT = int(os.environ.get("GENLENS_EXA_TIMEOUT", "12"))
 EXA_RESULTS_PER_QUERY = int(os.environ.get("GENLENS_EXA_RESULTS", "6"))
 EXA_MAX_QUERIES = int(os.environ.get("GENLENS_EXA_MAX_QUERIES", "4"))
+BROWSER_MAX_TASKS = int(os.environ.get("GENLENS_BROWSER_MAX_TASKS", "1"))
+BROWSER_MAX_STEPS = int(os.environ.get("GENLENS_BROWSER_MAX_STEPS", "10"))
+BROWSER_TIMEOUT = int(os.environ.get("GENLENS_BROWSER_TIMEOUT", "60"))
 GOOGLE_NEWS_BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute"
 
 MARTI_REQUIRED_PATTERNS = {
@@ -947,13 +953,14 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
         or "news search" in str(source.get("name") or "").lower()
     )
     is_exa_search = source.get("source_type") == "exa_search"
+    is_browser_search = source.get("source_type") == "browser_search"
     if not (is_briefable_url(url) or is_source_scoped_article_url(source, url)) and not is_news_search and not (is_exa_search and is_exa_candidate_url(url)):
         return False, 0, "rejected-url"
-    if is_exa_search:
+    if is_exa_search or is_browser_search:
         if not date:
-            return False, 0, "missing Exa publication date"
+            return False, 0, "missing discovery publication date"
         if len(strip_text(summary)) < 80:
-            return False, 0, "missing substantive Exa highlight"
+            return False, 0, "missing substantive discovery evidence"
         if source_domain(url) in {"reddit.com", "old.reddit.com", "www.reddit.com"}:
             return False, 0, "community discovery requires corroboration"
     text = f"{title} {summary}"
@@ -1688,6 +1695,178 @@ def collect_exa_candidates(
     return collected
 
 
+def browser_source(source: dict[str, Any], vertical: str, lens: str, task_type: str) -> dict[str, Any]:
+    """Create a ledger-visible source record for one isolated browser task."""
+    return {
+        "name": f"Browser Use: {source.get('name') or 'public source'}",
+        "url": str(source.get("url") or ""),
+        "source_type": "browser_search",
+        "priority": str(source.get("priority") or "medium"),
+        "watch_for": list(source.get("watch_for") or []),
+        "lens": lens,
+        "vertical": vertical,
+        "task_type": task_type,
+        "primary_domains": list(source.get("primary_domains") or []),
+    }
+
+
+def fetch_browser_source(
+    source: dict[str, Any],
+    vertical: str,
+    lens: str,
+    limit: int,
+    task_type: str,
+    max_steps: int,
+    timeout: int,
+) -> tuple[list[dict[str, str]], list[dict[str, Any]], str]:
+    """Run one read-only Browser Use task in its dedicated interpreter."""
+    reviews: list[dict[str, Any]] = []
+    browser_script = Path(os.environ.get("GENLENS_BROWSER_SCRIPT", str(Path(__file__).with_name("genlens_browser_research.py"))))
+    browser_python = Path(os.environ.get("GENLENS_BROWSER_USE_PYTHON", str(Path(sys.executable))))
+    source_record = browser_source(source, vertical, lens, task_type)
+    fd, output_name = tempfile.mkstemp(prefix="genlens-browser-", suffix=".json")
+    os.close(fd)
+    command = [
+        str(browser_python), str(browser_script),
+        "--url", str(source.get("url") or ""),
+        "--vertical", vertical,
+        "--lens", lens,
+        "--task-type", task_type,
+        "--limit", str(max(1, min(limit, 3))),
+        "--max-steps", str(max(1, min(max_steps, 20))),
+        "--out", output_name,
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            text=True,
+            capture_output=True,
+            timeout=max(10, timeout),
+            env=os.environ.copy(),
+        )
+        payload: dict[str, Any] = {}
+        try:
+            payload = json.loads(Path(output_name).read_text())
+        except (OSError, json.JSONDecodeError):
+            payload = {}
+        if not payload:
+            detail = (completed.stderr or completed.stdout or "no worker output").strip().replace("\n", " ")
+            return [], reviews, f"Browser Use: {detail[:240]}"
+        if payload.get("status") == "failed":
+            return [], reviews, f"Browser Use: {str(payload.get('reason') or 'worker failed')[:240]}"
+        out: list[dict[str, str]] = []
+        for row in payload.get("results", []):
+            if not isinstance(row, dict):
+                continue
+            title = str(row.get("title") or "").strip()
+            url = str(row.get("url") or "").strip()
+            date = str(row.get("date") or row.get("published_at") or "").strip()
+            evidence = str(row.get("summary") or row.get("evidence_excerpt") or "").strip()
+            claims = str(row.get("claims_supported") or "").strip()
+            summary = evidence if not claims else f"{evidence} {claims}"
+            passed, score, reason = quality_review(vertical, source_record, title, summary, url, date)
+            review_id = append_candidate_review(
+                reviews,
+                lens=lens,
+                vertical=vertical,
+                source=source_record,
+                title=title,
+                summary=summary,
+                url=url,
+                date=date,
+                status="qualified" if passed else "rejected",
+                score=score,
+                reason=reason,
+                source_name=str(source_record.get("name") or "Browser Use discovery"),
+            )
+            if not passed or relevance_score(vertical, source_record, title, summary) <= 0:
+                if passed:
+                    signal_ledger.update_review_status(reviews, review_id, "rejected", "missing vertical relevance")
+                continue
+            out.append({
+                "title": title,
+                "url": url,
+                "date": date,
+                "summary": truncate_text(summary, 320),
+                "source": str(source_record.get("name") or "Browser Use discovery"),
+                "priority": str(source_record.get("priority") or "medium"),
+                "score": str(score),
+                "review": reason,
+                "_review_id": review_id,
+            })
+            if len(out) >= min(limit, MAX_PER_SOURCE):
+                break
+        return out, reviews, ""
+    except subprocess.TimeoutExpired:
+        return [], reviews, f"Browser Use: timed out after {timeout}s"
+    except OSError as exc:
+        return [], reviews, f"Browser Use: could not start worker: {exc}"
+    finally:
+        try:
+            os.unlink(output_name)
+        except FileNotFoundError:
+            pass
+
+
+def collect_browser_candidates(
+    vertical_rows: list[tuple[str, str]],
+    data_by_lens: dict[str, Any],
+    feed_results: dict[tuple[str, str], tuple[list[dict[str, str]], list[dict[str, Any]], list[str], int]],
+    exa_results: dict[tuple[str, str], tuple[list[dict[str, str]], list[dict[str, Any]], list[str], int]],
+    lens: str,
+    max_tasks: int = BROWSER_MAX_TASKS,
+    task_type: str = "dynamic-source",
+    max_steps: int = BROWSER_MAX_STEPS,
+    timeout: int = BROWSER_TIMEOUT,
+) -> dict[tuple[str, str], tuple[list[dict[str, str]], list[dict[str, Any]], list[str], int]]:
+    """Use Browser Use only when feeds and Exa leave a coverage gap."""
+    keys = {(current_lens, vertical) for current_lens, vertical in vertical_rows}
+    collected = {key: ([], [], [], 0) for key in keys}
+    if max_tasks <= 0:
+        return collected
+    jobs: list[tuple[tuple[str, str], dict[str, Any]]] = []
+    priority_rank = {"high": 0, "medium": 1, "low": 2}
+    for key in vertical_rows:
+        current_lens, vertical = key
+        feed_items = feed_results.get(key, ([], [], [], 0))[0]
+        exa_items = exa_results.get(key, ([], [], [], 0))[0]
+        if feed_items or exa_items:
+            continue
+        sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
+        manual_sources = [
+            source for source in sources
+            if not source.get("rss")
+            and not source.get("sitemap")
+            and source.get("source_type") != "news_search"
+            and is_discovery_source(source)
+            and source_domain(str(source.get("url") or "")) not in {"reddit.com", "old.reddit.com"}
+        ]
+        if not manual_sources:
+            continue
+        source = sorted(
+            manual_sources,
+            key=lambda row: (
+                priority_rank.get(str(row.get("priority") or "medium"), 1),
+                str(row.get("name") or ""),
+            ),
+        )[0]
+        jobs.append((key, source))
+    jobs = jobs[:max_tasks]
+    for key, source in jobs:
+        items, reviews, error = fetch_browser_source(
+            source,
+            key[1],
+            key[0],
+            max(2, min(EXA_RESULTS_PER_QUERY, 3)),
+            task_type,
+            max_steps,
+            timeout,
+        )
+        collected[key] = (items, reviews, [error] if error else [], 1)
+    return collected
+
+
 def relevance_score(vertical: str, source: dict[str, Any], title: str, summary: str) -> int:
     text = " ".join([
         title,
@@ -1817,6 +1996,11 @@ def compose(
     include_exa: bool = False,
     exa_mode: str = "missing",
     exa_max_queries: int = EXA_MAX_QUERIES,
+    include_browser: bool = False,
+    browser_max_tasks: int = BROWSER_MAX_TASKS,
+    browser_task_type: str = "dynamic-source",
+    browser_max_steps: int = BROWSER_MAX_STEPS,
+    browser_timeout: int = BROWSER_TIMEOUT,
 ) -> str:
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
     lenses = ["genny", "marti"] if lens == "unified" else [lens]
@@ -1869,6 +2053,17 @@ def compose(
         max_queries=exa_max_queries,
         max_workers=max_workers,
     ) if include_exa else {}
+    browser_results = collect_browser_candidates(
+        vertical_rows,
+        data_by_lens,
+        feed_results,
+        exa_results,
+        lens,
+        max_tasks=browser_max_tasks,
+        task_type=browser_task_type,
+        max_steps=browser_max_steps,
+        timeout=browser_timeout,
+    ) if include_browser else {}
     for current_lens, vertical in vertical_rows:
         phase = phase_for_vertical(vertical, current_lens)
         sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
@@ -1894,6 +2089,13 @@ def compose(
         candidates.extend(exa_fetched)
         candidate_reviews.extend(exa_reviews)
         errors.extend(f"Exa: {error}" for error in exa_errors)
+        browser_fetched, browser_reviews, browser_errors, browser_count = browser_results.get(
+            (current_lens, vertical),
+            ([], [], [], 0),
+        )
+        candidates.extend(browser_fetched)
+        candidate_reviews.extend(browser_reviews)
+        errors.extend(f"Browser Use: {error}" for error in browser_errors)
         picked = rank_items(candidates, candidate_reviews)
         if include_manual and len(picked) < per_vertical and manual_sources:
             priority_rank = {"high": 0, "medium": 1, "low": 2}
@@ -1958,7 +2160,8 @@ def compose(
         lines.append("")
         source_label = fetched_count if source_budget_per_vertical > 0 else len(feed_sources)
         exa_label = f" Exa queries: {exa_count}." if exa_count else ""
-        lines.append(f"_Sources checked: {source_label} feeds.{exa_label} Candidate leads found: {len(picked)}._")
+        browser_label = f" Browser Use tasks: {browser_count}." if browser_count else ""
+        lines.append(f"_Sources checked: {source_label} feeds.{exa_label}{browser_label} Candidate leads found: {len(picked)}._")
         lines.append("")
         # Freshest first: dated items by date descending, undated items last so
         # unverified-age leads never crowd out confirmed-recent signals.
@@ -2102,6 +2305,11 @@ def main() -> int:
     parser.add_argument("--include-exa", action="store_true", help="Use Exa as a bounded semantic discovery provider; requires EXA_API_KEY.")
     parser.add_argument("--exa-mode", choices=["missing", "all"], default=os.environ.get("GENLENS_EXA_MODE", "missing"))
     parser.add_argument("--exa-max-queries", type=int, default=EXA_MAX_QUERIES)
+    parser.add_argument("--include-browser", action="store_true", help="Use the isolated Browser Use worker for bounded public-source coverage gaps.")
+    parser.add_argument("--browser-max-tasks", type=int, default=BROWSER_MAX_TASKS)
+    parser.add_argument("--browser-task-type", choices=["dynamic-source", "career", "community"], default=os.environ.get("GENLENS_BROWSER_TASK_TYPE", "dynamic-source"))
+    parser.add_argument("--browser-max-steps", type=int, default=BROWSER_MAX_STEPS)
+    parser.add_argument("--browser-timeout", type=int, default=BROWSER_TIMEOUT)
     args = parser.parse_args()
     out = Path(args.out)
     suffix = "" if args.lens == "genny" else f"_{args.lens}"
@@ -2118,6 +2326,11 @@ def main() -> int:
         args.include_exa or os.environ.get("GENLENS_EXA_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"},
         args.exa_mode,
         max(0, min(args.exa_max_queries, 20)),
+        args.include_browser or os.environ.get("GENLENS_BROWSER_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"},
+        max(0, min(args.browser_max_tasks, 10)),
+        args.browser_task_type,
+        max(1, min(args.browser_max_steps, 20)),
+        max(10, min(args.browser_timeout, 180)),
     )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)

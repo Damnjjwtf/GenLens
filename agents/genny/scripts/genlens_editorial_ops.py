@@ -314,6 +314,14 @@ def main() -> int:
             "--exa-mode", os.environ.get("GENLENS_EXA_MODE", "missing"),
             "--exa-max-queries", os.environ.get("GENLENS_EXA_MAX_QUERIES", "4"),
         ])
+    if os.environ.get("GENLENS_BROWSER_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}:
+        compose_cmd.extend([
+            "--include-browser",
+            "--browser-max-tasks", os.environ.get("GENLENS_BROWSER_MAX_TASKS", "1"),
+            "--browser-task-type", os.environ.get("GENLENS_BROWSER_TASK_TYPE", "dynamic-source"),
+            "--browser-max-steps", os.environ.get("GENLENS_BROWSER_MAX_STEPS", "10"),
+            "--browser-timeout", os.environ.get("GENLENS_BROWSER_TIMEOUT", "60"),
+        ])
     compose_timeout = None
     if args.fast:
         # Budget of 4 starved daily yield: it scanned only 4 sources per vertical,
