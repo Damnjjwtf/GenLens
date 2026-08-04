@@ -3,11 +3,13 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
 import genlens_browser_research as browser
+import genlens_compose_brief as composer
 
 
 class BrowserResearchTests(unittest.TestCase):
@@ -57,6 +59,53 @@ class BrowserResearchTests(unittest.TestCase):
         allowed, reason = browser.public_url_allowed("http://127.0.0.1:8000/news")
         self.assertFalse(allowed)
         self.assertIn("private", reason)
+
+    def test_collection_only_runs_for_feed_and_exa_gaps(self) -> None:
+        rows = [("genny", "AI Filmmaking"), ("genny", "Product Photography")]
+        data = {
+            "genny": {
+                "verticals": {
+                    "AI Filmmaking": [{
+                        "name": "Dynamic Film Source",
+                        "url": "https://example.com/blog",
+                        "priority": "high",
+                        "watch_for": ["video", "AI", "workflow"],
+                    }],
+                    "Product Photography": [{
+                        "name": "Dynamic Photo Source",
+                        "url": "https://example.com/blog/photos",
+                        "priority": "high",
+                        "watch_for": ["product", "AI", "workflow"],
+                    }],
+                }
+            }
+        }
+        feed = {
+            ("genny", "AI Filmmaking"): ([{"title": "existing"}], [], [], 1),
+            ("genny", "Product Photography"): ([], [], [], 1),
+        }
+        empty_exa = {
+            key: ([], [], [], 0)
+            for key in rows
+        }
+        candidate = [{
+            "title": "A browser candidate",
+            "url": "https://example.com/blog/a-specific-release",
+            "date": "2026-08-01",
+            "summary": "A dated browser result with substantive evidence.",
+            "source": "Browser Use",
+            "priority": "high",
+            "score": "6",
+            "review": "publishable",
+            "_review_id": "review-1",
+        }]
+        with patch.object(composer, "fetch_browser_source", return_value=(candidate, [], "")) as fetch:
+            collected = composer.collect_browser_candidates(
+                rows, data, feed, empty_exa, "genny", max_tasks=3,
+            )
+        self.assertEqual(fetch.call_count, 1)
+        self.assertEqual(collected[("genny", "AI Filmmaking")][0], [])
+        self.assertEqual(collected[("genny", "Product Photography")][0], candidate)
 
 
 if __name__ == "__main__":
