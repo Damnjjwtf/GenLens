@@ -232,6 +232,8 @@ async def _run(args: argparse.Namespace) -> dict[str, Any]:
     model = os.environ.get("GENLENS_BROWSER_LLM_MODEL", "openai/gpt-4o-mini").strip()
     profile = BrowserProfile(
         headless=True,
+        executable_path="/usr/bin/google-chrome-stable",
+        chromium_sandbox=False,
         allowed_domains=[hostname(args.url)],
         prohibited_domains=sorted(DISALLOWED_DOMAINS),
         block_ip_addresses=True,
@@ -240,6 +242,7 @@ async def _run(args: argparse.Namespace) -> dict[str, Any]:
         storage_state=None,
         keep_alive=False,
         use_cloud=False,
+        enable_default_extensions=False,
     )
     agent = Agent(
         task=build_task(args.url, args.vertical, args.lens, args.task_type, args.limit),
