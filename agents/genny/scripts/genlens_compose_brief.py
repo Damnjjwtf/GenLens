@@ -2095,7 +2095,10 @@ def compose(
         )
         candidates.extend(browser_fetched)
         candidate_reviews.extend(browser_reviews)
-        errors.extend(f"Browser Use: {error}" for error in browser_errors)
+        errors.extend(
+            error if str(error).startswith("Browser Use:") else f"Browser Use: {error}"
+            for error in browser_errors
+        )
         picked = rank_items(candidates, candidate_reviews)
         if include_manual and len(picked) < per_vertical and manual_sources:
             priority_rank = {"high": 0, "medium": 1, "low": 2}
