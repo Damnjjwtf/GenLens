@@ -2,15 +2,16 @@
   "source_registry": {
     "name": "GenLens creative production intelligence sources",
     "owner": "Genny",
-    "updated": "2026-07-24",
+    "updated": "2026-08-21",
     "notes": [
       "This is Genny's source of truth for external monitoring.",
       "The GenLens digest endpoint is optional and currently treated as an unhealthy upstream until TLS is fixed.",
       "Manual sources require source-backed summarization; do not infer product claims from the source name alone.",
-      "Expanded-mode candidate verticals are on deck for robust briefs; daily default remains active GenLens verticals unless requested.",
+      "Daily expanded mode monitors active, deferred, and candidate verticals; only verticals with qualified signals appear as story sections.",
       "ComfyUI is tracked through GitHub Atom feeds; fal and Figma Weave are tracked through official/manual pages plus curated news-search feeds because no reliable official RSS feed was found.",
       "Selected first-party update indexes are tracked through bounded leaf sitemaps. Sitemap discovery stays on the publisher domain, requires a publication date, and passes the same 45-day production-signal gate as RSS.",
-      "Conformance / Provenance / Rights tracks production-side compliance (C2PA, EU AI Act Article 50, likeness and rights) as a cross-cutting stream, not a production vertical."
+      "Conformance / Provenance / Rights tracks production-side compliance (C2PA, EU AI Act Article 50, likeness and rights) as a cross-cutting stream, not a production vertical.",
+      "Sources with daily_intake=false remain available for audits but are excluded from daily fetching until their feed is repaired."
     ]
   },
   "external_research_tools": [
@@ -517,6 +518,17 @@
     ],
     "Digital Humans": [
       {
+        "name": "Digital Human Production News Search",
+        "url": "https://news.google.com/search?q=%28HeyGen%20OR%20Synthesia%20OR%20ElevenLabs%20OR%20%22digital%20human%22%20OR%20%22voice%20cloning%22%29%20%28launch%20OR%20release%20OR%20workflow%20OR%20rights%29",
+        "rss": "https://news.google.com/rss/search?q=%28HeyGen%20OR%20Synthesia%20OR%20ElevenLabs%20OR%20%22digital%20human%22%20OR%20%22voice%20cloning%22%29%20%28launch%20OR%20release%20OR%20workflow%20OR%20rights%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["avatar production", "voice cloning", "dubbing", "synthetic performers"],
+        "trusted_domains": ["elevenlabs.io", "heygen.com", "synthesia.io", "techcrunch.com", "theverge.com", "venturebeat.com", "variety.com", "deadline.com", "reuters.com"],
+        "primary_domains": ["elevenlabs.io", "heygen.com", "synthesia.io"],
+        "source_type": "news_search"
+      },
+      {
         "name": "ElevenLabs Blog",
         "url": "https://elevenlabs.io/blog",
         "rss": "",
@@ -763,6 +775,32 @@
     ],
     "Cross-Vertical Watchlist": [
       {
+        "name": "The Rundown AI",
+        "url": "https://www.therundown.ai/",
+        "rss": "https://www.therundown.ai/feed",
+        "source_type": "newsletter",
+        "priority": "low",
+        "cadence": "daily",
+        "watch_for": [
+          "creative AI product launches",
+          "generative media workflows",
+          "production tool releases"
+        ]
+      },
+      {
+        "name": "The Neuron",
+        "url": "https://www.theneuron.ai/",
+        "rss": "https://www.theneuron.ai/feed/",
+        "source_type": "newsletter",
+        "priority": "low",
+        "cadence": "daily",
+        "watch_for": [
+          "creative AI product launches",
+          "generative media workflows",
+          "production tool releases"
+        ]
+      },
+      {
         "name": "Replicate Blog",
         "url": "https://replicate.com/blog",
         "rss": "https://replicate.com/blog/rss",
@@ -872,6 +910,17 @@
     ],
     "Advertising / Brand Content": [
       {
+        "name": "AI Brand Production News Search",
+        "url": "https://news.google.com/search?q=%28%22generative%20AI%22%20OR%20%22AI%20creative%22%29%20%28advertising%20OR%20campaign%20OR%20brand%20production%29",
+        "rss": "https://news.google.com/rss/search?q=%28%22generative%20AI%22%20OR%20%22AI%20creative%22%29%20%28advertising%20OR%20campaign%20OR%20brand%20production%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["campaign production", "creative automation", "brand asset workflows"],
+        "trusted_domains": ["adweek.com", "adage.com", "digiday.com", "marketingdive.com", "campaignlive.com", "canva.com", "adobe.com"],
+        "primary_domains": ["canva.com", "adobe.com"],
+        "source_type": "news_search"
+      },
+      {
         "name": "Adweek AI",
         "url": "https://www.adweek.com/category/artificial-intelligence/",
         "rss": "https://www.adweek.com/category/artificial-intelligence/feed/",
@@ -888,6 +937,7 @@
         "name": "The Drum Creative",
         "url": "https://www.thedrum.com/creative",
         "rss": "https://www.thedrum.com/rss.xml",
+        "daily_intake": false,
         "priority": "medium",
         "cadence": "daily",
         "watch_for": [
@@ -900,6 +950,7 @@
         "name": "Canva Newsroom",
         "url": "https://www.canva.com/newsroom/",
         "rss": "https://www.canva.com/newsroom/feed/",
+        "daily_intake": false,
         "priority": "medium",
         "cadence": "weekly",
         "watch_for": [
@@ -921,6 +972,17 @@
       }
     ],
     "ArchViz": [
+      {
+        "name": "AI ArchViz Production News Search",
+        "url": "https://news.google.com/search?q=%28AI%20OR%20generative%29%20%28ArchViz%20OR%20%22architectural%20visualization%22%20OR%20Enscape%20OR%20Twinmotion%29",
+        "rss": "https://news.google.com/rss/search?q=%28AI%20OR%20generative%29%20%28ArchViz%20OR%20%22architectural%20visualization%22%20OR%20Enscape%20OR%20Twinmotion%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["AI rendering", "architectural visualization", "BIM visualization"],
+        "trusted_domains": ["chaos.com", "enscape3d.com", "unrealengine.com", "archdaily.com", "dezeen.com", "aecmag.com", "cgchannel.com"],
+        "primary_domains": ["chaos.com", "enscape3d.com", "unrealengine.com"],
+        "source_type": "news_search"
+      },
       {
         "name": "Dezeen",
         "url": "https://www.dezeen.com/",
@@ -1032,6 +1094,7 @@
         "name": "Framer Blog",
         "url": "https://www.framer.com/blog/",
         "rss": "https://www.framer.com/blog/rss.xml",
+        "daily_intake": false,
         "priority": "medium",
         "cadence": "weekly",
         "watch_for": [
@@ -1059,6 +1122,7 @@
         "name": "LANDR Blog",
         "url": "https://blog.landr.com/",
         "rss": "https://blog.landr.com/feed/",
+        "daily_intake": false,
         "priority": "medium",
         "cadence": "weekly",
         "watch_for": [
@@ -1116,6 +1180,17 @@
     ],
     "Fashion / Apparel / Textile": [
       {
+        "name": "AI Fashion Production News Search",
+        "url": "https://news.google.com/search?q=%28AI%20OR%20generative%29%20%28fashion%20OR%20apparel%20OR%20%22virtual%20try-on%22%20OR%20textile%29",
+        "rss": "https://news.google.com/rss/search?q=%28AI%20OR%20generative%29%20%28fashion%20OR%20apparel%20OR%20%22virtual%20try-on%22%20OR%20textile%29%20%28launch%20OR%20release%20OR%20workflow%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["virtual try-on", "garment generation", "digital sampling", "fashion production"],
+        "trusted_domains": ["theinterline.com", "voguebusiness.com", "wwd.com", "retaildive.com", "businessoffashion.com", "clo3d.com", "adobe.com"],
+        "primary_domains": ["clo3d.com", "adobe.com"],
+        "source_type": "news_search"
+      },
+      {
         "name": "The Interline",
         "url": "https://www.theinterline.com/",
         "rss": "https://www.theinterline.com/feed/",
@@ -1152,6 +1227,17 @@
       }
     ],
     "Podcast / Long-Form Audio": [
+      {
+        "name": "AI Podcast Production News Search",
+        "url": "https://news.google.com/search?q=%28AI%20OR%20generative%29%20%28podcast%20OR%20Descript%20OR%20Riverside%20OR%20dubbing%29",
+        "rss": "https://news.google.com/rss/search?q=%28AI%20OR%20generative%29%20%28podcast%20OR%20Descript%20OR%20Riverside%20OR%20dubbing%29%20%28launch%20OR%20release%20OR%20editing%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["podcast editing", "voice repair", "dubbing", "long-form audio production"],
+        "trusted_domains": ["descript.com", "riverside.fm", "elevenlabs.io", "podnews.net", "techcrunch.com", "theverge.com"],
+        "primary_domains": ["descript.com", "riverside.fm", "elevenlabs.io"],
+        "source_type": "news_search"
+      },
       {
         "name": "Descript Blog",
         "url": "https://www.descript.com/blog",
@@ -1194,6 +1280,17 @@
       }
     ],
     "Education / E-Learning Content": [
+      {
+        "name": "AI Learning Production News Search",
+        "url": "https://news.google.com/search?q=%28AI%20OR%20generative%29%20%28%22course%20authoring%22%20OR%20e-learning%20OR%20%22training%20video%22%20OR%20Articulate%29",
+        "rss": "https://news.google.com/rss/search?q=%28AI%20OR%20generative%29%20%28%22course%20authoring%22%20OR%20e-learning%20OR%20%22training%20video%22%20OR%20Articulate%29%20%28launch%20OR%20release%20OR%20workflow%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["course authoring", "AI training content", "instructional design workflows"],
+        "trusted_domains": ["articulate.com", "elearningindustry.com", "synthesia.io", "techcrunch.com", "venturebeat.com"],
+        "primary_domains": ["articulate.com", "synthesia.io"],
+        "source_type": "news_search"
+      },
       {
         "name": "Synthesia Blog",
         "url": "https://www.synthesia.io/blog",
@@ -1337,6 +1434,17 @@
     ],
     "Game Development / Real-Time 3D": [
       {
+        "name": "Generative Game Production News Search",
+        "url": "https://news.google.com/search?q=%28%22generative%20AI%22%20OR%20%22AI%20tools%22%29%20%28%22game%20development%22%20OR%20%22game%20assets%22%20OR%20NPC%20OR%20Unreal%20OR%20Unity%29",
+        "rss": "https://news.google.com/rss/search?q=%28%22generative%20AI%22%20OR%20%22AI%20tools%22%29%20%28%22game%20development%22%20OR%20%22game%20assets%22%20OR%20NPC%20OR%20Unreal%20OR%20Unity%29%20when%3A45d&hl=en-US&gl=US&ceid=US:en",
+        "priority": "high",
+        "cadence": "daily",
+        "watch_for": ["AI game assets", "generative level design", "AI NPCs", "game production workflows"],
+        "trusted_domains": ["gamedeveloper.com", "80.lv", "unrealengine.com", "unity.com", "venturebeat.com", "theverge.com", "techcrunch.com"],
+        "primary_domains": ["unrealengine.com", "unity.com"],
+        "source_type": "news_search"
+      },
+      {
         "name": "Unreal Engine Blog",
         "url": "https://www.unrealengine.com/en-US/blog",
         "rss": "",
@@ -1354,6 +1462,7 @@
         "name": "Unity Blog",
         "url": "https://unity.com/blog",
         "rss": "https://unity.com/blog/feed",
+        "daily_intake": false,
         "priority": "medium",
         "cadence": "weekly",
         "watch_for": [

@@ -16,6 +16,7 @@ import json
 import re
 import ssl
 import os
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -29,6 +30,7 @@ from typing import Any
 import genlens_signal_ledger as signal_ledger
 import genlens_synthesize as synthesize
 import genlens_exa_search as exa_search
+import genlens_store as newsroom_store
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 # Use the source registry that ships with this checkout unless a deployment
@@ -38,6 +40,8 @@ SOURCE_PATH = Path(os.environ.get("GENLENS_SOURCE_PATH", str(BASE_DIR / "data" /
 MARTI_SOURCE_PATH = Path(os.environ.get("MARTI_SOURCE_PATH", str(BASE_DIR / "data" / "marti_sources.json")))
 OUT_PATH = Path(os.environ.get("GENLENS_BRIEF_OUT", str(BASE_DIR / "state" / "latest_brief.md")))
 ROLE_SIGNALS_PATH = Path(os.environ.get("GENLENS_ROLE_SIGNALS_PATH", str(BASE_DIR / "data" / "role_signals.json")))
+SOURCE_STORE_PATH = Path(os.environ.get("GENLENS_SOURCE_STORE", str(BASE_DIR / "state" / "newsroom.db")))
+SENT_HISTORY_PATH = Path(os.environ.get("GENLENS_SENT_HISTORY", str(BASE_DIR / "state" / "sent_brief_history.json")))
 
 PHASE_1_VERTICALS = [
     "Product Photography",
@@ -371,6 +375,27 @@ def source_path_for_lens(lens: str) -> Path:
 
 def load_sources(lens: str = "genny") -> dict[str, Any]:
     return json.loads(source_path_for_lens(lens).read_text())
+
+
+def load_recent_sent_urls(path: Path = SENT_HISTORY_PATH, limit: int = 14) -> set[str]:
+    """Return canonical URLs delivered in the recent editorial window."""
+    if not path.exists():
+        return set()
+    try:
+        rows = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return set()
+    if not isinstance(rows, list):
+        return set()
+    urls: set[str] = set()
+    for row in rows[-limit:]:
+        if not isinstance(row, dict):
+            continue
+        for value in row.get("urls", []):
+            canonical = signal_ledger.canonicalize_url(str(value))
+            if canonical:
+                urls.add(canonical)
+    return urls
 
 
 def strip_text(value: str | None) -> str:
@@ -996,6 +1021,13 @@ def quality_review(vertical: str, source: dict[str, Any], title: str, summary: s
             return False, 0, "missing explicit generative-AI production mechanism"
         if vertical == "Game Development / Real-Time 3D" and not GAME_GENERATIVE_PRODUCTION_PATTERNS.search(text):
             return False, 0, "missing generative game-production mechanism"
+        if review_source_type(source, url) not in {"official_updates", "release_notes", "github_releases"}:
+            title_establishes_signal = bool(
+                genny_required.search(title)
+                and GENNY_AI_MECHANISM_PATTERNS.search(title)
+            )
+            if not title_establishes_signal:
+                return False, 0, "headline does not establish an AI-production signal"
         coherent_genny_evidence = any(
             genny_required.search(field)
             and GENNY_AI_MECHANISM_PATTERNS.search(field)
@@ -1504,6 +1536,59 @@ def fetch_feed_source(
         return [], reviews, f"{source.get('name', 'Source')}: {exc}"
 
 
+def newsroom_source_record(source: dict[str, Any], vertical: str) -> dict[str, Any]:
+    source_type = str(source.get("source_type") or "")
+    if source_type == "news_search":
+        tier = "discovery"
+    elif source_type == "newsletter":
+        tier = "newsletter"
+    elif source_type in {"official_sitemap", "official_updates", "release_notes", "github_releases"}:
+        tier = "first_party"
+    else:
+        tier = "trade"
+    return {
+        "name": source.get("name", "Source"),
+        "url": source.get("url") or source.get("rss") or source.get("sitemap"),
+        "feed_url": source.get("rss") or source.get("sitemap") or "",
+        "tier": tier,
+        "vertical": vertical,
+        "priority": source.get("priority", "medium"),
+        "daily_intake": source.get("daily_intake", True),
+    }
+
+
+def persist_newsroom_reviews(
+    conn: sqlite3.Connection,
+    source_id: int,
+    vertical: str,
+    reviews: list[dict[str, Any]],
+) -> None:
+    """Copy fresh verifier decisions into the operational Source OS."""
+    for review in reviews:
+        candidate_id = newsroom_store.add_candidate(conn, {
+            "source_id": source_id,
+            "fingerprint": review.get("signal_id") or signal_ledger.stable_signal_id(
+                str(review.get("url") or ""),
+                str(review.get("title") or ""),
+            ),
+            "url": review.get("canonical_url") or review.get("url") or "",
+            "title": review.get("title") or "",
+            "summary": review.get("summary") or "",
+            "vertical": vertical,
+            "published_at": review.get("published_at"),
+        })
+        if candidate_id is None:
+            continue
+        accepted = str(review.get("status") or "") in {"qualified", "published"}
+        newsroom_store.record_review(
+            conn,
+            candidate_id,
+            accepted=accepted,
+            score=int(review.get("score") or 0),
+            reason=str(review.get("reason") or "unspecified"),
+        )
+
+
 def collect_feed_candidates(
     vertical_rows: list[tuple[str, str]],
     data_by_lens: dict[str, Any],
@@ -1511,6 +1596,7 @@ def collect_feed_candidates(
     lens: str,
     source_budget_per_vertical: int = 0,
     max_workers: int = MAX_FEED_WORKERS,
+    store_conn: sqlite3.Connection | None = None,
 ) -> dict[tuple[str, str], tuple[list[dict[str, str]], list[dict[str, Any]], list[str], int]]:
     """Collect bounded feed/sitemap work concurrently, preserving source budgets."""
     jobs: list[tuple[tuple[str, str], dict[str, Any]]] = []
@@ -1518,9 +1604,29 @@ def collect_feed_candidates(
     priority_rank = {"high": 0, "medium": 1, "low": 2}
     for current_lens, vertical in vertical_rows:
         sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
+        feed_sources = [
+            source for source in sources
+            if (source.get("rss") or source.get("sitemap"))
+            and source.get("daily_intake") is not False
+        ]
+        health_by_source: dict[int, dict[str, Any]] = {}
+        if store_conn is not None:
+            for source in feed_sources:
+                source_id = newsroom_store.upsert_source(
+                    store_conn,
+                    newsroom_source_record(source, vertical),
+                )
+                source["_newsroom_source_id"] = source_id
+                health_by_source[source_id] = newsroom_store.source_health(store_conn, source_id)
         feed_sources = sorted(
-            (source for source in sources if source.get("rss") or source.get("sitemap")),
+            feed_sources,
             key=lambda row: (
+                1
+                if (
+                    health_by_source.get(int(row.get("_newsroom_source_id") or 0), {}).get("fetch_attempts", 0) >= 3
+                    and health_by_source.get(int(row.get("_newsroom_source_id") or 0), {}).get("fetch_success_rate", 1.0) < 0.5
+                )
+                else 0,
                 priority_rank.get(str(row.get("priority") or "medium"), 1),
                 str(row.get("name") or ""),
             ),
@@ -1545,8 +1651,18 @@ def collect_feed_candidates(
             for key, source in jobs
         }
         for future in concurrent.futures.as_completed(future_map):
-            key, _source = future_map[future]
+            key, source = future_map[future]
             items, reviews, error = future.result()
+            source_id = int(source.get("_newsroom_source_id") or 0)
+            if store_conn is not None and source_id:
+                newsroom_store.record_source_run(
+                    store_conn,
+                    source_id,
+                    ok=not error,
+                    candidates_found=len(items),
+                    failure_reason=error or None,
+                )
+                persist_newsroom_reviews(store_conn, source_id, key[1], reviews)
             candidates, candidate_reviews, errors, count = collected[key]
             candidates.extend(items)
             candidate_reviews.extend(reviews)
@@ -1933,6 +2049,7 @@ def is_near_duplicate_topic(left: set[str], right: set[str]) -> bool:
 def rank_items(
     items: list[dict[str, str]],
     reviews: list[dict[str, Any]] | None = None,
+    excluded_urls: set[str] | None = None,
 ) -> list[dict[str, str]]:
     seen: set[str] = set()
     deduped: list[dict[str, str]] = []
@@ -1951,12 +2068,16 @@ def rank_items(
     )
     for item in ordered_items:
         key = item_key(item)
+        canonical_url = signal_ledger.canonicalize_url(item.get("url", ""))
         review_id = item.get("_review_id", "")
         if not key:
             signal_ledger.update_review_status(reviews or [], review_id, "rejected", "missing signal key")
             continue
         if key in seen:
             signal_ledger.update_review_status(reviews or [], review_id, "rejected", "duplicate signal")
+            continue
+        if canonical_url and canonical_url in (excluded_urls or set()):
+            signal_ledger.update_review_status(reviews or [], review_id, "rejected", "recently delivered signal")
             continue
         tokens = topic_tokens(item.get("title", ""))
         if any(is_near_duplicate_topic(tokens, existing) for existing in topic_token_sets):
@@ -2001,6 +2122,8 @@ def compose(
     browser_task_type: str = "dynamic-source",
     browser_max_steps: int = BROWSER_MAX_STEPS,
     browser_timeout: int = BROWSER_TIMEOUT,
+    excluded_urls: set[str] | None = None,
+    source_store_path: Path | None = SOURCE_STORE_PATH,
 ) -> str:
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
     lenses = ["genny", "marti"] if lens == "unified" else [lens]
@@ -2036,14 +2159,20 @@ def compose(
     coverage_gaps: list[str] = []
     published_cards: list[dict[str, str]] = []
     candidate_reviews: list[dict[str, Any]] = []
-    feed_results = collect_feed_candidates(
-        vertical_rows,
-        data_by_lens,
-        rss_limit,
-        lens,
-        source_budget_per_vertical=source_budget_per_vertical,
-        max_workers=max_workers,
-    )
+    store_conn = newsroom_store.connect(source_store_path) if source_store_path is not None else None
+    try:
+        feed_results = collect_feed_candidates(
+            vertical_rows,
+            data_by_lens,
+            rss_limit,
+            lens,
+            source_budget_per_vertical=source_budget_per_vertical,
+            max_workers=max_workers,
+            store_conn=store_conn,
+        )
+    finally:
+        if store_conn is not None:
+            store_conn.close()
     exa_results = collect_exa_candidates(
         vertical_rows,
         data_by_lens,
@@ -2069,7 +2198,11 @@ def compose(
         sources = data_by_lens[current_lens].get("verticals", {}).get(vertical, [])
         candidates: list[dict[str, str]] = []
         errors: list[str] = []
-        feed_sources = [source for source in sources if source.get("rss") or source.get("sitemap")]
+        feed_sources = [
+            source for source in sources
+            if (source.get("rss") or source.get("sitemap"))
+            and source.get("daily_intake") is not False
+        ]
         manual_sources = [
             source
             for source in sources
@@ -2099,7 +2232,7 @@ def compose(
             error if str(error).startswith("Browser Use:") else f"Browser Use: {error}"
             for error in browser_errors
         )
-        picked = rank_items(candidates, candidate_reviews)
+        picked = rank_items(candidates, candidate_reviews, excluded_urls)
         if include_manual and len(picked) < per_vertical and manual_sources:
             priority_rank = {"high": 0, "medium": 1, "low": 2}
             for source in sorted(
@@ -2121,7 +2254,7 @@ def compose(
                     errors.append(f"{source.get('name', 'Source')}: {exc}")
                 except Exception as exc:
                     errors.append(f"{source.get('name', 'Source')}: {exc}")
-            picked = rank_items(candidates, candidate_reviews)
+            picked = rank_items(candidates, candidate_reviews, excluded_urls)
         for item in picked[:per_vertical]:
             signal_ledger.update_review_status(
                 candidate_reviews,
@@ -2313,6 +2446,8 @@ def main() -> int:
     parser.add_argument("--browser-task-type", choices=["dynamic-source", "career", "community"], default=os.environ.get("GENLENS_BROWSER_TASK_TYPE", "dynamic-source"))
     parser.add_argument("--browser-max-steps", type=int, default=BROWSER_MAX_STEPS)
     parser.add_argument("--browser-timeout", type=int, default=BROWSER_TIMEOUT)
+    parser.add_argument("--sent-history", default=str(SENT_HISTORY_PATH))
+    parser.add_argument("--source-store", default=str(SOURCE_STORE_PATH))
     args = parser.parse_args()
     out = Path(args.out)
     suffix = "" if args.lens == "genny" else f"_{args.lens}"
@@ -2334,6 +2469,8 @@ def main() -> int:
         args.browser_task_type,
         max(1, min(args.browser_max_steps, 20)),
         max(10, min(args.browser_timeout, 180)),
+        load_recent_sent_urls(Path(args.sent_history)),
+        Path(args.source_store) if args.source_store else None,
     )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)

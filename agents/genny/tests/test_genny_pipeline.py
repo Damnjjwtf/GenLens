@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -80,6 +81,19 @@ class GennyPipelineTests(unittest.TestCase):
                     composer.source_domain(source["sitemap"]),
                 )
 
+    def test_newsroom_tiers_distinguish_trade_and_first_party_sources(self) -> None:
+        trade = composer.newsroom_source_record(
+            {"name": "Trade", "url": "https://trade.example.com", "rss": "https://trade.example.com/feed"},
+            "AI Filmmaking",
+        )
+        official = composer.newsroom_source_record(
+            {"name": "Official", "url": "https://vendor.example.com", "source_type": "official_updates"},
+            "AI Filmmaking",
+        )
+
+        self.assertEqual(trade["tier"], "trade")
+        self.assertEqual(official["tier"], "first_party")
+
     def test_sitemap_parser_rejects_cross_domain_and_out_of_scope_urls(self) -> None:
         body = b"""<?xml version="1.0" encoding="UTF-8"?>
         <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -149,7 +163,7 @@ class GennyPipelineTests(unittest.TestCase):
             url="https://vendor.example.com/blog/q2-release",
         )
         self.assertFalse(rejected[0])
-        self.assertEqual(rejected[2], "missing concrete AI-production ecosystem change")
+        self.assertEqual(rejected[2], "headline does not establish an AI-production signal")
 
     def test_generic_engine_and_renderer_releases_are_not_ai_production_signals(self) -> None:
         cases = [
@@ -170,6 +184,23 @@ class GennyPipelineTests(unittest.TestCase):
                 accepted, _score, reason = self.review(vertical, title, summary)
                 self.assertFalse(accepted)
                 self.assertEqual(reason, "missing explicit generative-AI production mechanism")
+
+    def test_incidental_ai_reference_cannot_rescue_an_unrelated_trade_headline(self) -> None:
+        accepted, _score, reason = self.review(
+            "AI Filmmaking",
+            "Dungeon Crawler Carl sells ten million copies",
+            "A film adaptation was mentioned in a long profile that also says one company is run by AI.",
+            source={
+                "name": "Entertainment trade feed",
+                "url": "https://trade.example.com/",
+                "source_type": "publication",
+                "priority": "medium",
+            },
+            url="https://trade.example.com/news/dungeon-crawler-carl",
+        )
+
+        self.assertFalse(accepted)
+        self.assertEqual(reason, "headline does not establish an AI-production signal")
 
     def test_game_automation_requires_a_generative_production_artifact(self) -> None:
         automation = self.review(
@@ -412,6 +443,45 @@ class GennyPipelineTests(unittest.TestCase):
 
         self.assertEqual(len(ranked), 1)
         self.assertEqual(ranked[0]["source"], "Runway")
+
+    def test_recently_delivered_urls_are_removed_before_selection(self) -> None:
+        reviews = [{
+            "review_id": "rev_recent",
+            "status": "qualified",
+            "reason": "publishable",
+            "source_type": "publication",
+            "authoritative": False,
+        }]
+        item = {
+            "title": "Runway launches AI video editing controls",
+            "url": "https://example.com/story?utm_source=newsletter",
+            "source": "Example",
+            "priority": "high",
+            "score": "9",
+            "date": self.today,
+            "_review_id": "rev_recent",
+        }
+
+        ranked = composer.rank_items(
+            [item],
+            reviews,
+            {"https://example.com/story"},
+        )
+
+        self.assertEqual(ranked, [])
+        self.assertEqual(reviews[0]["status"], "rejected")
+        self.assertEqual(reviews[0]["reason"], "recently delivered signal")
+
+    def test_sent_history_loader_canonicalizes_tracking_urls(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sent.json"
+            path.write_text(json.dumps([
+                {"urls": ["https://www.example.com/story/?utm_source=email#top"]},
+            ]))
+
+            urls = composer.load_recent_sent_urls(path)
+
+        self.assertEqual(urls, {"https://example.com/story"})
 
     def test_recommendation_classifier_ignores_page_chrome_pricing_and_briefs_labeling(self) -> None:
         runway = ledger.decision_enrichment(

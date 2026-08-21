@@ -32,6 +32,11 @@ TOOL_CANDIDATES_PATH = DATA_DIR / "tool_candidates.json"
 SENT_HISTORY_PATH = STATE_DIR / "sent_brief_history.json"
 CONVERGENCE_REVIEWS_PATH = STATE_DIR / "convergence_reviews.json"
 MIN_VERIFIED_CONVERGENCE = 3
+EDITORIAL_MINIMUMS = {
+    "genny": (8, 4),
+    "marti": (6, 3),
+    "unified": (10, 5),
+}
 
 
 def run(cmd: list[str], timeout: float | None = None) -> subprocess.CompletedProcess[str]:
@@ -294,8 +299,9 @@ def main() -> int:
     convergence_brief_path = STATE_DIR / "convergence_brief.md" if args.lens == "unified" else None
     tool_candidates_path = DATA_DIR / f"tool_candidates{suffix}.json"
     promotion_log_path = Path(args.evaluation_log) if args.evaluation_log else STATE_DIR / "lens_evaluations.json"
-    min_cards = args.min_cards if args.min_cards is not None else {"genny": 12, "marti": 6, "unified": 12}[args.lens]
-    min_verticals = args.min_verticals if args.min_verticals is not None else {"genny": 5, "marti": 3, "unified": 6}[args.lens]
+    default_min_cards, default_min_verticals = EDITORIAL_MINIMUMS[args.lens]
+    min_cards = args.min_cards if args.min_cards is not None else default_min_cards
+    min_verticals = args.min_verticals if args.min_verticals is not None else default_min_verticals
 
     if not args.fast:
         run(["python3", str(SCRIPT_DIR / "genlens_audit_sources.py"), "--lens", args.lens, "--limit", "8", "--out", str(audit_path)])
@@ -307,6 +313,8 @@ def main() -> int:
         "--rss-limit", str(args.rss_limit),
         "--out", str(brief_path),
         "--ledger-out", str(signal_ledger_path),
+        "--sent-history", str(SENT_HISTORY_PATH),
+        "--source-store", str(STATE_DIR / "newsroom.db"),
     ]
     if os.environ.get("GENLENS_EXA_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}:
         compose_cmd.extend([

@@ -65,8 +65,14 @@ class StoreTests(unittest.TestCase):
         store.record_source_run(self.conn, sid, ok=True, candidates_found=3)
         store.record_source_run(self.conn, sid, ok=False, failure_reason="timeout")
         health = store.source_health(self.conn, sid)
+        self.assertEqual(health["fetch_attempts"], 2)
         self.assertEqual(health["fetch_success_rate"], 0.5)
         self.assertEqual(health["last_failure_reason"], "timeout")
+
+        store.record_source_run(self.conn, sid, ok=True, candidates_found=1)
+        health = store.source_health(self.conn, sid)
+        self.assertEqual(health["fetch_attempts"], 3)
+        self.assertIsNone(health["last_failure_reason"])
 
     def test_candidate_dedup_and_negative_memory(self) -> None:
         sid = store.upsert_source(self.conn, self.source())
@@ -112,7 +118,7 @@ class StoreTests(unittest.TestCase):
                     {"name": "Runway", "url": "https://runwayml.com/blog", "rss": "",
                      "priority": "high"},
                     {"name": "ComfyUI Commits", "url": "https://github.com/x/commits",
-                     "rss": "https://github.com/x/commits.atom"},
+                     "rss": "https://github.com/x/commits.atom", "daily_intake": False},
                     {"name": "AI News Search", "url": "https://news.google.com/search?q=x",
                      "rss": "https://news.google.com/search?q=x", "source_type": "news_search"},
                 ]
@@ -128,6 +134,7 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(tiers["Runway"][0], "first_party")
         # google news search -> discovery, feed present so daily-eligible as a lead
         self.assertEqual(tiers["AI News Search"][0], "discovery")
+        self.assertEqual(tiers["ComfyUI Commits"][1], 0)
 
 
 if __name__ == "__main__":

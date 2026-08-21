@@ -197,7 +197,7 @@ def record_source_run(
         UPDATE sources SET
             fetch_attempts = fetch_attempts + 1,
             fetch_successes = fetch_successes + ?,
-            last_failure_reason = CASE WHEN ? THEN last_failure_reason ELSE ? END,
+            last_failure_reason = CASE WHEN ? THEN NULL ELSE ? END,
             updated_at = ?
         WHERE id = ?
         """,
@@ -333,6 +333,7 @@ def source_health(conn: sqlite3.Connection, source_id: int) -> dict[str, Any]:
         "source_id": source_id,
         "name": row["name"],
         "tier": row["tier"],
+        "fetch_attempts": attempts,
         "fetch_success_rate": round(fetch_rate, 3),
         "qualified_candidates": row["qualified_candidates"],
         "duplicate_candidates": row["duplicate_candidates"],
@@ -370,7 +371,10 @@ def import_registry_sources(
                     "tier": tier,
                     "vertical": vertical,
                     "priority": source.get("priority", "medium"),
-                    "daily_intake": bool(feed) or tier == "first_party",
+                    "daily_intake": source.get(
+                        "daily_intake",
+                        bool(feed) or tier == "first_party",
+                    ),
                 },
             )
             count += 1
