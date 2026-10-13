@@ -38,5 +38,5 @@ jobs:
         run: python3 -m unittest discover -s agents/genny/tests -p test_push_ledger.py -v
       - name: New code compilation
         run: python3 -m compileall -q agents/genny/scripts/genlens_push_ledger.py
-      - name: Next.js integration build
-        run: npm run build
+      # The app's existing prerendered /tools, /llms.txt and sitemap routes require
+      # a live DATABASE_URL. Build verification runs via the protected Vercel preview.
