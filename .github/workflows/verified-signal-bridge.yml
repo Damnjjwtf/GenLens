@@ -31,6 +31,9 @@ jobs:
       - run: npm ci
       - name: TypeScript validation tests
         run: npx tsx --test tests/verified-signal-validation.test.ts
+      - name: Repository-wide TypeScript check (existing debt, advisory)
+        run: npx tsc --noEmit
+        continue-on-error: true
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
