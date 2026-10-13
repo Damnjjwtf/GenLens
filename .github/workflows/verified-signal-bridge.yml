@@ -1,0 +1,42 @@
+name: GenLens verified signal bridge
+
+on:
+  pull_request:
+    paths:
+      - 'app/api/ingest/**'
+      - 'app/admin/verified-signals/**'
+      - 'lib/ingest/**'
+      - 'lib/migrations/009_verified_signal_ingest.sql'
+      - 'agents/genny/scripts/genlens_push_ledger.py'
+      - 'agents/genny/tests/test_push_ledger.py'
+      - 'tests/verified-signal-validation.test.ts'
+      - '.github/workflows/verified-signal-bridge.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Contract and retry safety
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: TypeScript validation tests
+        run: npx tsx --test tests/verified-signal-validation.test.ts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python retry and checkpoint tests
+        run: python3 -m unittest discover -s agents/genny/tests -p test_push_ledger.py -v
+      - name: New code compilation
+        run: python3 -m compileall -q agents/genny/scripts/genlens_push_ledger.py
+      - name: Next.js integration build
+        run: npm run build
