@@ -1,0 +1,26 @@
+name: GenLens landing review
+
+on:
+  pull_request:
+    paths:
+      - 'components/Landing.tsx'
+      - 'app/page.tsx'
+      - '.github/workflows/landing-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
