@@ -24,6 +24,13 @@ from genlens_signal_ledger import validate_signal_ledger
 SCHEMA_VERSION = "1.0.0"
 
 
+class RejectRedirects(urllib.request.HTTPRedirectHandler):
+    """Never forward the ingestion bearer token across HTTP redirects."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 def event_for(actor: str, record: dict[str, Any]) -> dict[str, Any]:
     """Stable event identity for identical actor + ledger snapshot."""
     serialized = json.dumps(record, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
@@ -100,7 +107,7 @@ def send_event(url: str, token: str, event: dict[str, Any], timeout: float = 20.
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with urllib.request.build_opener(RejectRedirects).open(request, timeout=timeout) as response:
             status = response.status
             result = json.load(response)
     except urllib.error.HTTPError as exc:
